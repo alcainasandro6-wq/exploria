@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: t('hero_subtitle'),
     keywords: ['actividades torrevieja', 'turismo alicante', 'excursiones torrevieja', 'deportes acuáticos'],
     authors: [{ name: 'Exploria' }],
-    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://exploria.es'),
+    metadataBase: new URL((process.env.NEXT_PUBLIC_SITE_URL || 'https://exploria.es').trim().replace(/^﻿/, '')),
     openGraph: {
       type: 'website',
       locale: locale,
