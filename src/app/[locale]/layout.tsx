@@ -7,6 +7,20 @@ import { Footer } from '@/components/layout/Footer'
 import { CurrencyProvider } from '@/context/CurrencyContext'
 import { Toaster } from 'sonner'
 import type { Metadata } from 'next'
+import { Plus_Jakarta_Sans, Inter } from 'next/font/google'
+
+const displayFont = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-display',
+  display: 'swap',
+})
+
+const bodyFont = Inter({
+  subsets: ['latin'],
+  variable: '--font-body',
+  display: 'swap',
+})
 
 type Props = {
   children: React.ReactNode
@@ -66,12 +80,8 @@ export default async function LocaleLayout({ children, params }: Props) {
   }
 
   return (
-    <html lang={locale} suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-      </head>
-      <body className="min-h-screen w-full flex flex-col font-sans antialiased overflow-x-hidden">
+    <html lang={locale} suppressHydrationWarning className={`${displayFont.variable} ${bodyFont.variable}`}>
+      <body className="min-h-screen w-full flex flex-col antialiased overflow-x-hidden">
         <NextIntlClientProvider messages={messages}>
           <CurrencyProvider>
             <Navbar />

@@ -121,25 +121,24 @@ export default function ActivitiesPage() {
           <div className="flex items-center gap-2 py-3 overflow-x-auto scrollbar-hide">
             <button
               onClick={() => setActiveCategory(null)}
-              className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold transition-all ${
+              className={`shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-all ${
                 !activeCategory
-                  ? 'bg-[#0066FF] text-white shadow-md shadow-blue-500/25'
-                  : 'bg-white text-slate-600 border border-slate-200 hover:border-[#0066FF] hover:text-[#0066FF]'
+                  ? 'bg-[#1A56FF] text-white shadow-md shadow-blue-500/25'
+                  : 'bg-white text-slate-600 border border-slate-200 hover:border-[#1A56FF] hover:text-[#1A56FF]'
               }`}
             >
-              ✨ Todas
+              Todas
             </button>
             {CATEGORIES.map((cat) => (
               <button
                 key={cat.slug}
                 onClick={() => setActiveCategory(activeCategory === cat.slug ? null : cat.slug)}
-                className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold transition-all ${
+                className={`shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-all ${
                   activeCategory === cat.slug
-                    ? 'bg-[#0066FF] text-white shadow-md shadow-blue-500/25'
-                    : 'bg-white text-slate-600 border border-slate-200 hover:border-[#0066FF] hover:text-[#0066FF]'
+                    ? 'bg-[#1A56FF] text-white shadow-md shadow-blue-500/25'
+                    : 'bg-white text-slate-600 border border-slate-200 hover:border-[#1A56FF] hover:text-[#1A56FF]'
                 }`}
               >
-                <span>{cat.icon}</span>
                 {cat.name}
               </button>
             ))}

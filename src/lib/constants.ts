@@ -25,14 +25,14 @@ export const LOCALE_FLAGS: Record<string, string> = {
 }
 
 export const CATEGORIES = [
-  { id: 'water-sports', name: 'Deportes acuáticos', icon: '🏄', slug: 'deportes-acuaticos' },
-  { id: 'boat-tours', name: 'Excursiones en barco', icon: '⛵', slug: 'excursiones-barco' },
-  { id: 'kayak', name: 'Kayak y piragüismo', icon: '🚣', slug: 'kayak-piraguismo' },
-  { id: 'diving', name: 'Buceo y snorkel', icon: '🤿', slug: 'buceo-snorkel' },
-  { id: 'cultural', name: 'Tours culturales', icon: '🏛️', slug: 'tours-culturales' },
-  { id: 'gastronomy', name: 'Gastronomía', icon: '🍽️', slug: 'gastronomia' },
-  { id: 'nature', name: 'Naturaleza y senderismo', icon: '🌿', slug: 'naturaleza-senderismo' },
-  { id: 'nightlife', name: 'Vida nocturna', icon: '🌙', slug: 'vida-nocturna' },
+  { id: 'water-sports', name: 'Deportes acuáticos', icon: '', slug: 'deportes-acuaticos' },
+  { id: 'boat-tours', name: 'Excursiones en barco', icon: '', slug: 'excursiones-barco' },
+  { id: 'kayak', name: 'Kayak y piragüismo', icon: '', slug: 'kayak-piraguismo' },
+  { id: 'diving', name: 'Buceo y snorkel', icon: '', slug: 'buceo-snorkel' },
+  { id: 'cultural', name: 'Tours culturales', icon: '', slug: 'tours-culturales' },
+  { id: 'gastronomy', name: 'Gastronomía', icon: '', slug: 'gastronomia' },
+  { id: 'nature', name: 'Naturaleza y senderismo', icon: '', slug: 'naturaleza-senderismo' },
+  { id: 'nightlife', name: 'Vida nocturna', icon: '', slug: 'vida-nocturna' },
 ]
 
 export const SUBSCRIPTION_PLANS = {
