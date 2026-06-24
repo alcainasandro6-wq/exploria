@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from '@/i18n/navigation'
 import { Search, Star, ShieldCheck, MapPin } from 'lucide-react'
 import Image from 'next/image'
@@ -10,17 +10,32 @@ const POPULAR = ['Buceo', 'Kayak', 'Catamarán', 'Paddle surf', 'Gastronomía']
 export function Hero() {
   const router = useRouter()
   const [search, setSearch] = useState('')
+  const bgRef = useRef<HTMLDivElement>(null)
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     router.push(search.trim() ? `/activities?q=${encodeURIComponent(search)}` : '/activities')
   }
 
+  useEffect(() => {
+    const handleScroll = () => {
+      if (bgRef.current) {
+        bgRef.current.style.transform = `translateY(${window.scrollY * 0.38}px)`
+      }
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
   return (
     <section className="relative min-h-[100svh] flex flex-col justify-end overflow-hidden">
 
-      {/* Full-bleed photo */}
-      <div className="absolute inset-0">
+      {/* Parallax background — scaled up so parallax never shows gaps */}
+      <div
+        ref={bgRef}
+        className="absolute inset-0 scale-[1.2]"
+        style={{ transformOrigin: 'center top', willChange: 'transform' }}
+      >
         <Image
           src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1920&q=80"
           alt="Costa de Torrevieja"
@@ -28,16 +43,22 @@ export function Hero() {
           className="object-cover object-center"
           priority
         />
-        {/* Left-heavy gradient — shows photo on the right */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#070D1F]/95 via-[#070D1F]/65 to-[#070D1F]/20" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#070D1F]/70 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#070D1F]/95 via-[#070D1F]/60 to-[#070D1F]/15" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#070D1F]/75 via-transparent to-transparent" />
       </div>
 
-      {/* Content — left-aligned, editorial */}
+      {/* Floating ambient orbs — layered above parallax, below content */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[20%] right-[18%] w-[550px] h-[550px] rounded-full bg-blue-600/6 blur-[110px] animate-orb-1" />
+        <div className="absolute top-[30%] right-[32%] w-[350px] h-[350px] rounded-full bg-indigo-500/8 blur-[80px] animate-orb-2" />
+        <div className="absolute bottom-[28%] left-[12%] w-[280px] h-[280px] rounded-full bg-sky-400/6 blur-[70px] animate-orb-3" />
+      </div>
+
+      {/* Content — editorial, left-aligned */}
       <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-28 md:pb-36 pt-36">
         <div className="max-w-2xl lg:max-w-3xl">
 
-          <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-white/40 mb-6">
+          <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-white/35 mb-6">
             Costa Blanca · Torrevieja · España
           </p>
 
@@ -47,7 +68,7 @@ export function Hero() {
             como nunca
           </h1>
 
-          <p className="text-white/60 text-base md:text-lg mb-10 max-w-md leading-relaxed">
+          <p className="text-white/55 text-base md:text-lg mb-10 max-w-md leading-relaxed">
             Más de 150 actividades con proveedores locales verificados en la Costa Blanca.
           </p>
 
@@ -75,12 +96,12 @@ export function Hero() {
 
           {/* Popular tags */}
           <div className="flex flex-wrap items-center gap-2 mb-14">
-            <span className="text-white/35 text-[11px] uppercase tracking-[0.2em] mr-1">Popular:</span>
+            <span className="text-white/30 text-[11px] uppercase tracking-[0.2em] mr-1">Popular:</span>
             {POPULAR.map((term) => (
               <button
                 key={term}
                 onClick={() => router.push(`/activities?q=${encodeURIComponent(term)}`)}
-                className="text-xs text-white/75 bg-white/8 hover:bg-white/18 border border-white/12 hover:border-white/30 rounded-full px-4 py-1.5 transition-all backdrop-blur-sm"
+                className="text-xs text-white/70 bg-white/8 hover:bg-white/18 border border-white/10 hover:border-white/28 rounded-full px-4 py-1.5 transition-all backdrop-blur-sm"
               >
                 {term}
               </button>
@@ -88,17 +109,17 @@ export function Hero() {
           </div>
 
           {/* Trust bar */}
-          <div className="flex flex-wrap items-center gap-6 text-white/50">
+          <div className="flex flex-wrap items-center gap-6 text-white/45">
             <div className="flex items-center gap-2 text-sm">
               <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
               <span>+500 reseñas verificadas</span>
             </div>
-            <div className="hidden sm:block w-px h-4 bg-white/15" />
+            <div className="hidden sm:block w-px h-4 bg-white/12" />
             <div className="flex items-center gap-2 text-sm">
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
               <span>Proveedores verificados</span>
             </div>
-            <div className="hidden sm:block w-px h-4 bg-white/15" />
+            <div className="hidden sm:block w-px h-4 bg-white/12" />
             <div className="flex items-center gap-2 text-sm">
               <MapPin className="w-4 h-4 text-sky-400" />
               <span>Experiencias locales auténticas</span>

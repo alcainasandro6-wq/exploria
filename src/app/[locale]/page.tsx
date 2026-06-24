@@ -3,7 +3,6 @@ import { FeaturedActivities } from '@/components/home/FeaturedActivities'
 import { Categories } from '@/components/home/Categories'
 import { StatsSection } from '@/components/home/StatsSection'
 import { ProviderCTA } from '@/components/home/ProviderCTA'
-import { ReviewsSection } from '@/components/home/ReviewsSection'
 import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 
@@ -27,7 +26,6 @@ export default function HomePage() {
       <FeaturedActivities />
       <Categories />
       <StatsSection />
-      <ReviewsSection />
       <ProviderCTA />
     </>
   )
