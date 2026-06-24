@@ -20,8 +20,7 @@ export function Footer() {
     { href: '/blog', label: 'Blog' },
     { href: '/contact', label: 'Contacto' },
     { href: '/faq', label: 'FAQ' },
-    { href: '/auth/register?role=provider', label: 'Soy proveedor' },
-    { href: '/auth/register?role=hotel', label: 'Soy hotel' },
+    { href: '/providers', label: 'Publica tus actividades' },
   ]
 
   const legal = [

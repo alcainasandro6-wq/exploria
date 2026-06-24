@@ -1,8 +1,8 @@
 import { CreditCard, CheckCircle2, AlertTriangle, XCircle } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Link } from '@/i18n/navigation'
-import { formatPrice, formatDate } from '@/lib/utils'
+import { formatPrice, formatDate, cn } from '@/lib/utils'
 import type { SubscriptionStatus } from '@/types/database'
 
 interface SubscriptionBannerProps {
@@ -27,8 +27,11 @@ export function SubscriptionBanner({ subscription }: SubscriptionBannerProps) {
             Necesitas una suscripción activa para publicar actividades y recibir reservas.
           </p>
         </div>
-        <Link href="/dashboard/provider/subscription">
-          <Button className="shrink-0">Suscribirse ahora</Button>
+        <Link 
+          href="/dashboard/provider/subscription"
+          className={cn(buttonVariants(), 'shrink-0')}
+        >
+          Suscribirse ahora
         </Link>
       </div>
     )
@@ -59,8 +62,11 @@ export function SubscriptionBanner({ subscription }: SubscriptionBannerProps) {
           Próxima facturación: {formatDate(subscription.nextBilling)} · {formatPrice(subscription.price)}/mes
         </p>
       </div>
-      <Link href="/dashboard/provider/subscription">
-        <Button variant="outline" size="sm" className="shrink-0">Gestionar plan</Button>
+      <Link 
+        href="/dashboard/provider/subscription"
+        className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'shrink-0')}
+      >
+        Gestionar plan
       </Link>
     </div>
   )

@@ -4,12 +4,12 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { useTranslations, useLocale } from 'next-intl'
 import { Link, usePathname, useRouter } from '@/i18n/navigation'
-import { Menu, X, Globe, ChevronDown, User, LayoutDashboard, LogOut } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Menu, X, ChevronDown, User, LayoutDashboard, LogOut } from 'lucide-react'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { createClient } from '@/lib/supabase/client'
 import { cn, getInitials } from '@/lib/utils'
-import { LOCALE_NAMES, LOCALES } from '@/lib/constants'
+import { LOCALE_NAMES, LOCALE_FLAGS, LOCALES } from '@/lib/constants'
 import type { Profile } from '@/types/database'
 
 export function Navbar() {
@@ -112,13 +112,13 @@ export function Navbar() {
                 onClick={() => setIsLangOpen(!isLangOpen)}
                 className="flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900 px-2 py-1.5 rounded-lg hover:bg-slate-50 transition-colors"
               >
-                <Globe className="w-4 h-4" />
+                <span className="text-base leading-none">{LOCALE_FLAGS[locale]}</span>
                 <span className="uppercase font-medium">{locale}</span>
                 <ChevronDown className="w-3 h-3" />
               </button>
 
               {isLangOpen && (
-                <div className="absolute right-0 top-full mt-1 w-40 bg-white rounded-xl shadow-lg border border-slate-100 py-1 z-50">
+                <div className="absolute right-0 top-full mt-1 w-44 bg-white rounded-xl shadow-lg border border-slate-100 py-1 z-50">
                   {LOCALES.map((loc) => (
                     <button
                       key={loc}
@@ -127,10 +127,11 @@ export function Navbar() {
                         setIsLangOpen(false)
                       }}
                       className={cn(
-                        'w-full text-left px-4 py-2 text-sm transition-colors hover:bg-slate-50',
+                        'w-full text-left px-4 py-2 text-sm transition-colors hover:bg-slate-50 flex items-center gap-2.5',
                         locale === loc ? 'text-[#0066FF] font-medium' : 'text-slate-700'
                       )}
                     >
+                      <span className="text-base leading-none">{LOCALE_FLAGS[loc]}</span>
                       {LOCALE_NAMES[loc]}
                     </button>
                   ))}
@@ -185,11 +186,17 @@ export function Navbar() {
               </div>
             ) : (
               <>
-                <Link href="/auth/login">
-                  <Button variant="ghost" size="sm">{t('login')}</Button>
+                <Link 
+                  href="/auth/login"
+                  className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }))}
+                >
+                  {t('login')}
                 </Link>
-                <Link href="/auth/register">
-                  <Button size="sm">{t('register')}</Button>
+                <Link 
+                  href="/auth/register"
+                  className={cn(buttonVariants({ size: 'sm' }))}
+                >
+                  {t('register')}
                 </Link>
               </>
             )}
@@ -220,10 +227,12 @@ export function Navbar() {
             <div className="pt-2 border-t border-slate-100 flex flex-col gap-2 px-4">
               {user ? (
                 <>
-                  <Link href={getDashboardPath()}>
-                    <Button variant="outline" className="w-full" onClick={() => setIsMenuOpen(false)}>
-                      {t('dashboard')}
-                    </Button>
+                  <Link 
+                    href={getDashboardPath()}
+                    className={cn(buttonVariants({ variant: 'outline' }), 'w-full justify-center')}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {t('dashboard')}
                   </Link>
                   <Button variant="ghost" className="w-full text-red-600" onClick={handleSignOut}>
                     {t('logout')}
@@ -231,11 +240,19 @@ export function Navbar() {
                 </>
               ) : (
                 <>
-                  <Link href="/auth/login" onClick={() => setIsMenuOpen(false)}>
-                    <Button variant="outline" className="w-full">{t('login')}</Button>
+                  <Link 
+                    href="/auth/login" 
+                    className={cn(buttonVariants({ variant: 'outline' }), 'w-full justify-center')}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {t('login')}
                   </Link>
-                  <Link href="/auth/register" onClick={() => setIsMenuOpen(false)}>
-                    <Button className="w-full">{t('register')}</Button>
+                  <Link 
+                    href="/auth/register" 
+                    className={cn(buttonVariants(), 'w-full justify-center')}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {t('register')}
                   </Link>
                 </>
               )}

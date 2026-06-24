@@ -4,7 +4,7 @@ export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://exploria.es
 
 export const LOCALES = ['es', 'en', 'fr', 'de', 'pl', 'ru'] as const
 export type Locale = (typeof LOCALES)[number]
-export const DEFAULT_LOCALE: Locale = 'es'
+export const DEFAULT_LOCALE: Locale = 'en'
 
 export const LOCALE_NAMES: Record<string, string> = {
   es: 'Español',
@@ -13,6 +13,15 @@ export const LOCALE_NAMES: Record<string, string> = {
   de: 'Deutsch',
   pl: 'Polski',
   ru: 'Русский',
+}
+
+export const LOCALE_FLAGS: Record<string, string> = {
+  es: '🇪🇸',
+  en: '🇬🇧',
+  fr: '🇫🇷',
+  de: '🇩🇪',
+  pl: '🇵🇱',
+  ru: '🇷🇺',
 }
 
 export const CATEGORIES = [

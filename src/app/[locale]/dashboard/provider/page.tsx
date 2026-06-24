@@ -5,9 +5,9 @@ import {
   Package, Calendar, DollarSign, TrendingUp, Eye, Star, AlertCircle, PlusCircle
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { formatPrice, formatDate } from '@/lib/utils'
+import { formatPrice, formatDate, cn } from '@/lib/utils'
 import { Link } from '@/i18n/navigation'
 
 const MOCK_SUBSCRIPTION = {
@@ -51,11 +51,12 @@ export default function ProviderDashboardPage() {
             <h1 className="text-2xl font-bold text-slate-900">Panel de Proveedor</h1>
             <p className="text-slate-500 mt-1">Buceo Mediterráneo</p>
           </div>
-          <Link href="/dashboard/provider/activities/new">
-            <Button>
-              <PlusCircle className="w-4 h-4 mr-2" />
-              Nueva actividad
-            </Button>
+          <Link 
+            href="/dashboard/provider/activities/new"
+            className={cn(buttonVariants(), 'flex items-center')}
+          >
+            <PlusCircle className="w-4 h-4 mr-2" />
+            Nueva actividad
           </Link>
         </div>
 
@@ -83,8 +84,11 @@ export default function ProviderDashboardPage() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>Mis actividades</CardTitle>
-                <Link href="/dashboard/provider/activities">
-                  <Button variant="ghost" size="sm">Ver todas</Button>
+                <Link 
+                  href="/dashboard/provider/activities"
+                  className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }))}
+                >
+                  Ver todas
                 </Link>
               </div>
             </CardHeader>
@@ -125,8 +129,11 @@ export default function ProviderDashboardPage() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>Reservas pendientes</CardTitle>
-                <Link href="/dashboard/provider/bookings">
-                  <Button variant="ghost" size="sm">Ver todas</Button>
+                <Link 
+                  href="/dashboard/provider/bookings"
+                  className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }))}
+                >
+                  Ver todas
                 </Link>
               </div>
             </CardHeader>

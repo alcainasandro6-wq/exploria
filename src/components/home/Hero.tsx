@@ -52,12 +52,6 @@ export function Hero() {
 
       {/* Content */}
       <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-20 pb-36 md:pt-28 md:pb-44">
-        {/* Location badge */}
-        <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/25 rounded-full px-5 py-2 text-white text-sm font-medium mb-8">
-          <MapPin className="w-4 h-4 text-yellow-300 shrink-0" />
-          <span>Torrevieja, Alicante · España</span>
-        </div>
-
         {/* Title */}
         <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white leading-[1.05] tracking-tight mb-6">
           {t('hero_title')}

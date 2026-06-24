@@ -19,7 +19,7 @@ export function ActivityCard({ activity, compact = false }: ActivityCardProps) {
     <Link href={`/activities/${activity.slug}`} className="group block">
       <div className="bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
         {/* Image */}
-        <div className={cn('relative overflow-hidden', compact ? 'h-44' : 'h-52')}>
+        <div className={cn('relative overflow-hidden', compact ? 'h-44' : 'h-56')}>
           <Image
             src={coverImage}
             alt={activity.title}
