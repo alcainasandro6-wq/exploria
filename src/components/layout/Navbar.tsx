@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Image from 'next/image'
 import { useTranslations, useLocale } from 'next-intl'
 import { Link, usePathname, useRouter } from '@/i18n/navigation'
 import { Menu, X, ChevronDown, User, LayoutDashboard, LogOut } from 'lucide-react'
@@ -9,8 +8,13 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { createClient } from '@/lib/supabase/client'
 import { cn, getInitials } from '@/lib/utils'
-import { LOCALE_NAMES, LOCALE_FLAGS, LOCALES } from '@/lib/constants'
+import { LOCALE_NAMES, LOCALES } from '@/lib/constants'
+import ReactCountryFlag from 'react-country-flag'
 import type { Profile } from '@/types/database'
+
+const LOCALE_TO_COUNTRY: Record<string, string> = {
+  es: 'ES', en: 'GB', fr: 'FR', de: 'DE', pl: 'PL', ru: 'RU',
+}
 
 export function Navbar() {
   const t = useTranslations('nav')
@@ -112,7 +116,7 @@ export function Navbar() {
                 onClick={() => setIsLangOpen(!isLangOpen)}
                 className="flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900 px-2 py-1.5 rounded-lg hover:bg-slate-50 transition-colors"
               >
-                <span className="text-base leading-none">{LOCALE_FLAGS[locale]}</span>
+                <ReactCountryFlag countryCode={LOCALE_TO_COUNTRY[locale]} svg style={{ width: '1.2em', height: '1.2em' }} />
                 <span className="uppercase font-medium">{locale}</span>
                 <ChevronDown className="w-3 h-3" />
               </button>
@@ -131,7 +135,7 @@ export function Navbar() {
                         locale === loc ? 'text-[#0066FF] font-medium' : 'text-slate-700'
                       )}
                     >
-                      <span className="text-base leading-none">{LOCALE_FLAGS[loc]}</span>
+                      <ReactCountryFlag countryCode={LOCALE_TO_COUNTRY[loc]} svg style={{ width: '1.2em', height: '1.2em' }} />
                       {LOCALE_NAMES[loc]}
                     </button>
                   ))}

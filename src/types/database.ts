@@ -118,6 +118,7 @@ export interface Activity {
   included: string[]
   excluded: string[]
   requirements: string[]
+  google_maps_url?: string | null
   status: ActivityStatus
   featured: boolean
   rating: number

@@ -21,7 +21,7 @@ export async function proxy(request: NextRequest) {
   const isAuth = authPaths.some((p) => pathWithoutLocale.startsWith(p))
 
   if (isProtected && !user) {
-    const locale = match ? match[1] : 'es'
+    const locale = match ? match[1] : 'en'
     const url = request.nextUrl.clone()
     url.pathname = `/${locale}/auth/login`
     url.searchParams.set('redirectTo', pathname)
@@ -29,7 +29,7 @@ export async function proxy(request: NextRequest) {
   }
 
   if (isAuth && user) {
-    const locale = match ? match[1] : 'es'
+    const locale = match ? match[1] : 'en'
     const url = request.nextUrl.clone()
     url.pathname = `/${locale}/dashboard`
     return NextResponse.redirect(url)

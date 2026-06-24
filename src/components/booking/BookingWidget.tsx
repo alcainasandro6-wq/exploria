@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
-import { Calendar, Users, Info, Shield } from 'lucide-react'
+import { Calendar, Users, Info, Shield, LogIn } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatPrice } from '@/lib/utils'
-import { toast } from 'sonner'
+import { createClient } from '@/lib/supabase/client'
+import { useRouter } from '@/i18n/navigation'
 import type { Activity } from '@/types/database'
 
 interface BookingWidgetProps {
@@ -14,17 +15,27 @@ interface BookingWidgetProps {
 
 export function BookingWidget({ activity }: BookingWidgetProps) {
   const t = useTranslations('activity')
+  const router = useRouter()
   const [participants, setParticipants] = useState(2)
   const [selectedDate, setSelectedDate] = useState('')
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null)
+
+  const supabase = createClient()
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setIsLoggedIn(!!user)
+    })
+  }, [])
 
   const total = activity.price_from * participants
 
   const handleBook = () => {
-    if (!selectedDate) {
-      toast.error('Por favor selecciona una fecha')
+    if (!isLoggedIn) {
+      const currentPath = window.location.pathname
+      router.push(`/auth/login?redirectTo=${encodeURIComponent(currentPath)}`)
       return
     }
-    toast.success('¡Solicitud enviada! El proveedor te contactará para confirmar.')
   }
 
   return (
@@ -106,9 +117,21 @@ export function BookingWidget({ activity }: BookingWidgetProps) {
         </div>
 
         {/* Book Button */}
-        <Button onClick={handleBook} className="w-full" size="lg">
-          {t('book_button')}
-        </Button>
+        {isLoggedIn === false ? (
+          <div className="space-y-3">
+            <Button onClick={handleBook} className="w-full" size="lg">
+              <LogIn className="w-4 h-4 mr-2" />
+              Inicia sesión para reservar
+            </Button>
+            <p className="text-xs text-center text-slate-400">
+              Crea una cuenta gratis o inicia sesión para solicitar tu reserva.
+            </p>
+          </div>
+        ) : (
+          <Button onClick={handleBook} className="w-full" size="lg" disabled={!selectedDate}>
+            {t('book_button')}
+          </Button>
+        )}
 
         {/* Legal Notice */}
         <div className="flex items-start gap-2 bg-blue-50 rounded-xl p-3">

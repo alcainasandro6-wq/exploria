@@ -53,6 +53,7 @@ La actividad incluye todo el equipo necesario: traje de neopreno, máscara, alet
     'Buena condición física general',
     'No tener problemas cardíacos ni respiratorios',
   ],
+  google_maps_url: 'https://www.google.com/maps/place/Puerto+Deportivo+de+Torrevieja/@37.9781,-0.6782,16z',
   status: 'published',
   featured: true,
   rating: 4.9,
@@ -295,9 +296,33 @@ export default async function ActivityPage({
                 {t('location')}
               </h3>
               <p className="text-slate-600 text-sm mb-3">{activity.meeting_point}</p>
-              <div className="bg-slate-100 rounded-2xl h-40 flex items-center justify-center text-slate-400 text-sm">
-                🗺️ Mapa interactivo (integrar Leaflet/Google Maps)
-              </div>
+              {activity.google_maps_url ? (
+                <div className="rounded-2xl overflow-hidden border border-slate-200">
+                  <iframe
+                    src={`https://maps.google.com/maps?q=${activity.latitude},${activity.longitude}&z=15&output=embed`}
+                    width="100%"
+                    height="220"
+                    style={{ border: 0 }}
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title="Ubicación de la actividad"
+                  />
+                  <a
+                    href={activity.google_maps_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 py-2.5 text-xs text-[#0066FF] font-medium hover:bg-slate-50 transition-colors"
+                  >
+                    <MapPin className="w-3.5 h-3.5" />
+                    Ver en Google Maps
+                  </a>
+                </div>
+              ) : (
+                <div className="bg-slate-100 rounded-2xl h-40 flex items-center justify-center text-slate-400 text-sm">
+                  <MapPin className="w-4 h-4 mr-2" />
+                  {activity.meeting_point}
+                </div>
+              )}
             </div>
 
             {/* Cancellation */}
@@ -344,7 +369,7 @@ export default async function ActivityPage({
 
             {/* Reviews */}
             <div>
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-slate-900">{t('reviews')}</h2>
                 <div className="flex items-center gap-2">
                   <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
@@ -352,6 +377,19 @@ export default async function ActivityPage({
                   <span className="text-slate-400 text-sm">({activity.review_count})</span>
                 </div>
               </div>
+              {activity.google_maps_url && (
+                <a
+                  href={activity.google_maps_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-xs text-slate-500 hover:text-[#0066FF] mb-5 transition-colors"
+                >
+                  <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-current" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                  </svg>
+                  Reseñas importadas desde Google Maps · Ver todas
+                </a>
+              )}
               <div className="space-y-5">
                 {MOCK_REVIEWS.map((review) => (
                   <div key={review.id} className="border-b border-slate-100 pb-5 last:border-0">
