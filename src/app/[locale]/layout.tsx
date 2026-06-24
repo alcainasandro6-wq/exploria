@@ -70,7 +70,7 @@ export default async function LocaleLayout({ children, params }: Props) {
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
-      <body className="min-h-screen flex flex-col font-sans antialiased">
+      <body className="min-h-screen w-full flex flex-col font-sans antialiased overflow-x-hidden">
         <NextIntlClientProvider messages={messages}>
           <Navbar />
           <main className="flex-1 pt-16">
