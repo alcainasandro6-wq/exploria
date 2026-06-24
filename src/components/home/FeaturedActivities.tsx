@@ -5,6 +5,8 @@ import { Link } from '@/i18n/navigation'
 import { ChevronRight } from 'lucide-react'
 import { ActivityCard } from '@/components/activities/ActivityCard'
 import type { Activity } from '@/types/database'
+import { buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 const MOCK_ACTIVITIES: Activity[] = [
   {
@@ -15,19 +17,19 @@ const MOCK_ACTIVITIES: Activity[] = [
   },
   {
     id: '2', provider_id: 'p2', title: 'Excursión en catamarán al atardecer', slug: 'catamaran-atardecer', description: 'Navega por las aguas de Torrevieja al atardecer.', short_description: 'Navega por las aguas de Torrevieja al atardecer.', category_id: 'c2', price_from: 35, duration_minutes: 120, max_participants: 20, min_participants: 4, languages: ['es', 'en', 'de'], meeting_point: 'Puerto de Torrevieja', latitude: 37.9781, longitude: -0.6782, city: 'Torrevieja', country: 'España', cancellation_policy: 'Cancelación gratuita 48h antes', included: ['Refrescos', 'Música en vivo'], excluded: ['Bebidas alcohólicas'], requirements: [], status: 'published', featured: true, rating: 4.8, review_count: 89, booking_count: 215, created_at: '2024-01-01', updated_at: '2024-01-01',
-    images: [{ id: 'i2', activity_id: '2', url: 'https://images.unsplash.com/photo-1530549387789-4c1017266635?w=800&q=80', alt: 'Catamarán', is_cover: true, sort_order: 0, created_at: '' }],
+    images: [{ id: 'i2', activity_id: '2', url: 'https://images.unsplash.com/photo-1488188840666-e2308741a62f?w=800&q=80', alt: 'Catamarán', is_cover: true, sort_order: 0, created_at: '' }],
     category: { id: 'c2', name: 'Excursiones en barco', slug: 'excursiones-barco', description: null, icon: '⛵', image_url: null, sort_order: 2, is_active: true, created_at: '' },
     provider: { id: 'p2', profile_id: 'pr2', company_name: 'Nautic Torrevieja', slug: 'nautic-torrevieja', description: null, address: '', city: 'Torrevieja', country: 'España', phone: '', tax_id: null, logo_url: null, website: null, commission_rate: 0.05, is_verified: true, is_active: true, created_at: '', updated_at: '' }
   },
   {
     id: '3', provider_id: 'p3', title: 'Tour kayak por las lagunas de Torrevieja', slug: 'kayak-lagunas-torrevieja', description: 'Explora las únicas lagunas rosadas en kayak.', short_description: 'Explora las únicas lagunas rosadas en kayak.', category_id: 'c3', price_from: 28, duration_minutes: 150, max_participants: 12, min_participants: 2, languages: ['es', 'en', 'ru'], meeting_point: 'Laguna Rosa, Torrevieja', latitude: 37.9600, longitude: -0.6900, city: 'Torrevieja', country: 'España', cancellation_policy: 'Cancelación gratuita 24h antes', included: ['Kayak', 'Chaleco salvavidas', 'Guía'], excluded: [], requirements: ['No se requiere experiencia'], status: 'published', featured: true, rating: 4.7, review_count: 64, booking_count: 156, created_at: '2024-01-01', updated_at: '2024-01-01',
-    images: [{ id: 'i3', activity_id: '3', url: 'https://images.unsplash.com/photo-1502933691298-84fc14542831?w=800&q=80', alt: 'Kayak', is_cover: true, sort_order: 0, created_at: '' }],
+    images: [{ id: 'i3', activity_id: '3', url: 'https://images.unsplash.com/photo-1519315901367-f34ff9154487?w=800&q=80', alt: 'Kayak', is_cover: true, sort_order: 0, created_at: '' }],
     category: { id: 'c3', name: 'Kayak y piragüismo', slug: 'kayak-piraguismo', description: null, icon: '🚣', image_url: null, sort_order: 3, is_active: true, created_at: '' },
     provider: { id: 'p3', profile_id: 'pr3', company_name: 'Kayak Adventures', slug: 'kayak-adventures', description: null, address: '', city: 'Torrevieja', country: 'España', phone: '', tax_id: null, logo_url: null, website: null, commission_rate: 0.05, is_verified: false, is_active: true, created_at: '', updated_at: '' }
   },
   {
     id: '4', provider_id: 'p4', title: 'Paddle Surf para principiantes en playa Los Naufragos', slug: 'paddle-surf-los-naufragos', description: 'Aprende paddle surf con instructores expertos.', short_description: 'Aprende paddle surf con instructores expertos.', category_id: 'c4', price_from: 25, duration_minutes: 90, max_participants: 10, min_participants: 1, languages: ['es', 'en'], meeting_point: 'Playa Los Naufragos', latitude: 37.9900, longitude: -0.6600, city: 'Torrevieja', country: 'España', cancellation_policy: 'Cancelación gratuita 24h antes', included: ['Tabla SUP', 'Remo', 'Instructor'], excluded: [], requirements: ['Saber nadar'], status: 'published', featured: false, rating: 4.6, review_count: 42, booking_count: 98, created_at: '2024-01-01', updated_at: '2024-01-01',
-    images: [{ id: 'i4', activity_id: '4', url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80', alt: 'Paddle Surf', is_cover: true, sort_order: 0, created_at: '' }],
+    images: [{ id: 'i4', activity_id: '4', url: 'https://images.unsplash.com/photo-1544966503-7cc3f8a3cacd?w=800&q=80', alt: 'Paddle Surf', is_cover: true, sort_order: 0, created_at: '' }],
     category: { id: 'c4', name: 'Deportes acuáticos', slug: 'deportes-acuaticos', description: null, icon: '🏄', image_url: null, sort_order: 4, is_active: true, created_at: '' },
     provider: { id: 'p4', profile_id: 'pr4', company_name: 'Blue Water Sports', slug: 'blue-water-sports', description: null, address: '', city: 'Torrevieja', country: 'España', phone: '', tax_id: null, logo_url: null, website: null, commission_rate: 0.05, is_verified: true, is_active: true, created_at: '', updated_at: '' }
   },
@@ -71,10 +73,14 @@ export function FeaturedActivities() {
         </div>
 
         <div className="mt-8 text-center md:hidden">
-          <Link href="/activities">
-            <button className="text-[#0066FF] font-semibold border border-[#0066FF] px-6 py-2.5 rounded-xl hover:bg-[#0066FF] hover:text-white transition-colors">
-              Ver todas las actividades
-            </button>
+          <Link 
+            href="/activities"
+            className={cn(
+              buttonVariants({ variant: 'outline' }),
+              'border-[#0066FF] text-[#0066FF] hover:bg-[#0066FF] hover:text-white font-semibold'
+            )}
+          >
+            Ver todas las actividades
           </Link>
         </div>
       </div>
