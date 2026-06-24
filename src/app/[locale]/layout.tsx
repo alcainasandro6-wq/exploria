@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { routing } from '@/i18n/routing'
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
+import { CurrencyProvider } from '@/context/CurrencyContext'
 import { Toaster } from 'sonner'
 import type { Metadata } from 'next'
 
@@ -72,11 +73,13 @@ export default async function LocaleLayout({ children, params }: Props) {
       </head>
       <body className="min-h-screen w-full flex flex-col font-sans antialiased overflow-x-hidden">
         <NextIntlClientProvider messages={messages}>
-          <Navbar />
-          <main className="flex-1 pt-16">
-            {children}
-          </main>
-          <Footer />
+          <CurrencyProvider>
+            <Navbar />
+            <main className="flex-1 pt-16">
+              {children}
+            </main>
+            <Footer />
+          </CurrencyProvider>
           <Toaster position="top-right" richColors />
         </NextIntlClientProvider>
       </body>

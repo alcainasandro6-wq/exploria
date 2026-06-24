@@ -9,12 +9,19 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { createClient } from '@/lib/supabase/client'
 import { cn, getInitials } from '@/lib/utils'
 import { LOCALE_NAMES, LOCALES } from '@/lib/constants'
+import { useCurrency, type Currency } from '@/context/CurrencyContext'
 import ReactCountryFlag from 'react-country-flag'
 import type { Profile } from '@/types/database'
 
 const LOCALE_TO_COUNTRY: Record<string, string> = {
   es: 'ES', en: 'GB', fr: 'FR', de: 'DE', pl: 'PL', ru: 'RU',
 }
+
+const CURRENCIES: { code: Currency; label: string; symbol: string }[] = [
+  { code: 'EUR', label: 'Euro', symbol: '€' },
+  { code: 'USD', label: 'US Dollar', symbol: '$' },
+  { code: 'GBP', label: 'British Pound', symbol: '£' },
+]
 
 export function Navbar() {
   const t = useTranslations('nav')
@@ -24,8 +31,10 @@ export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isLangOpen, setIsLangOpen] = useState(false)
   const [isUserOpen, setIsUserOpen] = useState(false)
+  const [isCurrencyOpen, setIsCurrencyOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [user, setUser] = useState<Profile | null>(null)
+  const { currency, setCurrency, symbol } = useCurrency()
 
   const supabase = createClient()
 
@@ -110,6 +119,34 @@ export function Navbar() {
 
           {/* Right Actions */}
           <div className="hidden md:flex items-center gap-3">
+            {/* Currency Switcher */}
+            <div className="relative">
+              <button
+                onClick={() => { setIsCurrencyOpen(!isCurrencyOpen); setIsLangOpen(false) }}
+                className="flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900 px-2 py-1.5 rounded-lg hover:bg-slate-50 transition-colors font-semibold"
+              >
+                <span>{symbol}</span>
+                <span className="text-xs text-slate-400">{currency}</span>
+              </button>
+              {isCurrencyOpen && (
+                <div className="absolute right-0 top-full mt-1 w-40 bg-white rounded-xl shadow-lg border border-slate-100 py-1 z-50">
+                  {CURRENCIES.map((c) => (
+                    <button
+                      key={c.code}
+                      onClick={() => { setCurrency(c.code); setIsCurrencyOpen(false) }}
+                      className={cn(
+                        'w-full text-left px-4 py-2 text-sm transition-colors hover:bg-slate-50 flex items-center gap-2.5',
+                        currency === c.code ? 'text-[#0066FF] font-semibold' : 'text-slate-700'
+                      )}
+                    >
+                      <span className="font-bold w-5">{c.symbol}</span>
+                      {c.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {/* Language Switcher */}
             <div className="relative">
               <button
