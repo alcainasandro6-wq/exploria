@@ -8,7 +8,7 @@ const intlMiddleware = createMiddleware(routing)
 const protectedPaths = ['/dashboard']
 const authPaths = ['/auth/login', '/auth/register', '/auth/forgot-password']
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
   const localePattern = /^\/(es|en|fr|de|pl|ru)(\/.*)?$/
