@@ -1,5 +1,5 @@
 import { NextIntlClientProvider } from 'next-intl'
-import { getMessages, getTranslations } from 'next-intl/server'
+import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { routing } from '@/i18n/routing'
 import { Navbar } from '@/components/layout/Navbar'
@@ -54,7 +54,15 @@ export default async function LocaleLayout({ children, params }: Props) {
     notFound()
   }
 
-  const messages = await getMessages()
+  setRequestLocale(locale)
+
+  let messages
+  try {
+    messages = await getMessages()
+  } catch (e) {
+    console.error('[Layout] getMessages failed:', e)
+    throw e
+  }
 
   return (
     <html lang={locale} suppressHydrationWarning>
