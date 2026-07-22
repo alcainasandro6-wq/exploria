@@ -46,7 +46,7 @@ export function Hero() {
           style={{ transformOrigin: 'center top', willChange: 'transform' }}
         >
           <Image
-            src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1920&q=80"
+            src="/hero-background.jpg"
             alt="Costa de Torrevieja"
             fill
             className="object-cover object-center"
