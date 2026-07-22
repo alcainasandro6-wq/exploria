@@ -20,6 +20,7 @@ DECLARE
   v_provider_id       uuid;
   v_demo_provider_uid uuid;
   v_admin_id          uuid;
+  v_pro_plan_id       uuid;
   v_cat_boat          uuid;
   v_cat_kayak         uuid;
   v_cat_dive          uuid;
@@ -58,6 +59,15 @@ BEGIN
     INSERT INTO public.providers (profile_id, company_name, slug, city, country, phone, is_verified)
     VALUES (v_demo_provider_uid, 'BookActivities Demo', 'bookactivities-demo', 'Torrevieja', 'España', '+34 658 06 23 92', true)
     RETURNING id INTO v_provider_id;
+  END IF;
+
+  -- The `published` status is only allowed by the enforce_subscription_on_activity
+  -- trigger if the provider has an active subscription — grant/extend one so
+  -- the 5 demo activities below can be inserted as published.
+  IF NOT public.provider_has_active_subscription(v_provider_id) THEN
+    SELECT id INTO v_pro_plan_id FROM public.subscription_plans WHERE name = 'pro' LIMIT 1;
+    INSERT INTO public.provider_subscriptions (provider_id, plan_id, status, current_period_end)
+    VALUES (v_provider_id, v_pro_plan_id, 'active', now() + interval '10 years');
   END IF;
 
   SELECT id INTO v_admin_id FROM public.profiles WHERE role = 'admin' ORDER BY created_at ASC LIMIT 1;
