@@ -18,6 +18,8 @@
 
 html {
   scroll-behavior: smooth;
+  /* Bumps every rem-based Tailwind text size (text-sm, text-base, text-lg...) site-wide */
+  font-size: 17.5px;
 }
 
 body {

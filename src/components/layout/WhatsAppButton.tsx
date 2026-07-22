@@ -1,10 +1,8 @@
 import { MessageCircle } from 'lucide-react'
 
-const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER
+const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '34658062392'
 
 export function WhatsAppButton() {
-  if (!WHATSAPP_NUMBER) return null
-
   return (
     <a
       href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('¡Hola! Me gustaría obtener más información.')}`}

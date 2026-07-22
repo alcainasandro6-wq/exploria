@@ -46,6 +46,35 @@ export async function createBlogPostAction(input: {
   }
 }
 
+export async function updateBlogPostAction(postId: string, input: {
+  title: string
+  excerpt?: string
+  content: string
+  coverImage?: string
+  category?: string
+}) {
+  try {
+    const { supabase } = await requireAdmin()
+    const { error } = await supabase
+      .from('blog_posts')
+      .update({
+        title: input.title,
+        excerpt: input.excerpt ?? null,
+        content: input.content,
+        cover_image: input.coverImage ?? null,
+        category: input.category ?? null,
+      })
+      .eq('id', postId)
+    if (error) return { success: false, error: error.message }
+
+    revalidatePath('/dashboard/admin/cms')
+    revalidatePath('/blog')
+    return { success: true }
+  } catch (err) {
+    return { success: false, error: (err as Error).message }
+  }
+}
+
 export async function togglePublishBlogPostAction(postId: string, publish: boolean) {
   try {
     const { supabase } = await requireAdmin()

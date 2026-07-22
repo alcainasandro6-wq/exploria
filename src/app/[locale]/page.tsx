@@ -1,6 +1,7 @@
 import { Hero } from '@/components/home/Hero'
 import { WhyChooseUs } from '@/components/home/WhyChooseUs'
 import { FeaturedActivities } from '@/components/home/FeaturedActivities'
+import { BlogSection } from '@/components/home/BlogSection'
 import { StatsSection } from '@/components/home/StatsSection'
 import { ProviderCTA } from '@/components/home/ProviderCTA'
 import type { Metadata } from 'next'
@@ -25,6 +26,7 @@ export default function HomePage() {
       <Hero />
       <WhyChooseUs />
       <FeaturedActivities />
+      <BlogSection />
       <StatsSection />
       <ProviderCTA />
     </>

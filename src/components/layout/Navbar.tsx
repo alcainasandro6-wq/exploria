@@ -8,19 +8,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { createClient } from '@/lib/supabase/client'
 import { cn, getInitials } from '@/lib/utils'
 import { LOCALE_NAMES, LOCALES } from '@/lib/constants'
-import { useCurrency, type Currency } from '@/context/CurrencyContext'
 import ReactCountryFlag from 'react-country-flag'
 import type { Profile } from '@/types/database'
 
 const LOCALE_TO_COUNTRY: Record<string, string> = {
   es: 'ES', en: 'GB', fr: 'FR', de: 'DE', pl: 'PL', ru: 'RU',
 }
-
-const CURRENCIES: { code: Currency; label: string; symbol: string }[] = [
-  { code: 'EUR', label: 'Euro', symbol: '€' },
-  { code: 'USD', label: 'US Dollar', symbol: '$' },
-  { code: 'GBP', label: 'British Pound', symbol: '£' },
-]
 
 export function Navbar() {
   const t = useTranslations('nav')
@@ -30,10 +23,8 @@ export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isLangOpen, setIsLangOpen] = useState(false)
   const [isUserOpen, setIsUserOpen] = useState(false)
-  const [isCurrencyOpen, setIsCurrencyOpen] = useState(false)
   const [user, setUser] = useState<Profile | null>(null)
   const [isScrolled, setIsScrolled] = useState(false)
-  const { currency, setCurrency, symbol } = useCurrency()
 
   const supabase = createClient()
 
@@ -148,43 +139,12 @@ export function Navbar() {
           </div>
 
           {/* Right actions */}
-          <div className="hidden lg:flex items-center gap-1.5 shrink-0">
-
-            {/* Currency */}
-            <div className="relative">
-              <button
-                onClick={() => { setIsCurrencyOpen(!isCurrencyOpen); setIsLangOpen(false); setIsUserOpen(false) }}
-                className={cn(
-                  'flex items-center gap-1 text-sm px-2.5 py-2 rounded-lg transition-colors font-semibold',
-                  transparent ? 'text-white/90 hover:text-white hover:bg-white/10' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
-                )}
-              >
-                {symbol}
-                <ChevronDown className="w-3 h-3 opacity-70" />
-              </button>
-              {isCurrencyOpen && (
-                <div className="absolute right-0 top-full mt-1.5 w-44 bg-white rounded-xl shadow-lg border border-slate-100 py-1.5 z-50">
-                  {CURRENCIES.map((c) => (
-                    <button
-                      key={c.code}
-                      onClick={() => { setCurrency(c.code); setIsCurrencyOpen(false) }}
-                      className={cn(
-                        'w-full text-left px-4 py-2 text-sm hover:bg-slate-50 flex items-center gap-2.5 transition-colors',
-                        currency === c.code ? 'text-[#005B8D] font-semibold' : 'text-slate-700'
-                      )}
-                    >
-                      <span className="font-bold w-4">{c.symbol}</span>
-                      {c.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+          <div className="hidden lg:flex items-center gap-1.5 shrink-0 ml-auto">
 
             {/* Language — rounded pill button */}
             <div className="relative">
               <button
-                onClick={() => { setIsLangOpen(!isLangOpen); setIsCurrencyOpen(false); setIsUserOpen(false) }}
+                onClick={() => { setIsLangOpen(!isLangOpen); setIsUserOpen(false) }}
                 className="flex items-center gap-1.5 text-sm text-white bg-primary hover:bg-primary-dark px-3.5 py-2 rounded-full transition-colors font-semibold"
               >
                 <ReactCountryFlag countryCode={LOCALE_TO_COUNTRY[locale]} svg style={{ width: '1.1em', height: '1.1em' }} />
@@ -216,7 +176,7 @@ export function Navbar() {
             {user ? (
               <div className="relative">
                 <button
-                  onClick={() => { setIsUserOpen(!isUserOpen); setIsLangOpen(false); setIsCurrencyOpen(false) }}
+                  onClick={() => { setIsUserOpen(!isUserOpen); setIsLangOpen(false) }}
                   className={cn('flex items-center gap-2 px-2.5 py-1.5 rounded-lg transition-colors', transparent ? 'hover:bg-white/10' : 'hover:bg-slate-50')}
                 >
                   <Avatar className="w-7 h-7">
@@ -299,22 +259,13 @@ export function Navbar() {
               </Link>
             ))}
             <div className="pt-3 border-t border-slate-100 pb-2 space-y-2.5 px-1">
-              <div className="flex gap-2">
-                <select
-                  value={locale}
-                  onChange={(e) => { router.replace(pathname, { locale: e.target.value }); setIsMenuOpen(false) }}
-                  className="flex-1 text-sm text-slate-700 bg-white border border-slate-200 rounded-lg px-3 py-2.5 outline-none"
-                >
-                  {LOCALES.map((loc) => <option key={loc} value={loc}>{LOCALE_NAMES[loc]}</option>)}
-                </select>
-                <select
-                  value={currency}
-                  onChange={(e) => { setCurrency(e.target.value as Currency); setIsMenuOpen(false) }}
-                  className="flex-1 text-sm text-slate-700 bg-white border border-slate-200 rounded-lg px-3 py-2.5 outline-none"
-                >
-                  {CURRENCIES.map((c) => <option key={c.code} value={c.code}>{c.symbol} {c.label}</option>)}
-                </select>
-              </div>
+              <select
+                value={locale}
+                onChange={(e) => { router.replace(pathname, { locale: e.target.value }); setIsMenuOpen(false) }}
+                className="w-full text-sm text-slate-700 bg-white border border-slate-200 rounded-lg px-3 py-2.5 outline-none"
+              >
+                {LOCALES.map((loc) => <option key={loc} value={loc}>{LOCALE_NAMES[loc]}</option>)}
+              </select>
               {user ? (
                 <>
                   <Link

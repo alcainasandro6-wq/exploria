@@ -2,24 +2,18 @@ import { redirect } from 'next/navigation'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { createClient } from '@/lib/supabase/server'
 import { getPendingReviewActivities, getAllActivitiesAdmin } from '@/lib/services/admin'
 import { getAllProviders } from '@/lib/services/providers'
-import { formatPrice, formatDate } from '@/lib/utils'
 import { ExportButtons } from '@/components/dashboard/admin/ExportButtons'
 import { ActivityReviewRow } from '@/components/dashboard/admin/ActivityReviewRow'
 import { AdminCreateActivityForm } from '@/components/dashboard/admin/AdminCreateActivityForm'
-import { TranslateButton } from '@/components/dashboard/admin/TranslateButton'
+import { AdminActivityRow } from '@/components/dashboard/admin/AdminActivityRow'
 import { isTranslationConfigured } from '@/lib/services/translate'
 
 const STATUS_LABELS: Record<string, string> = {
   draft: 'Borrador', pending_review: 'En revisión', published: 'Publicada',
   suspended: 'Suspendida', archived: 'Archivada',
-}
-const STATUS_STYLES: Record<string, 'success' | 'warning' | 'secondary' | 'destructive'> = {
-  draft: 'secondary', pending_review: 'warning', published: 'success',
-  suspended: 'destructive', archived: 'secondary',
 }
 
 export default async function AdminActivitiesPage() {
@@ -82,19 +76,11 @@ export default async function AdminActivitiesPage() {
                   <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">Reservas</th>
                   <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">Estado</th>
                   {isTranslationConfigured() && <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">Traducción</th>}
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase"></th>
                 </tr>
               </thead>
               <tbody>
-                {allActivities.map((a) => (
-                  <tr key={a.id} className="border-b border-slate-50 hover:bg-slate-50">
-                    <td className="py-3 px-4 text-sm font-medium text-slate-900">{a.title}</td>
-                    <td className="py-3 px-4 text-sm text-slate-600">{a.provider?.company_name}</td>
-                    <td className="py-3 px-4 text-sm text-slate-600">{formatPrice(a.price_from)}</td>
-                    <td className="py-3 px-4 text-sm text-slate-600">{a.booking_count}</td>
-                    <td className="py-3 px-4"><Badge variant={STATUS_STYLES[a.status]}>{STATUS_LABELS[a.status]}</Badge></td>
-                    {isTranslationConfigured() && <td className="py-3 px-4"><TranslateButton activityId={a.id} /></td>}
-                  </tr>
-                ))}
+                {allActivities.map((a) => <AdminActivityRow key={a.id} activity={a} />)}
               </tbody>
             </table>
           </div>

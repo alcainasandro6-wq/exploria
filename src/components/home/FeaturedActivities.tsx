@@ -1,14 +1,14 @@
 import { getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
 import { ArrowUpRight } from 'lucide-react'
-import { ActivityCard } from '@/components/activities/ActivityCard'
+import { ActivitiesCarousel } from '@/components/home/ActivitiesCarousel'
 import { getPublishedActivities } from '@/lib/services/activities'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 export async function FeaturedActivities() {
   const t = await getTranslations('home')
-  const activities = (await getPublishedActivities({ sort: 'relevance' })).slice(0, 6)
+  const activities = (await getPublishedActivities({ sort: 'relevance' })).slice(0, 10)
 
   if (activities.length === 0) return null
 
@@ -32,11 +32,7 @@ export async function FeaturedActivities() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {activities.map((activity) => (
-            <ActivityCard key={activity.id} activity={activity} />
-          ))}
-        </div>
+        <ActivitiesCarousel activities={activities} />
 
         <div className="mt-10 text-center md:hidden">
           <Link

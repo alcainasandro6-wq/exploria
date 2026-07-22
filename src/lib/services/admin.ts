@@ -6,7 +6,7 @@ interface PendingActivity extends Omit<Activity, 'provider' | 'images'> {
   images: ActivityImage[]
 }
 
-interface ActivitySummary {
+export interface ActivitySummary {
   id: string
   title: string
   slug: string

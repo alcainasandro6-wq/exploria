@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from '@/i18n/navigation'
-import { Search, Star, ShieldCheck, Zap, Users, MapPin } from 'lucide-react'
+import { Search, MapPin } from 'lucide-react'
 import Image from 'next/image'
 import { CITIES } from '@/lib/constants'
 
@@ -33,17 +33,11 @@ export function Hero() {
     router.push(`/activities?${params.toString()}`)
   }
 
-  const stats = [
-    { icon: Star,        key: 'hero_stat_best',         color: 'text-amber-400' },
-    { icon: ShieldCheck, key: 'hero_stat_cancellation',  color: 'text-emerald-400' },
-    { icon: Users,       key: 'hero_stat_support',       color: 'text-sky-400' },
-    { icon: Zap,         key: 'hero_stat_price',         color: 'text-violet-400' },
-  ] as const
-
   return (
     <section>
-      {/* Photo banner — pulled up under the transparent glass header so the image shows through it */}
-      <div className="relative overflow-hidden -mt-20" style={{ height: 'clamp(560px, 76vh, 720px)' }}>
+      {/* Photo banner — pulled up under the transparent glass header so the image shows through it,
+          full viewport height so the background media covers the entire first screen */}
+      <div className="relative overflow-hidden -mt-20" style={{ height: '100dvh', minHeight: 640 }}>
 
         {/* Parallax background */}
         <div
@@ -71,26 +65,26 @@ export function Hero() {
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 sm:px-8 pb-16">
 
           {/* Overline + place name, tripalicante-style */}
-          <span className="text-xs font-bold uppercase tracking-[0.25em] text-white/70 mb-3">
+          <span className="text-xs font-bold uppercase tracking-[0.25em] text-white/70 mb-5">
             Descubre
           </span>
-          <h2 className="text-[clamp(2.75rem,7vw,4.75rem)] font-black text-white leading-[0.95] tracking-tight mb-4">
+          <h2 className="text-[clamp(2.75rem,7vw,4.75rem)] font-black text-white leading-[1.15] tracking-tight mb-7">
             Torrevieja
           </h2>
 
           {/* Divider */}
-          <div className="flex items-center gap-3 mb-5 w-full max-w-xs">
+          <div className="flex items-center gap-3 mb-7 w-full max-w-xs">
             <span className="h-px flex-1 bg-white/25" />
             <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/60 whitespace-nowrap">Costa Blanca</span>
             <span className="h-px flex-1 bg-white/25" />
           </div>
 
           {/* Heading */}
-          <p className="text-[clamp(1.15rem,2.2vw,1.5rem)] font-bold text-white leading-tight tracking-tight mb-3 max-w-2xl">
+          <p className="text-[clamp(1.15rem,2.2vw,1.5rem)] font-bold text-white leading-[1.6] tracking-tight mb-5 max-w-2xl">
             {t('hero_title')}
           </p>
 
-          <p className="text-white/70 text-base md:text-lg mb-8 max-w-xl leading-relaxed">
+          <p className="text-white/70 text-base md:text-lg mb-10 max-w-xl leading-[1.9]">
             {t('hero_subtitle')}
           </p>
 
@@ -129,22 +123,6 @@ export function Hero() {
               </button>
             </div>
           </form>
-        </div>
-
-        {/* Stats — inside the image, bottom strip */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent">
-          <div className="max-w-5xl mx-auto px-4 sm:px-8 py-5">
-            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 sm:divide-x sm:divide-white/20 sm:flex-nowrap">
-              {stats.map(({ icon: Icon, key, color }) => (
-                <div key={key} className="flex items-center gap-2.5 sm:px-8 first:pl-0 last:pr-0">
-                  <Icon className={`w-[18px] h-[18px] shrink-0 ${color}`} />
-                  <span className="text-[14px] font-semibold text-white whitespace-nowrap">
-                    {t(key)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
     </section>

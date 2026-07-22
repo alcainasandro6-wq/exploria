@@ -67,6 +67,21 @@ export async function adminCreateActivityForProviderAction(providerId: string, t
   }
 }
 
+export async function adminDeleteActivityAction(activityId: string) {
+  try {
+    const { supabase } = await requireAdmin()
+    const { error } = await supabase.from('activities').delete().eq('id', activityId)
+    if (error) return { success: false, error: error.message }
+
+    revalidatePath('/dashboard/admin/activities')
+    revalidatePath('/')
+    revalidatePath('/activities')
+    return { success: true }
+  } catch (err) {
+    return { success: false, error: (err as Error).message }
+  }
+}
+
 // =====================================================
 // Commissions / billing
 // =====================================================
