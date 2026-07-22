@@ -81,17 +81,10 @@ export function Navbar() {
     <nav
       className={cn(
         'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
-        transparent
-          ? 'bg-black/10 backdrop-blur-xl backdrop-saturate-150 border-b border-white/15'
-          : 'bg-white/45 backdrop-blur-2xl backdrop-saturate-150 border-b border-white/50 shadow-[0_8px_32px_rgba(15,23,42,0.08)]'
+        transparent ? 'bg-transparent' : 'bg-white border-b border-slate-100 shadow-[0_1px_20px_rgba(15,23,42,0.06)]'
       )}
-      style={{
-        boxShadow: transparent
-          ? 'inset 0 1px 0 rgba(255,255,255,0.25)'
-          : 'inset 0 1px 0 rgba(255,255,255,0.6), 0 8px 32px rgba(15,23,42,0.08)',
-      }}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full px-5 sm:px-8 lg:px-10">
         <div className="flex items-center justify-between h-20 gap-6">
 
           {/* Logo */}
@@ -120,10 +113,10 @@ export function Navbar() {
           <div className="hidden lg:flex items-center flex-1 justify-center">
             <div
               className={cn(
-                'flex items-center gap-0.5 rounded-full p-1 transition-colors backdrop-saturate-150',
+                'flex items-center gap-0.5 rounded-full p-1 transition-colors',
                 transparent
-                  ? 'bg-black/20 backdrop-blur-md border border-white/25 shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]'
-                  : 'bg-white/40 backdrop-blur-md border border-white/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]'
+                  ? 'bg-black/20 backdrop-blur-md backdrop-saturate-150 border border-white/25 shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]'
+                  : 'bg-slate-100/80'
               )}
             >
               {navLinks.map((link) => (
