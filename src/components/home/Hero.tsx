@@ -43,7 +43,7 @@ export function Hero() {
   return (
     <section>
       {/* Photo banner — pulled up under the transparent glass header so the image shows through it */}
-      <div className="relative overflow-hidden -mt-20" style={{ height: 'clamp(640px, 88vh, 840px)' }}>
+      <div className="relative overflow-hidden -mt-20" style={{ height: 'clamp(560px, 76vh, 720px)' }}>
 
         {/* Parallax background */}
         <div
@@ -60,22 +60,37 @@ export function Hero() {
           />
         </div>
 
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black/80" />
+        {/* Gradient overlay — lighter than before, closer to an editorial photo caption than a dramatic poster */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-black/35 to-black/70" />
 
         {/* Extra scrim behind the transparent glass header — keeps white nav text legible
             regardless of how light the photo is at the very top (e.g. pale sky). */}
         <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black/45 to-transparent pointer-events-none" />
 
         {/* Main content — centered */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 sm:px-8 pb-20">
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 sm:px-8 pb-16">
+
+          {/* Overline + place name, tripalicante-style */}
+          <span className="text-xs font-bold uppercase tracking-[0.25em] text-white/70 mb-3">
+            Descubre
+          </span>
+          <h2 className="text-[clamp(2.75rem,7vw,4.75rem)] font-black text-white leading-[0.95] tracking-tight mb-4">
+            Torrevieja
+          </h2>
+
+          {/* Divider */}
+          <div className="flex items-center gap-3 mb-5 w-full max-w-xs">
+            <span className="h-px flex-1 bg-white/25" />
+            <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/60 whitespace-nowrap">Costa Blanca</span>
+            <span className="h-px flex-1 bg-white/25" />
+          </div>
 
           {/* Heading */}
-          <h1 className="text-[clamp(3rem,8.5vw,6rem)] font-black text-white leading-[1.02] tracking-tight mb-5 max-w-4xl">
+          <p className="text-[clamp(1.15rem,2.2vw,1.5rem)] font-bold text-white leading-tight tracking-tight mb-3 max-w-2xl">
             {t('hero_title')}
-          </h1>
+          </p>
 
-          <p className="text-white/70 text-lg md:text-xl mb-10 max-w-2xl leading-relaxed">
+          <p className="text-white/70 text-base md:text-lg mb-8 max-w-xl leading-relaxed">
             {t('hero_subtitle')}
           </p>
 

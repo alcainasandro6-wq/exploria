@@ -1,4 +1,5 @@
 import { Hero } from '@/components/home/Hero'
+import { WhyChooseUs } from '@/components/home/WhyChooseUs'
 import { FeaturedActivities } from '@/components/home/FeaturedActivities'
 import { StatsSection } from '@/components/home/StatsSection'
 import { ProviderCTA } from '@/components/home/ProviderCTA'
@@ -22,6 +23,7 @@ export default function HomePage() {
   return (
     <>
       <Hero />
+      <WhyChooseUs />
       <FeaturedActivities />
       <StatsSection />
       <ProviderCTA />
