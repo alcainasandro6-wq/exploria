@@ -26,7 +26,7 @@ export function Categories() {
         {/* Header */}
         <div className="flex items-end justify-between mb-12">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-[#1A56FF] mb-3">
+            <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-[#005B8D] mb-3">
               Explora por categoría
             </p>
             <h2 className="text-4xl md:text-5xl font-black text-[#070D1F] tracking-tight leading-none">
@@ -35,7 +35,7 @@ export function Categories() {
           </div>
           <Link
             href="/activities"
-            className="hidden md:flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-[#1A56FF] transition-colors"
+            className="hidden md:flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-[#005B8D] transition-colors"
           >
             Ver todas <ArrowUpRight className="w-4 h-4" />
           </Link>

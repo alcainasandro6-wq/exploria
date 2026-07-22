@@ -32,9 +32,15 @@ export function Navbar() {
   const [isUserOpen, setIsUserOpen] = useState(false)
   const [isCurrencyOpen, setIsCurrencyOpen] = useState(false)
   const [user, setUser] = useState<Profile | null>(null)
+  const [isScrolled, setIsScrolled] = useState(false)
   const { currency, setCurrency, symbol } = useCurrency()
 
   const supabase = createClient()
+
+  // Only the homepage has a full-bleed hero photo for the header to float over —
+  // everywhere else there's nothing but white page content behind it.
+  const isHome = pathname === '/'
+  const transparent = isHome && !isScrolled && !isMenuOpen
 
   useEffect(() => {
     const getUser = async () => {
@@ -47,6 +53,14 @@ export function Navbar() {
     getUser()
   }, [])
 
+  useEffect(() => {
+    if (!isHome) return
+    const handleScroll = () => setIsScrolled(window.scrollY > 40)
+    handleScroll()
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [isHome])
+
   const handleSignOut = async () => {
     await supabase.auth.signOut()
     setUser(null)
@@ -54,10 +68,12 @@ export function Navbar() {
   }
 
   const navLinks = [
+    { href: '/', label: t('home') },
     { href: '/activities', label: t('activities') },
     { href: '/categories', label: t('categories') },
+    { href: '/providers', label: t('providers') },
     { href: '/blog', label: t('blog') },
-    { href: '/about', label: t('about') },
+    { href: '/contact', label: t('contact') },
   ]
 
   const getDashboardPath = () => {
@@ -71,50 +87,80 @@ export function Navbar() {
   }
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-slate-100">
+    <nav
+      className={cn(
+        'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
+        transparent
+          ? 'bg-transparent'
+          : 'bg-white/75 backdrop-blur-xl border-b border-white/60 shadow-[0_1px_20px_rgba(15,23,42,0.06)]'
+      )}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 gap-6">
+        <div className="flex items-center justify-between h-20 gap-6">
 
           {/* Logo */}
           <Link href="/" className="flex items-center shrink-0">
             <span
-              className="text-[22px] font-black tracking-[-0.06em] text-[#004aad]"
+              className={cn(
+                'text-[28px] font-black tracking-[-0.06em] transition-colors',
+                transparent ? 'text-white [text-shadow:0_1px_12px_rgba(0,0,0,0.35)]' : 'text-primary-dark'
+              )}
               style={{ fontFamily: 'var(--font-display)' }}
             >
-              exploria
+              bookactivities
             </span>
-            <span className="text-[22px] font-black text-[#1A56FF]" style={{ fontFamily: 'var(--font-display)' }}>.</span>
+            <span
+              className={cn(
+                'text-[28px] font-black transition-colors',
+                transparent ? 'text-white [text-shadow:0_1px_12px_rgba(0,0,0,0.35)]' : 'text-primary'
+              )}
+              style={{ fontFamily: 'var(--font-display)' }}
+            >
+              .
+            </span>
           </Link>
 
-          {/* Desktop nav links */}
-          <div className="hidden md:flex items-center gap-0.5 flex-1">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={cn(
-                  'px-3 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap',
-                  pathname === link.href
-                    ? 'text-[#1A56FF] bg-[#1A56FF]/5'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                )}
-              >
-                {link.label}
-              </Link>
-            ))}
+          {/* Desktop nav links — floating pill capsule, active tab gets a white pill */}
+          <div className="hidden lg:flex items-center flex-1 justify-center">
+            <div
+              className={cn(
+                'flex items-center gap-0.5 rounded-full p-1 transition-colors',
+                transparent ? 'bg-black/25 backdrop-blur-md border border-white/20' : 'bg-slate-100/80'
+              )}
+            >
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={cn(
+                    'px-4 py-2 text-sm font-semibold rounded-full transition-all whitespace-nowrap',
+                    pathname === link.href
+                      ? 'bg-white text-primary shadow-sm'
+                      : transparent
+                        ? 'text-white/90 hover:text-white'
+                        : 'text-slate-600 hover:text-slate-900'
+                  )}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
           </div>
 
           {/* Right actions */}
-          <div className="hidden md:flex items-center gap-1 shrink-0">
+          <div className="hidden lg:flex items-center gap-1.5 shrink-0">
 
             {/* Currency */}
             <div className="relative">
               <button
                 onClick={() => { setIsCurrencyOpen(!isCurrencyOpen); setIsLangOpen(false); setIsUserOpen(false) }}
-                className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-800 px-2.5 py-2 rounded-lg hover:bg-slate-50 transition-colors font-semibold"
+                className={cn(
+                  'flex items-center gap-1 text-sm px-2.5 py-2 rounded-lg transition-colors font-semibold',
+                  transparent ? 'text-white/90 hover:text-white hover:bg-white/10' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+                )}
               >
                 {symbol}
-                <ChevronDown className="w-3 h-3 text-slate-400" />
+                <ChevronDown className="w-3 h-3 opacity-70" />
               </button>
               {isCurrencyOpen && (
                 <div className="absolute right-0 top-full mt-1.5 w-44 bg-white rounded-xl shadow-lg border border-slate-100 py-1.5 z-50">
@@ -124,7 +170,7 @@ export function Navbar() {
                       onClick={() => { setCurrency(c.code); setIsCurrencyOpen(false) }}
                       className={cn(
                         'w-full text-left px-4 py-2 text-sm hover:bg-slate-50 flex items-center gap-2.5 transition-colors',
-                        currency === c.code ? 'text-[#1A56FF] font-semibold' : 'text-slate-700'
+                        currency === c.code ? 'text-[#005B8D] font-semibold' : 'text-slate-700'
                       )}
                     >
                       <span className="font-bold w-4">{c.symbol}</span>
@@ -135,15 +181,15 @@ export function Navbar() {
               )}
             </div>
 
-            {/* Language */}
+            {/* Language — rounded pill button */}
             <div className="relative">
               <button
                 onClick={() => { setIsLangOpen(!isLangOpen); setIsCurrencyOpen(false); setIsUserOpen(false) }}
-                className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 px-2.5 py-2 rounded-lg hover:bg-slate-50 transition-colors"
+                className="flex items-center gap-1.5 text-sm text-white bg-primary hover:bg-primary-dark px-3.5 py-2 rounded-full transition-colors font-semibold"
               >
-                <ReactCountryFlag countryCode={LOCALE_TO_COUNTRY[locale]} svg style={{ width: '1.15em', height: '1.15em' }} />
-                <span className="uppercase font-medium text-xs">{locale}</span>
-                <ChevronDown className={cn('w-3 h-3 text-slate-400 transition-transform', isLangOpen && 'rotate-180')} />
+                <ReactCountryFlag countryCode={LOCALE_TO_COUNTRY[locale]} svg style={{ width: '1.1em', height: '1.1em' }} />
+                <span className="uppercase text-xs">{locale}</span>
+                <ChevronDown className={cn('w-3 h-3 text-white/80 transition-transform', isLangOpen && 'rotate-180')} />
               </button>
               {isLangOpen && (
                 <div className="absolute right-0 top-full mt-1.5 w-48 bg-white rounded-xl shadow-lg border border-slate-100 py-1.5 z-50">
@@ -153,7 +199,7 @@ export function Navbar() {
                       onClick={() => { router.replace(pathname, { locale: loc }); setIsLangOpen(false) }}
                       className={cn(
                         'w-full text-left px-4 py-2 text-sm hover:bg-slate-50 flex items-center gap-3 transition-colors',
-                        locale === loc ? 'text-[#1A56FF] font-medium' : 'text-slate-700'
+                        locale === loc ? 'text-[#005B8D] font-medium' : 'text-slate-700'
                       )}
                     >
                       <ReactCountryFlag countryCode={LOCALE_TO_COUNTRY[loc]} svg style={{ width: '1.1em', height: '1.1em' }} />
@@ -164,21 +210,21 @@ export function Navbar() {
               )}
             </div>
 
-            <div className="w-px h-5 bg-slate-200 mx-1" />
+            <div className={cn('w-px h-5 mx-1 transition-colors', transparent ? 'bg-white/25' : 'bg-slate-200')} />
 
             {/* Auth */}
             {user ? (
               <div className="relative">
                 <button
                   onClick={() => { setIsUserOpen(!isUserOpen); setIsLangOpen(false); setIsCurrencyOpen(false) }}
-                  className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-50 transition-colors"
+                  className={cn('flex items-center gap-2 px-2.5 py-1.5 rounded-lg transition-colors', transparent ? 'hover:bg-white/10' : 'hover:bg-slate-50')}
                 >
                   <Avatar className="w-7 h-7">
                     <AvatarImage src={user.avatar_url || ''} />
-                    <AvatarFallback className="text-xs bg-[#1A56FF] text-white">{getInitials(user.full_name || user.email)}</AvatarFallback>
+                    <AvatarFallback className="text-xs bg-[#005B8D] text-white">{getInitials(user.full_name || user.email)}</AvatarFallback>
                   </Avatar>
-                  <span className="text-sm font-medium text-slate-700">{user.full_name?.split(' ')[0] || 'Usuario'}</span>
-                  <ChevronDown className={cn('w-3 h-3 text-slate-400 transition-transform', isUserOpen && 'rotate-180')} />
+                  <span className={cn('text-sm font-medium', transparent ? 'text-white' : 'text-slate-700')}>{user.full_name?.split(' ')[0] || 'Usuario'}</span>
+                  <ChevronDown className={cn('w-3 h-3 transition-transform', transparent ? 'text-white/80' : 'text-slate-400', isUserOpen && 'rotate-180')} />
                 </button>
                 {isUserOpen && (
                   <div className="absolute right-0 top-full mt-1.5 w-52 bg-white rounded-xl shadow-lg border border-slate-100 py-1.5 z-50">
@@ -205,13 +251,16 @@ export function Navbar() {
               <>
                 <Link
                   href="/auth/login"
-                  className="px-4 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors"
+                  className={cn(
+                    'px-4 py-2 text-sm font-medium rounded-lg transition-colors',
+                    transparent ? 'text-white/90 hover:text-white hover:bg-white/10' : 'text-slate-700 hover:text-slate-900 hover:bg-slate-50'
+                  )}
                 >
                   {t('login')}
                 </Link>
                 <Link
                   href="/auth/register"
-                  className="px-4 py-2 text-sm font-bold text-white bg-[#1A56FF] hover:bg-[#0041CC] rounded-lg transition-colors"
+                  className="px-4 py-2 text-sm font-bold text-white bg-[#005B8D] hover:bg-[#003654] rounded-full transition-colors shadow-sm"
                 >
                   {t('register')}
                 </Link>
@@ -222,7 +271,10 @@ export function Navbar() {
           {/* Mobile button */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden w-10 h-10 flex items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
+            className={cn(
+              'lg:hidden w-10 h-10 flex items-center justify-center rounded-lg transition-colors',
+              transparent ? 'text-white hover:bg-white/10' : 'text-slate-600 hover:bg-slate-100'
+            )}
           >
             {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -231,7 +283,7 @@ export function Navbar() {
 
       {/* Mobile menu */}
       {isMenuOpen && (
-        <div className="md:hidden absolute left-0 right-0 top-full bg-white border-b border-slate-100 shadow-lg z-40">
+        <div className="lg:hidden absolute left-0 right-0 top-full bg-white border-b border-slate-100 shadow-lg z-40">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 space-y-0.5">
             {navLinks.map((link) => (
               <Link
@@ -239,7 +291,7 @@ export function Navbar() {
                 href={link.href}
                 className={cn(
                   'flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors',
-                  pathname === link.href ? 'text-[#1A56FF] bg-[#1A56FF]/5' : 'text-slate-700 hover:bg-slate-50'
+                  pathname === link.href ? 'text-[#005B8D] bg-[#005B8D]/5' : 'text-slate-700 hover:bg-slate-50'
                 )}
                 onClick={() => setIsMenuOpen(false)}
               >
@@ -284,7 +336,7 @@ export function Navbar() {
                   <Link href="/auth/login" className="flex items-center justify-center w-full py-2.5 border border-slate-200 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors" onClick={() => setIsMenuOpen(false)}>
                     {t('login')}
                   </Link>
-                  <Link href="/auth/register" className="flex items-center justify-center w-full py-2.5 rounded-lg text-sm font-bold text-white bg-[#1A56FF] hover:bg-[#0041CC] transition-colors" onClick={() => setIsMenuOpen(false)}>
+                  <Link href="/auth/register" className="flex items-center justify-center w-full py-2.5 rounded-full text-sm font-bold text-white bg-[#005B8D] hover:bg-[#003654] transition-colors" onClick={() => setIsMenuOpen(false)}>
                     {t('register')}
                   </Link>
                 </>

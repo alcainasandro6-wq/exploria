@@ -29,7 +29,7 @@ export function ProviderCTA() {
 
           {/* Left: copy */}
           <div>
-            <span className="inline-block text-[11px] font-bold uppercase tracking-[0.25em] text-[#1A56FF] mb-4">
+            <span className="inline-block text-[11px] font-bold uppercase tracking-[0.25em] text-[#005B8D] mb-4">
               Para proveedores de actividades
             </span>
             <h2 className="text-4xl md:text-5xl font-black text-[#070D1F] tracking-tight leading-none mb-5">
@@ -42,8 +42,8 @@ export function ProviderCTA() {
             <ul className="space-y-4 mb-10">
               {benefits.map(({ icon: Icon, text }) => (
                 <li key={text} className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-[#1A56FF]/10 flex items-center justify-center shrink-0 mt-0.5">
-                    <Icon className="w-3.5 h-3.5 text-[#1A56FF]" />
+                  <div className="w-6 h-6 rounded-full bg-[#005B8D]/10 flex items-center justify-center shrink-0 mt-0.5">
+                    <Icon className="w-3.5 h-3.5 text-[#005B8D]" />
                   </div>
                   <span className="text-sm text-slate-600 leading-relaxed">{text}</span>
                 </li>
@@ -53,7 +53,7 @@ export function ProviderCTA() {
             <div className="flex flex-wrap items-center gap-4">
               <Link
                 href="/providers"
-                className="inline-flex items-center gap-2 bg-[#1A56FF] hover:bg-[#0041CC] text-white font-bold py-3.5 px-8 rounded-xl transition-colors"
+                className="inline-flex items-center gap-2 bg-[#005B8D] hover:bg-[#003654] text-white font-bold py-3.5 px-8 rounded-xl transition-colors"
               >
                 {t('cta_button')} <ArrowRight className="w-4 h-4" />
               </Link>
@@ -66,15 +66,15 @@ export function ProviderCTA() {
           {/* Right: visual stats panel */}
           <div className="relative">
             {/* Background decoration */}
-            <div className="absolute -inset-4 bg-gradient-to-br from-[#1A56FF]/5 via-transparent to-sky-400/5 rounded-3xl" />
+            <div className="absolute -inset-4 bg-gradient-to-br from-[#005B8D]/5 via-transparent to-sky-400/5 rounded-3xl" />
 
             <div className="relative bg-[#070D1F] rounded-3xl p-8 overflow-hidden">
               {/* Inner glow */}
-              <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-[#1A56FF]/15 blur-[60px] pointer-events-none" />
+              <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-[#005B8D]/15 blur-[60px] pointer-events-none" />
 
               {/* Header */}
               <div className="relative mb-8">
-                <p className="text-slate-400 text-sm mb-1">Plataforma Exploria</p>
+                <p className="text-slate-400 text-sm mb-1">Plataforma BookActivities</p>
                 <p className="text-white font-black text-2xl">Tu negocio, en la Costa Blanca</p>
               </div>
 
@@ -84,7 +84,7 @@ export function ProviderCTA() {
                   <div
                     key={s.label}
                     className={`rounded-2xl p-5 border ${
-                      i === 0 ? 'bg-[#1A56FF]/15 border-[#1A56FF]/25' :
+                      i === 0 ? 'bg-[#005B8D]/15 border-[#005B8D]/25' :
                       i === 1 ? 'bg-emerald-500/10 border-emerald-500/20' :
                       i === 2 ? 'bg-amber-400/10 border-amber-400/20' :
                                 'bg-purple-500/10 border-purple-500/20'

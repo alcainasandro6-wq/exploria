@@ -1,6 +1,13 @@
-export const SITE_NAME = 'Exploria'
-export const SITE_DESCRIPTION = 'Descubre las mejores actividades turísticas en Torrevieja'
-export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://exploria.es'
+export const SITE_NAME = 'BookActivities'
+export const SITE_DESCRIPTION = 'Marketplace de experiencias con garantía de calidad en Torrevieja'
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://bookactivities.com'
+
+export const CITIES = [
+  { slug: 'torrevieja', name: 'Torrevieja', enabled: true },
+  // Add more cities here as the marketplace expands — enabled: false keeps
+  // them out of the search selector without deleting the entry.
+] as const
+export type CitySlug = (typeof CITIES)[number]['slug']
 
 export const LOCALES = ['es', 'en', 'fr', 'de', 'pl', 'ru'] as const
 export type Locale = (typeof LOCALES)[number]
@@ -83,9 +90,9 @@ export const HOTEL_COMMISSION_RATE = 0.08
 export const PLATFORM_COMMISSION_RATE = 0.05
 
 export const COLORS = {
-  primary: '#0066FF',
-  primaryHover: '#0052CC',
-  secondary: '#2E8BFF',
+  primary: '#005B8D',
+  primaryHover: '#003654',
+  secondary: '#3D84AC',
   white: '#FFFFFF',
   grayLight: '#F8FAFC',
   gray: '#64748B',

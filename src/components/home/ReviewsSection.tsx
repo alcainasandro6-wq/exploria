@@ -38,7 +38,7 @@ export function ReviewsSection() {
 
         {/* Header */}
         <div className="text-center mb-14">
-          <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-[#1A56FF] mb-3">
+          <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-[#005B8D] mb-3">
             Opiniones reales
           </p>
           <h2 className="text-4xl md:text-5xl font-black text-[#070D1F] tracking-tight mb-5">
@@ -60,7 +60,7 @@ export function ReviewsSection() {
           {reviews.map((review) => (
             <div key={review.id} className="bg-slate-50 rounded-2xl p-7 border border-slate-100 flex flex-col">
               {/* Quote icon */}
-              <Quote className="w-6 h-6 text-[#1A56FF]/20 mb-4 shrink-0" />
+              <Quote className="w-6 h-6 text-[#005B8D]/20 mb-4 shrink-0" />
 
               {/* Stars */}
               <div className="flex items-center gap-0.5 mb-4">
@@ -81,7 +81,7 @@ export function ReviewsSection() {
 
               {/* Author */}
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-[#1A56FF]/10 flex items-center justify-center text-[#1A56FF] font-black text-xs shrink-0">
+                <div className="w-9 h-9 rounded-full bg-[#005B8D]/10 flex items-center justify-center text-[#005B8D] font-black text-xs shrink-0">
                   {getInitials(review.name)}
                 </div>
                 <div>

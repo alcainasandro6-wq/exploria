@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { type NextRequest, NextResponse } from 'next/server'
+import type { UserRole } from '@/types/database'
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
@@ -8,7 +9,7 @@ export async function updateSession(request: NextRequest) {
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   if (!supabaseUrl || !supabaseKey || supabaseUrl.includes('placeholder')) {
-    return { supabaseResponse, user: null }
+    return { supabaseResponse, user: null, role: null as UserRole | null }
   }
 
   try {
@@ -31,8 +32,18 @@ export async function updateSession(request: NextRequest) {
       data: { user },
     } = await supabase.auth.getUser()
 
-    return { supabaseResponse, user }
+    let role: UserRole | null = null
+    if (user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+      role = (profile?.role as UserRole) ?? null
+    }
+
+    return { supabaseResponse, user, role }
   } catch {
-    return { supabaseResponse, user: null }
+    return { supabaseResponse, user: null, role: null as UserRole | null }
   }
 }

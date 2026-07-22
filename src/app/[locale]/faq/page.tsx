@@ -9,9 +9,9 @@ const faqs = [
     category: 'Para turistas',
     questions: [
       { q: '¿Cómo funciona la reserva?', a: 'Selecciona la actividad, elige fecha y número de participantes, y envía tu solicitud. El proveedor te contactará para confirmar los detalles y el pago se realiza directamente a él.' },
-      { q: '¿Tengo que pagar online?', a: 'No. Exploria no procesa pagos de actividades. El pago lo realizas directamente al proveedor, ya sea en efectivo, transferencia u otros métodos que él ofrezca.' },
+      { q: '¿Tengo que pagar online?', a: 'No. BookActivities no procesa pagos de actividades. El pago lo realizas directamente al proveedor, ya sea en efectivo, transferencia u otros métodos que él ofrezca.' },
       { q: '¿Cómo cancelo una reserva?', a: 'Contacta directamente con el proveedor según su política de cancelación, que se muestra claramente en cada actividad. Desde tu panel puedes ver los datos de contacto del proveedor.' },
-      { q: '¿Las actividades están verificadas?', a: 'Todos los proveedores que publican actividades en Exploria pasan por un proceso de verificación. Sin embargo, Exploria actúa como intermediario y no organiza las actividades directamente.' },
+      { q: '¿Las actividades están verificadas?', a: 'Todos los proveedores que publican actividades en BookActivities pasan por un proceso de verificación. Sin embargo, BookActivities actúa como intermediario y no organiza las actividades directamente.' },
     ]
   },
   {
@@ -41,11 +41,11 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
         onClick={() => setOpen(!open)}
         className="w-full flex items-start justify-between py-4 text-left gap-4"
       >
-        <span className={cn('text-sm font-semibold transition-colors', open ? 'text-[#0066FF]' : 'text-slate-900')}>
+        <span className={cn('text-sm font-semibold transition-colors', open ? 'text-primary' : 'text-slate-900')}>
           {question}
         </span>
         {open ? (
-          <ChevronUp className="w-4 h-4 text-[#0066FF] shrink-0 mt-0.5" />
+          <ChevronUp className="w-4 h-4 text-primary shrink-0 mt-0.5" />
         ) : (
           <ChevronDown className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
         )}
@@ -60,10 +60,10 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
 export default function FAQPage() {
   return (
     <div className="min-h-screen bg-white">
-      <div className="bg-gradient-to-br from-[#0066FF] to-[#003d99] py-16">
+      <div className="bg-gradient-to-br from-primary to-primary-dark py-16">
         <div className="max-w-3xl mx-auto px-4 text-center text-white">
           <h1 className="text-4xl font-extrabold mb-3">Preguntas frecuentes</h1>
-          <p className="text-blue-100">Todo lo que necesitas saber sobre Exploria</p>
+          <p className="text-blue-100">Todo lo que necesitas saber sobre BookActivities</p>
         </div>
       </div>
 

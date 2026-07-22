@@ -1,7 +1,9 @@
 {
   "nav": {
+    "home": "Home",
     "activities": "Activities",
     "categories": "Categories",
+    "providers": "Providers",
     "blog": "Blog",
     "about": "About us",
     "contact": "Contact",
@@ -11,10 +13,14 @@
     "logout": "Log out"
   },
   "home": {
-    "hero_title": "Discover the best activities in Torrevieja",
-    "hero_subtitle": "Unique experiences, trusted providers, direct booking",
-    "hero_search_placeholder": "What activity are you looking for?",
+    "hero_title": "Your next adventure starts here",
+    "hero_subtitle": "The experiences marketplace with a quality guarantee, verified by the best local providers",
+    "hero_search_placeholder": "What activity are you looking for in Torrevieja?",
     "hero_cta": "Explore activities",
+    "hero_stat_best": "Best activities",
+    "hero_stat_cancellation": "Free cancellation",
+    "hero_stat_support": "24/7 customer support",
+    "hero_stat_price": "Best price guaranteed",
     "featured_title": "Featured activities",
     "featured_subtitle": "The highest-rated experiences from our customers",
     "categories_title": "Browse by category",
@@ -23,7 +29,7 @@
     "stats_customers": "Happy customers",
     "stats_reviews": "Verified reviews",
     "cta_title": "Are you an activity provider?",
-    "cta_subtitle": "Join Exploria and reach thousands of tourists. Start with 30 days free.",
+    "cta_subtitle": "Join BookActivities and reach thousands of tourists. Start with 30 days free.",
     "cta_button": "Get started",
     "hotels_title": "Are you a hotel?",
     "hotels_subtitle": "Add value for your guests and earn commissions on every booking"
@@ -67,14 +73,14 @@
   },
   "auth": {
     "login_title": "Welcome back",
-    "login_subtitle": "Sign in to your Exploria account",
+    "login_subtitle": "Sign in to your BookActivities account",
     "email": "Email address",
     "password": "Password",
     "login_button": "Sign in",
     "register_link": "Don't have an account? Sign up",
     "forgot_password": "Forgot your password?",
     "register_title": "Create account",
-    "register_subtitle": "Join Exploria today",
+    "register_subtitle": "Join BookActivities today",
     "full_name": "Full name",
     "confirm_password": "Confirm password",
     "role_customer": "I'm a tourist / customer",
@@ -128,7 +134,7 @@
     "active_providers": "Active providers"
   },
   "footer": {
-    "about": "About Exploria",
+    "about": "About BookActivities",
     "description": "The leading tourist activity platform in Torrevieja. We connect tourists with the best local providers.",
     "activities": "Activities",
     "company": "Company",

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Términos y condiciones | Exploria',
+  title: 'Términos y condiciones | BookActivities',
 }
 
 export default function TermsPage() {
@@ -18,14 +18,14 @@ export default function TermsPage() {
         <div className="prose prose-slate max-w-none">
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 mb-8">
             <p className="text-sm font-semibold text-amber-800">
-              ⚠️ Aviso importante: Exploria actúa exclusivamente como intermediario tecnológico. No organiza actividades turísticas, no realiza cobros en nombre de los proveedores, ni asume responsabilidad por la prestación de los servicios, que corresponde exclusivamente a los proveedores registrados.
+              ⚠️ Aviso importante: BookActivities actúa exclusivamente como intermediario tecnológico. No organiza actividades turísticas, no realiza cobros en nombre de los proveedores, ni asume responsabilidad por la prestación de los servicios, que corresponde exclusivamente a los proveedores registrados.
             </p>
           </div>
 
           <section className="mb-8">
             <h2 className="text-xl font-bold text-slate-900 mb-3">1. Objeto y naturaleza del servicio</h2>
             <p className="text-slate-600 leading-relaxed mb-3">
-              Exploria es una plataforma tecnológica de intermediación que facilita el contacto entre turistas (usuarios) y proveedores de actividades turísticas. La plataforma NO presta servicios turísticos directamente.
+              BookActivities es una plataforma tecnológica de intermediación que facilita el contacto entre turistas (usuarios) y proveedores de actividades turísticas. La plataforma NO presta servicios turísticos directamente.
             </p>
             <p className="text-slate-600 leading-relaxed">
               Los proveedores son empresas o profesionales independientes que ofrecen y gestionan sus propias actividades. Son los únicos responsables de la calidad, seguridad, legalidad y ejecución de las actividades ofertadas.
@@ -48,24 +48,24 @@ export default function TermsPage() {
               Los proveedores deben contratar y mantener activa una suscripción mensual o anual para publicar actividades y recibir reservas. Sin suscripción activa, las actividades del proveedor serán suspendidas automáticamente.
             </p>
             <p className="text-slate-600 leading-relaxed">
-              Los pagos de suscripción se procesan mediante Stripe. En caso de impago, Exploria se reserva el derecho de suspender el acceso a los servicios del proveedor.
+              Los pagos de suscripción se procesan mediante Stripe. En caso de impago, BookActivities se reserva el derecho de suspender el acceso a los servicios del proveedor.
             </p>
           </section>
 
           <section className="mb-8">
             <h2 className="text-xl font-bold text-slate-900 mb-3">4. Reservas y pagos de actividades</h2>
             <p className="text-slate-600 leading-relaxed mb-3">
-              Las reservas realizadas a través de Exploria son solicitudes dirigidas directamente al proveedor. <strong>Exploria no procesa pagos de actividades</strong>. El pago de la actividad se realiza directamente al proveedor según sus propias condiciones.
+              Las reservas realizadas a través de BookActivities son solicitudes dirigidas directamente al proveedor. <strong>BookActivities no procesa pagos de actividades</strong>. El pago de la actividad se realiza directamente al proveedor según sus propias condiciones.
             </p>
             <p className="text-slate-600 leading-relaxed">
-              Exploria percibe una comisión del 5% del precio de cada reserva confirmada, que es abonada por el proveedor. Los hoteles colaboradores perciben una comisión del 8% por las reservas generadas a través de sus enlaces o QR.
+              BookActivities percibe una comisión del 5% del precio de cada reserva confirmada, que es abonada por el proveedor. Los hoteles colaboradores perciben una comisión del 8% por las reservas generadas a través de sus enlaces o QR.
             </p>
           </section>
 
           <section className="mb-8">
             <h2 className="text-xl font-bold text-slate-900 mb-3">5. Responsabilidad</h2>
             <p className="text-slate-600 leading-relaxed">
-              Exploria no se hace responsable de daños, perjuicios o incidencias que puedan ocurrir durante la realización de actividades. La responsabilidad por la prestación del servicio recae íntegramente en el proveedor. El usuario debe verificar que el proveedor cumple con toda la normativa turística y de seguridad vigente.
+              BookActivities no se hace responsable de daños, perjuicios o incidencias que puedan ocurrir durante la realización de actividades. La responsabilidad por la prestación del servicio recae íntegramente en el proveedor. El usuario debe verificar que el proveedor cumple con toda la normativa turística y de seguridad vigente.
             </p>
           </section>
 

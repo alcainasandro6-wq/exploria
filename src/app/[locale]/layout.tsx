@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { routing } from '@/i18n/routing'
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
+import { WhatsAppButton } from '@/components/layout/WhatsAppButton'
 import { CurrencyProvider } from '@/context/CurrencyContext'
 import { Toaster } from 'sonner'
 import type { Metadata } from 'next'
@@ -33,17 +34,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title: {
-      template: '%s | Exploria',
-      default: 'Exploria - Actividades en Torrevieja',
+      template: '%s | BookActivities',
+      default: 'BookActivities - Actividades en Torrevieja',
     },
     description: t('hero_subtitle'),
     keywords: ['actividades torrevieja', 'turismo alicante', 'excursiones torrevieja', 'deportes acuáticos'],
-    authors: [{ name: 'Exploria' }],
-    metadataBase: new URL((process.env.NEXT_PUBLIC_SITE_URL || 'https://exploria.es').trim().replace(/^﻿/, '')),
+    authors: [{ name: 'BookActivities' }],
+    metadataBase: new URL((process.env.NEXT_PUBLIC_SITE_URL || 'https://bookactivities.com').trim().replace(/^﻿/, '')),
     openGraph: {
       type: 'website',
       locale: locale,
-      siteName: 'Exploria',
+      siteName: 'BookActivities',
     },
     alternates: {
       languages: {
@@ -85,10 +86,11 @@ export default async function LocaleLayout({ children, params }: Props) {
         <NextIntlClientProvider messages={messages}>
           <CurrencyProvider>
             <Navbar />
-            <main className="flex-1 pt-16">
+            <main className="flex-1 pt-20">
               {children}
             </main>
             <Footer />
+            <WhatsAppButton />
           </CurrencyProvider>
           <Toaster position="top-right" richColors />
         </NextIntlClientProvider>

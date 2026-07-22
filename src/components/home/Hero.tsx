@@ -1,21 +1,18 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import { useRouter } from '@/i18n/navigation'
-import { Search, Star, ShieldCheck, Zap } from 'lucide-react'
+import { Search, Star, ShieldCheck, Zap, Users, MapPin } from 'lucide-react'
 import Image from 'next/image'
-
-const POPULAR = ['Buceo', 'Kayak', 'Catamarán', 'Paddle surf', 'Gastronomía']
-
-const TRUST = [
-  { icon: Star, text: '4.9 valoración media', color: 'text-amber-400' },
-  { icon: ShieldCheck, text: 'Cancelación gratuita', color: 'text-emerald-400' },
-  { icon: Zap, text: '150+ actividades', color: 'text-sky-400' },
-]
+import { CITIES } from '@/lib/constants'
 
 export function Hero() {
+  const t = useTranslations('home')
+  const tc = useTranslations('common')
   const router = useRouter()
   const [search, setSearch] = useState('')
+  const [city, setCity] = useState<string>(CITIES[0].slug)
   const bgRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -28,15 +25,25 @@ export function Hero() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = (e: { preventDefault(): void }) => {
     e.preventDefault()
-    router.push(search.trim() ? `/activities?q=${encodeURIComponent(search)}` : '/activities')
+    const params = new URLSearchParams()
+    if (search.trim()) params.set('q', search.trim())
+    params.set('city', city)
+    router.push(`/activities?${params.toString()}`)
   }
+
+  const stats = [
+    { icon: Star,        key: 'hero_stat_best',         color: 'text-amber-400' },
+    { icon: ShieldCheck, key: 'hero_stat_cancellation',  color: 'text-emerald-400' },
+    { icon: Users,       key: 'hero_stat_support',       color: 'text-sky-400' },
+    { icon: Zap,         key: 'hero_stat_price',         color: 'text-violet-400' },
+  ] as const
 
   return (
     <section>
-      {/* Photo banner with parallax */}
-      <div className="relative overflow-hidden" style={{ height: 'clamp(480px, 72vh, 680px)' }}>
+      {/* Photo banner — pulled up under the transparent glass header so the image shows through it */}
+      <div className="relative overflow-hidden -mt-20" style={{ height: 'clamp(640px, 88vh, 840px)' }}>
 
         {/* Parallax background */}
         <div
@@ -53,84 +60,75 @@ export function Hero() {
           />
         </div>
 
-        {/* Gradient overlay — heaviest at bottom, subtle at top */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-black/45 to-black/80" />
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black/80" />
 
-        {/* Ambient orbs */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-[15%] right-[20%] w-[500px] h-[500px] rounded-full bg-blue-500/8 blur-[100px] animate-orb-1" />
-          <div className="absolute bottom-[20%] left-[15%] w-[300px] h-[300px] rounded-full bg-sky-400/6 blur-[80px] animate-orb-3" />
-        </div>
+        {/* Extra scrim behind the transparent glass header — keeps white nav text legible
+            regardless of how light the photo is at the very top (e.g. pale sky). */}
+        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black/45 to-transparent pointer-events-none" />
 
-        {/* Content — vertically centered */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 sm:px-6">
-
-          {/* Trust badge */}
-          <div className="flex items-center gap-2 bg-white/12 backdrop-blur-md border border-white/18 rounded-full px-5 py-2 mb-8">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-white/90 text-xs font-semibold tracking-wide">
-              Cancelación gratuita disponible en la mayoría de actividades
-            </span>
-          </div>
+        {/* Main content — centered */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 sm:px-8 pb-20">
 
           {/* Heading */}
-          <h1 className="text-[clamp(2.8rem,8vw,5.5rem)] font-black text-white leading-none tracking-tighter mb-4">
-            Torrevieja
+          <h1 className="text-[clamp(3rem,8.5vw,6rem)] font-black text-white leading-[1.02] tracking-tight mb-5 max-w-4xl">
+            {t('hero_title')}
           </h1>
-          <p className="text-white/65 text-base md:text-xl font-light mb-10 max-w-lg">
-            Descubre las mejores experiencias del Mediterráneo con proveedores locales verificados
+
+          <p className="text-white/70 text-lg md:text-xl mb-10 max-w-2xl leading-relaxed">
+            {t('hero_subtitle')}
           </p>
 
-          {/* Search bar */}
-          <form onSubmit={handleSearch} className="w-full max-w-2xl mb-6">
-            <div className="flex bg-white rounded-2xl shadow-2xl shadow-black/40 overflow-hidden p-1.5 gap-1.5">
-              <div className="flex-1 flex items-center gap-3 px-4">
-                <Search className="w-4 h-4 text-slate-400 shrink-0" />
+          {/* Search bar — pill shape */}
+          <form onSubmit={handleSearch} className="w-full max-w-2xl">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center bg-white rounded-3xl sm:rounded-full shadow-2xl shadow-black/50 overflow-hidden sm:pl-6 sm:pr-1.5 sm:py-1.5 gap-0 sm:gap-3">
+              <div className="flex items-center gap-2 px-5 sm:px-0 py-3 sm:py-0 border-b sm:border-b-0 sm:border-r border-slate-100 sm:pr-3">
+                <MapPin className="w-4 h-4 text-slate-400 shrink-0" />
+                <select
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  className="text-slate-700 font-semibold outline-none text-sm bg-transparent cursor-pointer"
+                >
+                  {CITIES.map((c) => (
+                    <option key={c.slug} value={c.slug} disabled={!c.enabled}>
+                      {c.name}{!c.enabled ? ' (próximamente)' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-center gap-3 px-5 sm:px-0 py-3 sm:py-0 flex-1">
+                <Search className="w-5 h-5 text-slate-400 shrink-0" />
                 <input
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="¿Qué quieres hacer en Torrevieja?"
-                  className="flex-1 text-slate-800 placeholder:text-slate-400 outline-none text-sm bg-transparent py-3"
+                  placeholder={t('hero_search_placeholder')}
+                  className="flex-1 text-slate-800 placeholder:text-slate-400 outline-none text-base bg-transparent sm:py-3"
                 />
               </div>
               <button
                 type="submit"
-                className="bg-[#1A56FF] hover:bg-[#0041CC] text-white font-bold px-7 py-3 rounded-xl text-sm transition-colors shrink-0"
+                className="bg-primary hover:bg-primary-dark text-white font-bold px-8 py-4 sm:rounded-full text-[15px] transition-colors shrink-0 whitespace-nowrap"
               >
-                Buscar
+                {tc('search')} →
               </button>
             </div>
           </form>
-
-          {/* Popular tags */}
-          <div className="flex flex-wrap justify-center items-center gap-2">
-            <span className="text-white/35 text-[11px] uppercase tracking-widest">Tendencias:</span>
-            {POPULAR.map((term) => (
-              <button
-                key={term}
-                onClick={() => router.push(`/activities?q=${encodeURIComponent(term)}`)}
-                className="text-xs text-white/75 bg-white/10 hover:bg-white/20 border border-white/12 hover:border-white/30 rounded-full px-4 py-1.5 transition-all backdrop-blur-sm"
-              >
-                {term}
-              </button>
-            ))}
-          </div>
         </div>
-      </div>
 
-      {/* Stats bar below the photo — Civitatis style */}
-      <div className="bg-white border-b border-slate-100 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-8 gap-y-3 py-4">
-            {TRUST.map(({ icon: Icon, text, color }) => (
-              <div key={text} className="flex items-center gap-2">
-                <Icon className={`w-4 h-4 shrink-0 ${color}`} fill="currentColor" />
-                <span className="text-sm font-medium text-slate-600">{text}</span>
-              </div>
-            ))}
-            <div className="hidden sm:block w-px h-4 bg-slate-200" />
-            <span className="text-sm text-slate-400">Torrevieja · Costa Blanca · España</span>
+        {/* Stats — inside the image, bottom strip */}
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent">
+          <div className="max-w-5xl mx-auto px-4 sm:px-8 py-5">
+            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 sm:divide-x sm:divide-white/20 sm:flex-nowrap">
+              {stats.map(({ icon: Icon, key, color }) => (
+                <div key={key} className="flex items-center gap-2.5 sm:px-8 first:pl-0 last:pr-0">
+                  <Icon className={`w-[18px] h-[18px] shrink-0 ${color}`} />
+                  <span className="text-[14px] font-semibold text-white whitespace-nowrap">
+                    {t(key)}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

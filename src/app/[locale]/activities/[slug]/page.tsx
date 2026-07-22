@@ -1,97 +1,34 @@
-import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 import {
   Clock, MapPin, Users, Star, Globe, Shield, CheckCircle2,
-  XCircle, AlertCircle, ChevronRight, Heart, Share2, BadgeCheck
+  XCircle, AlertCircle, ChevronRight, BadgeCheck
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion'
 import { BookingWidget } from '@/components/booking/BookingWidget'
-import { formatPrice, formatDuration, getRatingLabel } from '@/lib/utils'
+import { ActivityGallery } from '@/components/activities/ActivityGallery'
+import { BookingEmbed } from '@/components/activities/BookingEmbed'
+import { getActivityBySlug, getActivityReviews } from '@/lib/services/activities'
+import { formatDuration, getRatingLabel, getInitials } from '@/lib/utils'
 import type { Metadata } from 'next'
-import type { Activity } from '@/types/database'
 
-const MOCK_ACTIVITY: Activity = {
-  id: '1',
-  provider_id: 'p1',
-  title: 'Buceo con instructores certificados en Torrevieja',
-  slug: 'buceo-torrevieja',
-  description: `Descubre el fascinante mundo submarino del Mediterráneo con nuestros instructores certificados PADI. Torrevieja es uno de los mejores destinos de buceo en España, con aguas cristalinas, rica biodiversidad marina y pecios históricos.
-
-Durante esta experiencia, nuestros instructores te guiarán por los puntos más espectaculares de la costa torrevejense. Verás coloridos peces, estrellas de mar, pulpos, y si tienes suerte, hasta delfines.
-
-La actividad incluye todo el equipo necesario: traje de neopreno, máscara, aletas, regulador y botella. No se requiere experiencia previa; nuestros instructores te enseñarán las técnicas básicas de buceo antes de entrar al agua.`,
-  short_description: 'Sumérgete en las cristalinas aguas del Mediterráneo con instructores certificados PADI.',
-  category_id: 'c1',
-  price_from: 45,
-  duration_minutes: 180,
-  max_participants: 8,
-  min_participants: 2,
-  languages: ['es', 'en', 'de'],
-  meeting_point: 'Puerto Deportivo de Torrevieja, Muelle de Levante',
-  latitude: 37.9781,
-  longitude: -0.6782,
-  city: 'Torrevieja',
-  country: 'España',
-  cancellation_policy: 'Cancelación gratuita hasta 24 horas antes de la actividad. En caso de cancelación tardía se cobrará el 50% del precio.',
-  included: [
-    'Equipo de buceo completo (traje, máscara, aletas, botella, regulador)',
-    'Instructor certificado PADI',
-    'Seguro de actividad',
-    'Fotos subacuáticas',
-    'Bebida de bienvenida',
-  ],
-  excluded: [
-    'Traslados desde/hacia el hotel',
-    'Comidas y bebidas adicionales',
-    'Propinas (opcional)',
-  ],
-  requirements: [
-    'Saber nadar',
-    'Edad mínima: 10 años',
-    'Buena condición física general',
-    'No tener problemas cardíacos ni respiratorios',
-  ],
-  google_maps_url: 'https://www.google.com/maps/place/Puerto+Deportivo+de+Torrevieja/@37.9781,-0.6782,16z',
-  status: 'published',
-  featured: true,
-  rating: 4.9,
-  review_count: 127,
-  booking_count: 342,
-  created_at: '2024-01-01',
-  updated_at: '2024-01-01',
-  images: [
-    { id: 'i1', activity_id: '1', url: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1200&q=80', alt: 'Buceo en Torrevieja', is_cover: true, sort_order: 0, created_at: '' },
-    { id: 'i2', activity_id: '1', url: 'https://images.unsplash.com/photo-1560881882-8ffcdb24bbe0?w=800&q=80', alt: 'Instructor de buceo', is_cover: false, sort_order: 1, created_at: '' },
-    { id: 'i3', activity_id: '1', url: 'https://images.unsplash.com/photo-1532339142463-fd0a8979791a?w=800&q=80', alt: 'Vida marina', is_cover: false, sort_order: 2, created_at: '' },
-    { id: 'i4', activity_id: '1', url: 'https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=800&q=80', alt: 'Equipo de buceo', is_cover: false, sort_order: 3, created_at: '' },
-  ],
-  category: { id: 'c1', name: 'Buceo y snorkel', slug: 'buceo-snorkel', description: null, icon: '🤿', image_url: null, sort_order: 1, is_active: true, created_at: '' },
-  provider: {
-    id: 'p1', profile_id: 'pr1', company_name: 'Buceo Mediterráneo', slug: 'buceo-mediterraneo',
-    description: 'Centro de buceo profesional con más de 15 años de experiencia en Torrevieja. Instructores certificados PADI y SSI. Ofrecemos cursos de buceo, excursiones guiadas y alquiler de equipo.',
-    address: 'Puerto Deportivo, Muelle de Levante s/n', city: 'Torrevieja', country: 'España',
-    phone: '+34 965 123 456', tax_id: 'B12345678', logo_url: null, website: 'https://buceomed.es',
-    commission_rate: 0.05, is_verified: true, is_active: true, created_at: '', updated_at: ''
-  }
+const LANG_NAMES: Record<string, string> = {
+  es: '🇪🇸 Español', en: '🇬🇧 English', de: '🇩🇪 Deutsch',
+  fr: '🇫🇷 Français', pl: '🇵🇱 Polski', ru: '🇷🇺 Русский',
 }
-
-const MOCK_REVIEWS = [
-  { id: 1, name: 'Carlos M.', rating: 5, comment: 'Experiencia increíble. Los instructores son muy profesionales y el mar estaba precioso. Repetiré sin duda.', date: 'Junio 2025', nationality: '🇪🇸' },
-  { id: 2, name: 'Sophie K.', rating: 5, comment: 'Absolutely fantastic experience! The instructor was very patient and the water was crystal clear.', date: 'Mayo 2025', nationality: '🇩🇪' },
-  { id: 3, name: 'Aleksandra W.', rating: 4, comment: 'Świetna aktywność! Instruktorzy bardzo pomocni, sprzęt w dobrym stanie. Polecam!', date: 'Julio 2025', nationality: '🇵🇱' },
-]
 
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ locale: string; slug: string }>
 }): Promise<Metadata> {
-  const { locale } = await params
+  const { slug } = await params
+  const activity = await getActivityBySlug(slug)
+  if (!activity) return { title: 'Actividad no encontrada | BookActivities' }
   return {
-    title: `${MOCK_ACTIVITY.title} | Exploria`,
-    description: MOCK_ACTIVITY.short_description || MOCK_ACTIVITY.description.slice(0, 160),
+    title: `${activity.title} | BookActivities`,
+    description: activity.short_description || activity.description.slice(0, 160),
   }
 }
 
@@ -103,105 +40,68 @@ export default async function ActivityPage({
   const { slug } = await params
   const t = await getTranslations('activity')
 
-  const activity = MOCK_ACTIVITY
+  const activity = await getActivityBySlug(slug)
   if (!activity) notFound()
 
-  const coverImage = activity.images?.find((i) => i.is_cover)?.url || activity.images?.[0]?.url
-
-  const langNames: Record<string, string> = {
-    es: '🇪🇸 Español', en: '🇬🇧 English', de: '🇩🇪 Deutsch',
-    fr: '🇫🇷 Français', pl: '🇵🇱 Polski', ru: '🇷🇺 Русский',
-  }
+  const reviews = await getActivityReviews(activity.id)
 
   return (
     <div className="min-h-screen bg-white">
       {/* Breadcrumb */}
       <div className="bg-white border-b border-slate-100 py-3">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <nav className="flex items-center gap-2 text-sm text-slate-500">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 overflow-x-auto">
+          <nav className="flex items-center gap-2 text-sm text-slate-500 whitespace-nowrap">
             <span>Inicio</span>
-            <ChevronRight className="w-3 h-3" />
+            <ChevronRight className="w-3 h-3 shrink-0" />
             <span>Actividades</span>
-            <ChevronRight className="w-3 h-3" />
-            <span className="text-slate-400">{activity.category?.name}</span>
-            <ChevronRight className="w-3 h-3" />
+            {activity.category && (
+              <>
+                <ChevronRight className="w-3 h-3 shrink-0" />
+                <span className="text-slate-400">{activity.category.name}</span>
+              </>
+            )}
+            <ChevronRight className="w-3 h-3 shrink-0" />
             <span className="text-slate-900 font-medium truncate max-w-xs">{activity.title}</span>
           </nav>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Title Section */}
-        <div className="flex items-start justify-between mb-6">
-          <div className="flex-1">
-            {activity.category && (
-              <Badge className="mb-2">{activity.category.name}</Badge>
-            )}
-            <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 mb-3">
-              {activity.title}
-            </h1>
-            <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600">
+        <div className="mb-6">
+          {activity.category && <Badge className="mb-2">{activity.category.name}</Badge>}
+          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 mb-3">
+            {activity.title}
+          </h1>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-600">
+            {activity.review_count > 0 && (
               <div className="flex items-center gap-1.5">
                 <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
                 <span className="font-bold text-slate-900">{activity.rating}</span>
                 <span className="text-slate-400">({activity.review_count} reseñas)</span>
-                <span className="font-medium text-slate-600">{getRatingLabel(activity.rating)}</span>
+                <span className="font-medium text-slate-600 hidden sm:inline">{getRatingLabel(activity.rating)}</span>
               </div>
-              <div className="flex items-center gap-1">
-                <MapPin className="w-4 h-4" />
-                <span>{activity.city}, {activity.country}</span>
-              </div>
-              {activity.provider?.is_verified && (
-                <div className="flex items-center gap-1 text-[#0066FF]">
-                  <BadgeCheck className="w-4 h-4" />
-                  <span>{t('verified_provider')}</span>
-                </div>
-              )}
+            )}
+            <div className="flex items-center gap-1">
+              <MapPin className="w-4 h-4" />
+              <span>{activity.city}, {activity.country}</span>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button className="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors">
-              <Heart className="w-5 h-5 text-slate-400" />
-            </button>
-            <button className="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors">
-              <Share2 className="w-5 h-5 text-slate-400" />
-            </button>
+            {activity.provider?.is_verified && (
+              <div className="flex items-center gap-1 text-primary">
+                <BadgeCheck className="w-4 h-4" />
+                <span>{t('verified_provider')}</span>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Image Gallery */}
-        <div className="grid grid-cols-4 grid-rows-2 gap-2 rounded-2xl overflow-hidden mb-8 h-80 md:h-96">
-          <div className="col-span-2 row-span-2 relative">
-            <Image
-              src={coverImage || ''}
-              alt={activity.title}
-              fill
-              className="object-cover"
-              priority
-            />
-          </div>
-          {activity.images?.filter(i => !i.is_cover).slice(0, 4).map((image, idx) => (
-            <div key={image.id} className="relative">
-              <Image
-                src={image.url}
-                alt={image.alt || activity.title}
-                fill
-                className="object-cover"
-              />
-              {idx === 3 && (
-                <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">+{(activity.images?.length || 0) - 5} fotos</span>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+        <ActivityGallery images={activity.images} title={activity.title} videoUrl={activity.video_url} />
 
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
             {/* Quick Info */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
               {[
                 { icon: Clock, label: 'Duración', value: formatDuration(activity.duration_minutes) },
                 { icon: Users, label: 'Participantes', value: `Máx. ${activity.max_participants}` },
@@ -209,7 +109,7 @@ export default async function ActivityPage({
                 { icon: Shield, label: 'Cancelación', value: 'Gratuita 24h' },
               ].map(({ icon: Icon, label, value }) => (
                 <div key={label} className="bg-slate-50 rounded-2xl p-4 text-center">
-                  <Icon className="w-5 h-5 text-[#0066FF] mx-auto mb-1.5" />
+                  <Icon className="w-5 h-5 text-primary mx-auto mb-1.5" />
                   <div className="text-xs text-slate-500 mb-0.5">{label}</div>
                   <div className="text-sm font-bold text-slate-900">{value}</div>
                 </div>
@@ -225,7 +125,7 @@ export default async function ActivityPage({
             </div>
 
             {/* Included / Excluded */}
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid sm:grid-cols-2 gap-6">
               <div>
                 <h3 className="font-bold text-slate-900 mb-3 flex items-center gap-2">
                   <CheckCircle2 className="w-5 h-5 text-emerald-500" />
@@ -277,26 +177,29 @@ export default async function ActivityPage({
             {/* Languages */}
             <div>
               <h3 className="font-bold text-slate-900 mb-3 flex items-center gap-2">
-                <Globe className="w-5 h-5 text-[#0066FF]" />
+                <Globe className="w-5 h-5 text-primary" />
                 {t('languages')}
               </h3>
               <div className="flex flex-wrap gap-2">
                 {activity.languages.map((lang) => (
                   <Badge key={lang} variant="secondary" className="text-sm">
-                    {langNames[lang] || lang}
+                    {LANG_NAMES[lang] || lang}
                   </Badge>
                 ))}
               </div>
             </div>
 
+            {/* Live availability embed (Bokun/TuriTop/Civitatis/GetYourGuide/ClickAndBoat) */}
+            <BookingEmbed embedCode={activity.booking_widget_embed_code} platform={activity.external_booking_platform} />
+
             {/* Meeting Point */}
             <div>
               <h3 className="font-bold text-slate-900 mb-3 flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-[#0066FF]" />
+                <MapPin className="w-5 h-5 text-primary" />
                 {t('location')}
               </h3>
               <p className="text-slate-600 text-sm mb-3">{activity.meeting_point}</p>
-              {activity.google_maps_url ? (
+              {activity.latitude && activity.longitude ? (
                 <div className="rounded-2xl overflow-hidden border border-slate-200">
                   <iframe
                     src={`https://maps.google.com/maps?q=${activity.latitude},${activity.longitude}&z=15&output=embed`}
@@ -307,19 +210,21 @@ export default async function ActivityPage({
                     referrerPolicy="no-referrer-when-downgrade"
                     title="Ubicación de la actividad"
                   />
-                  <a
-                    href={activity.google_maps_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 py-2.5 text-xs text-[#0066FF] font-medium hover:bg-slate-50 transition-colors"
-                  >
-                    <MapPin className="w-3.5 h-3.5" />
-                    Ver en Google Maps
-                  </a>
+                  {activity.google_maps_url && (
+                    <a
+                      href={activity.google_maps_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 py-2.5 text-xs text-primary font-medium hover:bg-slate-50 transition-colors"
+                    >
+                      <MapPin className="w-3.5 h-3.5" />
+                      Ver en Google Maps
+                    </a>
+                  )}
                 </div>
               ) : (
-                <div className="bg-slate-100 rounded-2xl h-40 flex items-center justify-center text-slate-400 text-sm">
-                  <MapPin className="w-4 h-4 mr-2" />
+                <div className="bg-slate-100 rounded-2xl h-40 flex items-center justify-center text-slate-400 text-sm px-4 text-center">
+                  <MapPin className="w-4 h-4 mr-2 shrink-0" />
                   {activity.meeting_point}
                 </div>
               )}
@@ -334,24 +239,50 @@ export default async function ActivityPage({
               <p className="text-sm text-slate-600">{activity.cancellation_policy}</p>
             </div>
 
+            {/* Extra info */}
+            {activity.extra_info.length > 0 && (
+              <div className="space-y-4">
+                <h3 className="font-bold text-slate-900">Información adicional</h3>
+                {activity.extra_info.map((block) => (
+                  <div key={block.title}>
+                    <h4 className="text-sm font-semibold text-slate-800 mb-1">{block.title}</h4>
+                    <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-line">{block.content}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* FAQ */}
+            {activity.faqs.length > 0 && (
+              <div>
+                <h3 className="font-bold text-slate-900 mb-2">Preguntas frecuentes</h3>
+                <Accordion type="single" collapsible>
+                  {activity.faqs.map((faq, idx) => (
+                    <AccordionItem key={idx} value={`faq-${idx}`}>
+                      <AccordionTrigger>{faq.question}</AccordionTrigger>
+                      <AccordionContent>{faq.answer}</AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              </div>
+            )}
+
             {/* Provider */}
             {activity.provider && (
               <div className="border border-slate-100 rounded-2xl p-6">
                 <h3 className="font-bold text-slate-900 mb-4">{t('provider')}</h3>
                 <div className="flex items-start gap-4">
-                  <div className="w-14 h-14 bg-[#0066FF]/10 rounded-xl flex items-center justify-center text-[#0066FF] font-bold text-xl">
+                  <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center text-primary font-bold text-xl shrink-0">
                     {activity.provider.company_name.charAt(0)}
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="font-bold text-slate-900">{activity.provider.company_name}</span>
-                      {activity.provider.is_verified && (
-                        <BadgeCheck className="w-5 h-5 text-[#0066FF]" />
-                      )}
+                      {activity.provider.is_verified && <BadgeCheck className="w-5 h-5 text-primary shrink-0" />}
                     </div>
                     <p className="text-sm text-slate-500 leading-relaxed">{activity.provider.description}</p>
                     <div className="mt-3 flex items-center gap-2 text-sm text-slate-500">
-                      <MapPin className="w-4 h-4" />
+                      <MapPin className="w-4 h-4 shrink-0" />
                       {activity.provider.city}, {activity.provider.country}
                     </div>
                   </div>
@@ -363,7 +294,7 @@ export default async function ActivityPage({
             <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5">
               <p className="text-xs text-slate-500 leading-relaxed">
                 <Shield className="w-3.5 h-3.5 inline mr-1 text-slate-400" />
-                <strong>{t('legal_notice')}</strong> Exploria actúa únicamente como intermediario tecnológico. El servicio es prestado directamente por el proveedor, quien es responsable de gestionar la actividad, confirmar reservas y cobrar al cliente.
+                <strong>{t('legal_notice')}</strong> BookActivities actúa únicamente como intermediario tecnológico. El servicio es prestado directamente por el proveedor, quien es responsable de gestionar la actividad, confirmar reservas y cobrar al cliente.
               </p>
             </div>
 
@@ -371,56 +302,52 @@ export default async function ActivityPage({
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-slate-900">{t('reviews')}</h2>
-                <div className="flex items-center gap-2">
-                  <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-                  <span className="font-bold text-lg">{activity.rating}</span>
-                  <span className="text-slate-400 text-sm">({activity.review_count})</span>
-                </div>
-              </div>
-              {activity.google_maps_url && (
-                <a
-                  href={activity.google_maps_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-xs text-slate-500 hover:text-[#0066FF] mb-5 transition-colors"
-                >
-                  <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-current" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                  </svg>
-                  Reseñas importadas desde Google Maps · Ver todas
-                </a>
-              )}
-              <div className="space-y-5">
-                {MOCK_REVIEWS.map((review) => (
-                  <div key={review.id} className="border-b border-slate-100 pb-5 last:border-0">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <div className="w-9 h-9 rounded-full bg-[#0066FF]/10 flex items-center justify-center text-[#0066FF] font-bold text-sm">
-                          {review.name.charAt(0)}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-1 text-sm font-semibold text-slate-800">
-                            {review.name} <span>{review.nationality}</span>
-                          </div>
-                          <div className="text-xs text-slate-400">{review.date}</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-0.5">
-                        {[1,2,3,4,5].map(s => (
-                          <Star key={s} className={`w-3.5 h-3.5 ${s <= review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-slate-200'}`} />
-                        ))}
-                      </div>
-                    </div>
-                    <p className="text-sm text-slate-600 leading-relaxed">{review.comment}</p>
+                {activity.review_count > 0 && (
+                  <div className="flex items-center gap-2">
+                    <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+                    <span className="font-bold text-lg">{activity.rating}</span>
+                    <span className="text-slate-400 text-sm">({activity.review_count})</span>
                   </div>
-                ))}
+                )}
               </div>
+              {reviews.length === 0 ? (
+                <p className="text-sm text-slate-400">Aún no hay reseñas para esta actividad.</p>
+              ) : (
+                <div className="space-y-5">
+                  {reviews.map((review) => (
+                    <div key={review.id} className="border-b border-slate-100 pb-5 last:border-0">
+                      <div className="flex items-center justify-between mb-2 gap-3">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm shrink-0">
+                            {getInitials(review.author_name || 'Cliente')}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="text-sm font-semibold text-slate-800 truncate">
+                              {review.author_name || 'Cliente verificado'}
+                            </div>
+                            <div className="text-xs text-slate-400">
+                              {new Date(review.created_at).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-0.5 shrink-0">
+                          {[1, 2, 3, 4, 5].map((s) => (
+                            <Star key={s} className={`w-3.5 h-3.5 ${s <= review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-slate-200'}`} />
+                          ))}
+                        </div>
+                      </div>
+                      {review.title && <p className="text-sm font-semibold text-slate-800 mb-1">{review.title}</p>}
+                      {review.comment && <p className="text-sm text-slate-600 leading-relaxed">{review.comment}</p>}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
           {/* Booking Widget - Sticky Sidebar */}
           <div className="lg:col-span-1">
-            <div className="sticky top-20">
+            <div className="lg:sticky lg:top-20">
               <BookingWidget activity={activity} />
             </div>
           </div>

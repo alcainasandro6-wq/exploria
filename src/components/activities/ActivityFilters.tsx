@@ -54,14 +54,14 @@ export function ActivityFilters({ onClose }: ActivityFiltersProps) {
           <SlidersHorizontal className="w-4 h-4 text-slate-600" />
           <span className="font-bold text-slate-900 text-sm">Filtros</span>
           {totalActive > 0 && (
-            <span className="text-xs bg-[#0066FF] text-white font-bold w-5 h-5 rounded-full flex items-center justify-center">
+            <span className="text-xs bg-[#005B8D] text-white font-bold w-5 h-5 rounded-full flex items-center justify-center">
               {totalActive}
             </span>
           )}
         </div>
         <div className="flex items-center gap-2">
           {totalActive > 0 && (
-            <button onClick={clearAll} className="text-xs text-[#0066FF] hover:text-[#0052CC] font-semibold transition-colors">
+            <button onClick={clearAll} className="text-xs text-[#005B8D] hover:text-[#003654] font-semibold transition-colors">
               Limpiar
             </button>
           )}
@@ -82,7 +82,7 @@ export function ActivityFilters({ onClose }: ActivityFiltersProps) {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Nombre o tipo de actividad..."
-            className="w-full pl-9 pr-3 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0066FF] focus:bg-white transition-colors"
+            className="w-full pl-9 pr-3 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#005B8D] focus:bg-white transition-colors"
           />
         </div>
       </FilterSection>
@@ -99,7 +99,7 @@ export function ActivityFilters({ onClose }: ActivityFiltersProps) {
                 className={cn(
                   'w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-all text-left',
                   active
-                    ? 'bg-[#0066FF]/10 text-[#0066FF] font-semibold'
+                    ? 'bg-[#005B8D]/10 text-[#005B8D] font-semibold'
                     : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                 )}
               >
@@ -126,7 +126,7 @@ export function ActivityFilters({ onClose }: ActivityFiltersProps) {
             step={5}
             value={priceMax}
             onChange={(e) => setPriceMax(parseInt(e.target.value))}
-            className="w-full h-1.5 accent-[#0066FF] cursor-pointer"
+            className="w-full h-1.5 accent-[#005B8D] cursor-pointer"
           />
           <div className="flex gap-2">
             {[30, 60, 100, 150].map(p => (
@@ -135,7 +135,7 @@ export function ActivityFilters({ onClose }: ActivityFiltersProps) {
                 onClick={() => setPriceMax(p)}
                 className={cn(
                   'flex-1 text-xs py-1.5 rounded-lg border font-medium transition-colors',
-                  priceMax === p ? 'bg-[#0066FF] text-white border-[#0066FF]' : 'border-slate-200 text-slate-600 hover:border-[#0066FF]'
+                  priceMax === p ? 'bg-[#005B8D] text-white border-[#005B8D]' : 'border-slate-200 text-slate-600 hover:border-[#005B8D]'
                 )}
               >
                 ≤{p}€
@@ -157,8 +157,8 @@ export function ActivityFilters({ onClose }: ActivityFiltersProps) {
                 className={cn(
                   'text-xs px-3 py-2 rounded-xl border font-medium transition-all text-center',
                   active
-                    ? 'bg-[#0066FF] text-white border-[#0066FF]'
-                    : 'border-slate-200 text-slate-600 hover:border-[#0066FF] hover:text-[#0066FF]'
+                    ? 'bg-[#005B8D] text-white border-[#005B8D]'
+                    : 'border-slate-200 text-slate-600 hover:border-[#005B8D] hover:text-[#005B8D]'
                 )}
               >
                 {d.label}
@@ -180,8 +180,8 @@ export function ActivityFilters({ onClose }: ActivityFiltersProps) {
                 className={cn(
                   'text-xs px-3 py-1.5 rounded-full border font-medium transition-all',
                   active
-                    ? 'bg-[#0066FF] text-white border-[#0066FF]'
-                    : 'border-slate-200 text-slate-600 hover:border-[#0066FF]'
+                    ? 'bg-[#005B8D] text-white border-[#005B8D]'
+                    : 'border-slate-200 text-slate-600 hover:border-[#005B8D]'
                 )}
               >
                 {lang.label}

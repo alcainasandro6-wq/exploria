@@ -34,6 +34,8 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
     "embla-carousel-react": "^8.6.0",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
     "lucide-react": "^1.21.0",
     "next": "16.2.9",
     "next-intl": "^4.13.0",
@@ -48,6 +50,7 @@
     "sonner": "^2.0.7",
     "stripe": "^22.2.3",
     "tailwind-merge": "^3.6.0",
+    "xlsx": "^0.18.5",
     "zod": "^4.4.3"
   },
   "devDependencies": {

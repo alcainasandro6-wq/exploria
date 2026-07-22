@@ -2,10 +2,18 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #070D1F;
-  --primary: #1A56FF;
-  --primary-dark: #0041CC;
-  --navy: #070D1F;
+  --foreground: #0B1F2A;
+  --primary: #005B8D;
+  --primary-dark: #003654;
+  --secondary: #3D84AC;
+  --navy: #0B1F2A;
+}
+
+@theme {
+  --color-primary: #005B8D;
+  --color-primary-dark: #003654;
+  --color-secondary: #3D84AC;
+  --color-navy: #0B1F2A;
 }
 
 html {
@@ -100,4 +108,13 @@ h1, h2, h3, h4, h5, h6, .font-display {
 .animate-gradient-x {
   background-size: 200% 200%;
   animation: gradient-x 4s ease infinite;
+}
+
+@keyframes accordion-down {
+  from { height: 0; }
+  to   { height: var(--radix-accordion-content-height); }
+}
+@keyframes accordion-up {
+  from { height: var(--radix-accordion-content-height); }
+  to   { height: 0; }
 }

@@ -1,170 +1,134 @@
-import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar'
-import { DashboardSidebar as DS } from '@/components/dashboard/DashboardSidebar'
+import { redirect } from 'next/navigation'
+import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
+import { DashboardHeader } from '@/components/dashboard/DashboardHeader'
+import { StatCard } from '@/components/dashboard/StatCard'
 import { SubscriptionBanner } from '@/components/dashboard/provider/SubscriptionBanner'
-import {
-  Package, Calendar, DollarSign, TrendingUp, Eye, Star, AlertCircle, PlusCircle
-} from 'lucide-react'
+import { Package, Calendar, DollarSign, Eye, Star, PlusCircle } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button, buttonVariants } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { formatPrice, formatDate, cn } from '@/lib/utils'
+import { buttonVariants } from '@/components/ui/button'
+import { formatPrice, cn } from '@/lib/utils'
 import { Link } from '@/i18n/navigation'
+import { createClient } from '@/lib/supabase/server'
+import { getProviderByProfileId, getProviderActivityPerformance } from '@/lib/services/providers'
+import { getProviderSubscription } from '@/lib/services/subscriptions'
+import { getProviderReservations } from '@/lib/services/reservations'
+import { PendingBookingRow } from '@/components/dashboard/provider/PendingBookingRow'
 
-const MOCK_SUBSCRIPTION = {
-  plan: 'Pro',
-  status: 'active' as const,
-  nextBilling: '2025-08-01',
-  price: 99,
-}
+export default async function ProviderDashboardPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/auth/login')
 
-const MOCK_ACTIVITIES = [
-  { id: 'a1', title: 'Buceo con instructores certificados', status: 'published', bookings: 42, rating: 4.9, views: 1240 },
-  { id: 'a2', title: 'Tour snorkel avanzado', status: 'published', bookings: 28, rating: 4.7, views: 890 },
-  { id: 'a3', title: 'Curso de buceo PADI', status: 'draft', bookings: 0, rating: 0, views: 0 },
-]
+  const provider = await getProviderByProfileId(user.id)
+  if (!provider) redirect('/dashboard')
 
-const MOCK_RECENT_BOOKINGS = [
-  { id: 'b1', customer: 'Carlos M.', activity: 'Buceo certificados', date: '2025-07-15', participants: 2, status: 'pending' },
-  { id: 'b2', customer: 'Sophie K.', activity: 'Buceo certificados', date: '2025-07-14', participants: 4, status: 'confirmed' },
-  { id: 'b3', customer: 'Anna W.', activity: 'Snorkel avanzado', date: '2025-07-13', participants: 2, status: 'confirmed' },
-]
+  const [subscription, performance, pendingBookings, revenueResult] = await Promise.all([
+    getProviderSubscription(provider.id),
+    getProviderActivityPerformance(provider.id),
+    getProviderReservations(provider.id, { status: 'pending', limit: 5 }),
+    supabase.from('reservations').select('total_price').eq('provider_id', provider.id).in('status', ['confirmed', 'completed']),
+  ])
 
-export default function ProviderDashboardPage() {
+  const totalBookingsThisPeriod = performance.reduce((sum, a) => sum + a.total_bookings, 0)
+  const estimatedRevenue = (revenueResult.data ?? []).reduce((sum, r) => sum + r.total_price, 0)
+  const avgRating = performance.length
+    ? (performance.reduce((sum, a) => sum + (a.avg_rating ?? 0), 0) / performance.length).toFixed(1)
+    : '—'
+  const publishedCount = performance.length
+
   const stats = [
-    { icon: Package, label: 'Actividades publicadas', value: 2, color: 'text-blue-600 bg-blue-50' },
-    { icon: Calendar, label: 'Reservas este mes', value: 18, color: 'text-purple-600 bg-purple-50' },
-    { icon: DollarSign, label: 'Ingresos estimados', value: formatPrice(1620), color: 'text-emerald-600 bg-emerald-50' },
-    { icon: Star, label: 'Valoración media', value: '4.9', color: 'text-amber-600 bg-amber-50' },
+    { icon: Package, label: 'Actividades activas', value: publishedCount, color: 'blue' as const },
+    { icon: Calendar, label: 'Reservas totales', value: totalBookingsThisPeriod, color: 'purple' as const },
+    { icon: DollarSign, label: 'Ingresos estimados', value: formatPrice(estimatedRevenue), color: 'emerald' as const },
+    { icon: Star, label: 'Valoración media', value: avgRating, color: 'amber' as const },
   ]
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
-      <DashboardSidebar
-        role="provider"
-        userName="Buceo Mediterráneo"
-        userEmail="info@buceomed.es"
-      />
-
-      <main className="flex-1 p-8 overflow-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">Panel de Proveedor</h1>
-            <p className="text-slate-500 mt-1">Buceo Mediterráneo</p>
-          </div>
-          <Link 
-            href="/dashboard/provider/activities/new"
-            className={cn(buttonVariants(), 'flex items-center')}
-          >
-            <PlusCircle className="w-4 h-4 mr-2" />
+    <DashboardLayout role="provider">
+      <DashboardHeader
+        title="Panel de Proveedor"
+        subtitle={provider.company_name}
+        action={
+          <Link href="/dashboard/provider/activities/new" className={cn(buttonVariants({ variant: 'white' }), 'gap-1.5')}>
+            <PlusCircle className="w-4 h-4" />
             Nueva actividad
           </Link>
-        </div>
+        }
+      />
 
-        {/* Subscription Status */}
-        <SubscriptionBanner subscription={MOCK_SUBSCRIPTION} />
+      {subscription && (
+        <SubscriptionBanner
+          subscription={{
+            plan: subscription.plan?.display_name ?? '',
+            status: subscription.status,
+            nextBilling: subscription.current_period_end,
+            price: subscription.plan?.price_monthly ?? 0,
+          }}
+        />
+      )}
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-          {stats.map(({ icon: Icon, label, value, color }) => (
-            <Card key={label}>
-              <CardContent className="p-5">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${color}`}>
-                  <Icon className="w-5 h-5" />
-                </div>
-                <div className="text-2xl font-extrabold text-slate-900">{value}</div>
-                <div className="text-sm text-slate-500 mt-0.5">{label}</div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+        {stats.map((s) => <StatCard key={s.label} {...s} />)}
+      </div>
 
-        <div className="grid lg:grid-cols-2 gap-6">
-          {/* My Activities */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Mis actividades</CardTitle>
-                <Link 
-                  href="/dashboard/provider/activities"
-                  className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }))}
-                >
-                  Ver todas
-                </Link>
-              </div>
-            </CardHeader>
-            <CardContent>
+      <div className="grid lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Mis actividades</CardTitle>
+              <Link href="/dashboard/provider/activities" className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }))}>
+                Ver todas
+              </Link>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {performance.length === 0 ? (
+              <p className="text-sm text-slate-400 py-6 text-center">Todavía no tienes actividades publicadas.</p>
+            ) : (
               <div className="space-y-3">
-                {MOCK_ACTIVITIES.map((activity) => (
-                  <div key={activity.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
-                    <div className="w-10 h-10 rounded-lg bg-[#0066FF]/10 flex items-center justify-center">
-                      <Package className="w-4 h-4 text-[#0066FF]" />
+                {performance.slice(0, 5).map((activity) => (
+                  <div key={activity.activity_id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                      <Package className="w-4 h-4 text-primary" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-slate-900 truncate">{activity.title}</p>
+                      <p className="text-sm font-semibold text-slate-900 truncate">{activity.activity_title}</p>
                       <div className="flex items-center gap-3 text-xs text-slate-500 mt-0.5">
-                        <span className="flex items-center gap-1">
-                          <Eye className="w-3 h-3" />{activity.views} vistas
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />{activity.bookings} reservas
-                        </span>
-                        {activity.rating > 0 && (
-                          <span className="flex items-center gap-1">
-                            <Star className="w-3 h-3" />{activity.rating}
-                          </span>
+                        <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{activity.total_bookings} reservas</span>
+                        {activity.avg_rating > 0 && (
+                          <span className="flex items-center gap-1"><Star className="w-3 h-3" />{activity.avg_rating.toFixed(1)}</span>
                         )}
                       </div>
                     </div>
-                    <Badge variant={activity.status === 'published' ? 'success' : 'secondary'}>
-                      {activity.status === 'published' ? 'Publicada' : 'Borrador'}
-                    </Badge>
+                    <Badge variant="success">{activity.confirmed} confirmadas</Badge>
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
+            )}
+          </CardContent>
+        </Card>
 
-          {/* Recent Bookings */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Reservas pendientes</CardTitle>
-                <Link 
-                  href="/dashboard/provider/bookings"
-                  className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }))}
-                >
-                  Ver todas
-                </Link>
-              </div>
-            </CardHeader>
-            <CardContent>
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Reservas pendientes</CardTitle>
+              <Link href="/dashboard/provider/bookings" className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }))}>
+                Ver todas
+              </Link>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {pendingBookings.length === 0 ? (
+              <p className="text-sm text-slate-400 py-6 text-center">No tienes reservas pendientes de confirmar.</p>
+            ) : (
               <div className="space-y-3">
-                {MOCK_RECENT_BOOKINGS.map((booking) => (
-                  <div key={booking.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
-                    <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center">
-                      <span className="text-purple-600 font-bold text-sm">
-                        {booking.customer.charAt(0)}
-                      </span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-slate-900">{booking.customer}</p>
-                      <p className="text-xs text-slate-500 truncate">{booking.activity} · {booking.participants} pers. · {formatDate(booking.date)}</p>
-                    </div>
-                    {booking.status === 'pending' ? (
-                      <div className="flex gap-1.5">
-                        <Button size="sm" className="text-xs h-7 px-2.5">Confirmar</Button>
-                        <Button size="sm" variant="outline" className="text-xs h-7 px-2.5">Rechazar</Button>
-                      </div>
-                    ) : (
-                      <Badge variant="success">Confirmado</Badge>
-                    )}
-                  </div>
-                ))}
+                {pendingBookings.map((booking) => <PendingBookingRow key={booking.id} booking={booking} />)}
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      </main>
-    </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </DashboardLayout>
   )
 }

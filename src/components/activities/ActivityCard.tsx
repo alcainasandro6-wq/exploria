@@ -1,7 +1,8 @@
 import Image from 'next/image'
 import { Link } from '@/i18n/navigation'
-import { Clock, Star, BadgeCheck, ArrowUpRight, Heart } from 'lucide-react'
+import { Clock, Star, BadgeCheck, ArrowUpRight } from 'lucide-react'
 import { formatPrice, formatDuration, cn } from '@/lib/utils'
+import { FavoriteButton } from '@/components/activities/FavoriteButton'
 import type { Activity } from '@/types/database'
 
 interface ActivityCardProps {
@@ -16,13 +17,13 @@ export function ActivityCard({ activity, compact = false }: ActivityCardProps) {
 
   if (compact) {
     return (
-      <Link href={`/activities/${activity.slug}`} className="group flex gap-4 bg-white rounded-2xl border border-slate-100 p-3 hover:border-[#1A56FF]/30 hover:shadow-md transition-all">
+      <Link href={`/activities/${activity.slug}`} className="group flex gap-4 bg-white rounded-2xl border border-slate-100 p-3 hover:border-[#005B8D]/30 hover:shadow-md transition-all">
         <div className="relative w-24 h-20 rounded-xl overflow-hidden shrink-0">
           <Image src={coverImage} alt={activity.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="96px" />
         </div>
         <div className="flex-1 min-w-0 py-0.5">
           <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">{activity.category?.name}</p>
-          <h3 className="text-sm font-bold text-slate-900 leading-snug line-clamp-2 group-hover:text-[#1A56FF] transition-colors mb-1.5">
+          <h3 className="text-sm font-bold text-slate-900 leading-snug line-clamp-2 group-hover:text-[#005B8D] transition-colors mb-1.5">
             {activity.title}
           </h3>
           <div className="flex items-center justify-between">
@@ -55,7 +56,7 @@ export function ActivityCard({ activity, compact = false }: ActivityCardProps) {
           {/* Top badges */}
           <div className="absolute top-3 left-3 flex gap-1.5">
             {activity.featured && (
-              <span className="bg-[#1A56FF] text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">
+              <span className="bg-[#005B8D] text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">
                 Destacado
               </span>
             )}
@@ -67,12 +68,7 @@ export function ActivityCard({ activity, compact = false }: ActivityCardProps) {
           </div>
 
           {/* Favorite */}
-          <button
-            className="absolute top-3 right-3 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white hover:scale-110 transition-all shadow"
-            onClick={(e) => e.preventDefault()}
-          >
-            <Heart className="w-3.5 h-3.5 text-slate-400 hover:text-rose-500 transition-colors" />
-          </button>
+          <FavoriteButton activityId={activity.id} className="absolute top-3 right-3" />
 
           {/* Bottom: category + duration */}
           <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
@@ -97,13 +93,13 @@ export function ActivityCard({ activity, compact = false }: ActivityCardProps) {
                 {activity.provider.company_name}
               </span>
               {activity.provider.is_verified && (
-                <BadgeCheck className="w-3 h-3 text-[#1A56FF]" />
+                <BadgeCheck className="w-3 h-3 text-[#005B8D]" />
               )}
             </div>
           )}
 
           {/* Title */}
-          <h3 className="text-[15px] font-bold text-[#070D1F] leading-snug mb-3 line-clamp-2 group-hover:text-[#1A56FF] transition-colors duration-200">
+          <h3 className="text-[15px] font-bold text-[#070D1F] leading-snug mb-3 line-clamp-2 group-hover:text-[#005B8D] transition-colors duration-200">
             {activity.title}
           </h3>
 
@@ -132,8 +128,8 @@ export function ActivityCard({ activity, compact = false }: ActivityCardProps) {
                 <span className="text-xs font-normal text-slate-400 ml-1">/ persona</span>
               </p>
             </div>
-            <div className="w-9 h-9 rounded-full bg-[#1A56FF]/8 group-hover:bg-[#1A56FF] flex items-center justify-center transition-colors duration-300">
-              <ArrowUpRight className="w-4 h-4 text-[#1A56FF] group-hover:text-white transition-colors duration-300" />
+            <div className="w-9 h-9 rounded-full bg-[#005B8D]/8 group-hover:bg-[#005B8D] flex items-center justify-center transition-colors duration-300">
+              <ArrowUpRight className="w-4 h-4 text-[#005B8D] group-hover:text-white transition-colors duration-300" />
             </div>
           </div>
         </div>

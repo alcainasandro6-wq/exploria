@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Política de privacidad | Exploria',
+  title: 'Política de privacidad | BookActivities',
 }
 
 export default function PrivacyPage() {
@@ -17,7 +17,7 @@ export default function PrivacyPage() {
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-16 space-y-8 text-slate-600">
         <section>
           <h2 className="text-xl font-bold text-slate-900 mb-3">1. Responsable del tratamiento</h2>
-          <p>Exploria SL, con CIF B-XXXXXXXX, domicilio en Torrevieja, Alicante. Email de contacto: privacidad@exploria.es</p>
+          <p>BookActivities SL, con CIF B-XXXXXXXX, domicilio en Torrevieja, Alicante. Email de contacto: privacidad@bookactivities.com</p>
         </section>
         <section>
           <h2 className="text-xl font-bold text-slate-900 mb-3">2. Datos que recogemos</h2>
@@ -46,7 +46,7 @@ export default function PrivacyPage() {
         </section>
         <section>
           <h2 className="text-xl font-bold text-slate-900 mb-3">5. Tus derechos</h2>
-          <p className="text-sm">Tienes derecho a acceder, rectificar, suprimir, oponerte, limitar el tratamiento y portabilidad de tus datos. Puedes ejercerlos escribiendo a privacidad@exploria.es. También puedes reclamar ante la Agencia Española de Protección de Datos (aepd.es).</p>
+          <p className="text-sm">Tienes derecho a acceder, rectificar, suprimir, oponerte, limitar el tratamiento y portabilidad de tus datos. Puedes ejercerlos escribiendo a privacidad@bookactivities.com. También puedes reclamar ante la Agencia Española de Protección de Datos (aepd.es).</p>
         </section>
         <section>
           <h2 className="text-xl font-bold text-slate-900 mb-3">6. Transferencias internacionales</h2>

@@ -51,7 +51,7 @@ export function SubscriptionBanner({ subscription }: SubscriptionBannerProps) {
   return (
     <div className={`border rounded-2xl p-5 mb-8 flex items-center gap-4 ${config.bg}`}>
       <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shrink-0 shadow-sm">
-        <CreditCard className="w-5 h-5 text-[#0066FF]" />
+        <CreditCard className="w-5 h-5 text-[#005B8D]" />
       </div>
       <div className="flex-1">
         <div className="flex items-center gap-2 mb-0.5">

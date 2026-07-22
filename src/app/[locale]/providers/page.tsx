@@ -12,7 +12,7 @@ const benefits = [
   { icon: Users, title: 'Acceso a miles de turistas', desc: 'Tu actividad visible para turistas de toda Europa que visitan la zona.' },
   { icon: TrendingUp, title: 'Aumenta tus reservas', desc: 'Nuestros proveedores reportan un incremento medio del 40% en reservas.' },
   { icon: BarChart3, title: 'Panel de gestión completo', desc: 'Gestiona disponibilidad, precios y reservas desde un único panel.' },
-  { icon: Shield, title: 'Pagos seguros garantizados', desc: 'Cobras automáticamente. Exploria gestiona los pagos por ti.' },
+  { icon: Shield, title: 'Pagos seguros garantizados', desc: 'Cobras automáticamente. BookActivities gestiona los pagos por ti.' },
   { icon: Clock, title: 'Sin compromiso de permanencia', desc: 'Flexibilidad total. Publica y pausa tus actividades cuando quieras.' },
   { icon: Star, title: 'Reseñas verificadas', desc: 'Sistema de valoraciones reales que aumentan tu credibilidad.' },
 ]
@@ -50,11 +50,11 @@ export default function ProvidersPage() {
       <section className="bg-slate-950 pt-24 pb-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl">
-            <span className="inline-block bg-[#0066FF]/20 text-[#60a5fa] text-xs font-bold uppercase tracking-widest rounded-full px-3 py-1 mb-6">
+            <span className="inline-block bg-primary/20 text-[#60a5fa] text-xs font-bold uppercase tracking-widest rounded-full px-3 py-1 mb-6">
               Para proveedores
             </span>
             <h1 className="text-4xl md:text-5xl font-black text-white mb-6 leading-tight">
-              Publica tus actividades en Exploria y llega a más turistas
+              Publica tus actividades en BookActivities y llega a más turistas
             </h1>
             <p className="text-slate-400 text-lg mb-8 leading-relaxed">
               Únete a la plataforma de referencia para actividades turísticas en Torrevieja.
@@ -82,14 +82,14 @@ export default function ProvidersPage() {
       <section className="py-20 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
-            <h2 className="text-3xl font-black text-slate-900 mb-3">¿Por qué Exploria?</h2>
+            <h2 className="text-3xl font-black text-slate-900 mb-3">¿Por qué BookActivities?</h2>
             <p className="text-slate-500 max-w-xl mx-auto">Todo lo que necesitas para hacer crecer tu negocio de actividades turísticas.</p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {benefits.map(({ icon: Icon, title, desc }) => (
               <div key={title} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
-                <div className="w-12 h-12 bg-[#0066FF]/10 rounded-xl flex items-center justify-center mb-4">
-                  <Icon className="w-6 h-6 text-[#0066FF]" />
+                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-4">
+                  <Icon className="w-6 h-6 text-primary" />
                 </div>
                 <h3 className="font-bold text-slate-900 mb-2">{title}</h3>
                 <p className="text-sm text-slate-500 leading-relaxed">{desc}</p>
@@ -112,7 +112,7 @@ export default function ProvidersPage() {
                 {idx < steps.length - 1 && (
                   <div className="hidden md:block absolute top-8 left-1/2 w-full h-px bg-slate-200" />
                 )}
-                <div className="relative w-16 h-16 bg-[#0066FF] rounded-2xl flex items-center justify-center mb-5 text-white font-black text-xl z-10">
+                <div className="relative w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mb-5 text-white font-black text-xl z-10">
                   {step.num}
                 </div>
                 <h3 className="font-bold text-slate-900 mb-2">{step.title}</h3>
@@ -140,7 +140,7 @@ export default function ProvidersPage() {
               <p className="text-slate-500 mb-6">
                 Hemos recibido tu solicitud. Nuestro equipo la revisará y se pondrá en contacto contigo en un plazo de 48-72 horas.
               </p>
-              <Link href="/" className="inline-flex items-center gap-2 text-[#0066FF] font-semibold hover:underline">
+              <Link href="/" className="inline-flex items-center gap-2 text-primary font-semibold hover:underline">
                 Volver al inicio <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
@@ -175,7 +175,7 @@ export default function ProvidersPage() {
                   placeholder="Describe brevemente las actividades que quieres publicar (buceo, kayak, tours, etc.)"
                   rows={3}
                   required
-                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-[#0066FF] focus:border-transparent resize-none"
+                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
                 />
               </div>
               <div className="space-y-1.5">
@@ -187,7 +187,7 @@ export default function ProvidersPage() {
               </Button>
               <p className="text-xs text-slate-400 text-center">
                 Al enviar este formulario aceptas nuestra{' '}
-                <Link href="/privacy" className="text-[#0066FF] hover:underline">política de privacidad</Link>.
+                <Link href="/privacy" className="text-primary hover:underline">política de privacidad</Link>.
               </p>
             </form>
           )}

@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Blog | Exploria',
+  title: 'Blog | BookActivities',
   description: 'Consejos, guías y noticias sobre turismo en Torrevieja y la Costa Blanca.',
 }
 
@@ -14,7 +14,7 @@ const POSTS = [
     id: 1, slug: 'mejores-playas-torrevieja', title: 'Las 10 mejores playas de Torrevieja para 2025',
     excerpt: 'Descubre cuáles son las playas más impresionantes de Torrevieja, desde la icónica Playa del Cura hasta las tranquilas calas escondidas.',
     image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80',
-    category: 'Guías', readTime: 8, date: '2025-07-01', author: 'Equipo Exploria'
+    category: 'Guías', readTime: 8, date: '2025-07-01', author: 'Equipo BookActivities'
   },
   {
     id: 2, slug: 'buceo-novatos-torrevieja', title: 'Guía completa de buceo para principiantes en Torrevieja',
@@ -44,7 +44,7 @@ const POSTS = [
     id: 6, slug: 'torrevieja-que-ver', title: 'Qué ver y hacer en Torrevieja: guía completa 2025',
     excerpt: 'Una guía completa con los imprescindibles de Torrevieja. Playas, actividades, gastronomía, cultura y todos los secretos que los locales conocen.',
     image: 'https://images.unsplash.com/photo-1523531294919-4bcd7c65e216?w=800&q=80',
-    category: 'Guías', readTime: 15, date: '2025-05-28', author: 'Equipo Exploria'
+    category: 'Guías', readTime: 15, date: '2025-05-28', author: 'Equipo BookActivities'
   },
 ]
 
@@ -57,9 +57,9 @@ export default function BlogPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="bg-gradient-to-br from-[#0066FF] to-[#003d99] py-16">
+      <div className="bg-gradient-to-br from-primary to-primary-dark py-16">
         <div className="max-w-5xl mx-auto px-4 text-center text-white">
-          <h1 className="text-4xl font-extrabold mb-3">Blog de Exploria</h1>
+          <h1 className="text-4xl font-extrabold mb-3">Blog de BookActivities</h1>
           <p className="text-blue-100">Guías, consejos y noticias sobre Torrevieja y la Costa Blanca</p>
         </div>
       </div>
@@ -72,7 +72,7 @@ export default function BlogPage() {
               key={cat}
               className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
                 cat === 'Todas'
-                  ? 'bg-[#0066FF] text-white'
+                  ? 'bg-primary text-white'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
@@ -94,7 +94,7 @@ export default function BlogPage() {
             </div>
             <div className="p-6 md:p-8 flex flex-col justify-center">
               <Badge className="mb-3 w-fit">{featuredPost.category}</Badge>
-              <h2 className="text-2xl font-extrabold text-slate-900 mb-3 group-hover:text-[#0066FF] transition-colors">
+              <h2 className="text-2xl font-extrabold text-slate-900 mb-3 group-hover:text-primary transition-colors">
                 {featuredPost.title}
               </h2>
               <p className="text-slate-500 text-sm leading-relaxed mb-4">{featuredPost.excerpt}</p>
@@ -122,7 +122,7 @@ export default function BlogPage() {
                 </div>
                 <div className="p-5">
                   <Badge variant="secondary" className="mb-2 text-xs">{post.category}</Badge>
-                  <h3 className="font-bold text-slate-900 text-sm mb-2 line-clamp-2 group-hover:text-[#0066FF] transition-colors">
+                  <h3 className="font-bold text-slate-900 text-sm mb-2 line-clamp-2 group-hover:text-primary transition-colors">
                     {post.title}
                   </h3>
                   <p className="text-xs text-slate-500 line-clamp-2 mb-3">{post.excerpt}</p>
