@@ -1,13 +1,13 @@
 -- ================================================================
 -- DEMO SEED — 5 example activities + 4 example blog posts
 -- ================================================================
--- Run AFTER schema.sql, 003_test_users.sql, 004_backend_v2.sql and
--- 005_bookactivities_v3.sql.
+-- Run AFTER schema.sql and 004_backend_v2.sql / 005_bookactivities_v3.sql.
 --
--- Assumes at least one row already exists in `providers` (e.g. the
--- "Buceo Mediterráneo" test provider created by 003_test_users.sql) —
--- the 5 demo activities are attached to the OLDEST provider account
--- found. All 5 are fully deletable afterwards from
+-- If no provider exists yet in `providers`, this migration creates its
+-- own demo provider account (auth user + profile + provider row) so it
+-- never depends on 003_test_users.sql having been run first. If a
+-- provider already exists, the 5 demo activities are attached to the
+-- OLDEST one found instead. All 5 are fully deletable afterwards from
 -- /dashboard/admin/activities (each row has a trash-can button).
 --
 -- The 4 demo blog posts are attached to an admin profile if one
@@ -17,19 +17,47 @@
 
 DO $$
 DECLARE
-  v_provider_id   uuid;
-  v_admin_id      uuid;
-  v_cat_boat      uuid;
-  v_cat_kayak     uuid;
-  v_cat_dive      uuid;
-  v_cat_food      uuid;
-  v_cat_nature    uuid;
-  v_activity_id   uuid;
+  v_provider_id       uuid;
+  v_demo_provider_uid uuid;
+  v_admin_id          uuid;
+  v_cat_boat          uuid;
+  v_cat_kayak         uuid;
+  v_cat_dive          uuid;
+  v_cat_food          uuid;
+  v_cat_nature        uuid;
+  v_activity_id       uuid;
 BEGIN
 
   SELECT id INTO v_provider_id FROM public.providers ORDER BY created_at ASC LIMIT 1;
+
   IF v_provider_id IS NULL THEN
-    RAISE EXCEPTION 'No provider found — run 003_test_users.sql (or create a provider) before this seed migration.';
+    -- No provider anywhere yet — create a self-contained demo one.
+    v_demo_provider_uid := gen_random_uuid();
+
+    INSERT INTO auth.users (
+      id, instance_id, email, encrypted_password, email_confirmed_at,
+      created_at, updated_at, raw_app_meta_data, raw_user_meta_data, role, aud
+    ) VALUES (
+      v_demo_provider_uid,
+      '00000000-0000-0000-0000-000000000000',
+      'demo-provider@bookactivities.es',
+      crypt('DemoProvider123!', gen_salt('bf', 10)),
+      now(), now(), now(),
+      '{"provider":"email","providers":["email"]}',
+      '{"full_name":"BookActivities Demo","role":"provider"}',
+      'authenticated', 'authenticated'
+    );
+    INSERT INTO auth.identities (id, user_id, identity_data, provider, provider_id, created_at, updated_at)
+    VALUES (
+      gen_random_uuid(), v_demo_provider_uid,
+      jsonb_build_object('sub', v_demo_provider_uid::text, 'email', 'demo-provider@bookactivities.es'),
+      'email', 'demo-provider@bookactivities.es', now(), now()
+    );
+    UPDATE public.profiles SET role = 'provider' WHERE id = v_demo_provider_uid;
+
+    INSERT INTO public.providers (profile_id, company_name, slug, city, country, phone, is_verified)
+    VALUES (v_demo_provider_uid, 'BookActivities Demo', 'bookactivities-demo', 'Torrevieja', 'España', '+34 658 06 23 92', true)
+    RETURNING id INTO v_provider_id;
   END IF;
 
   SELECT id INTO v_admin_id FROM public.profiles WHERE role = 'admin' ORDER BY created_at ASC LIMIT 1;

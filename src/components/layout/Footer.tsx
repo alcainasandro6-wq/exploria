@@ -32,39 +32,39 @@ export function Footer() {
   ]
 
   return (
-    <footer className="bg-[#070D1F] text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <footer className="bg-white border-t border-slate-100">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
 
           {/* Brand + contact */}
           <div className="col-span-2 md:col-span-1">
-            <Link href="/" className="inline-flex items-baseline mb-4">
-              <span className="text-2xl font-black tracking-[-0.06em] text-white" style={{ fontFamily: 'var(--font-display)' }}>
+            <Link href="/" className="inline-flex items-baseline mb-3">
+              <span className="text-xl font-black tracking-[-0.06em] text-primary-dark" style={{ fontFamily: 'var(--font-display)' }}>
                 bookactivities
               </span>
-              <span className="text-2xl font-black text-secondary" style={{ fontFamily: 'var(--font-display)' }}>.</span>
+              <span className="text-xl font-black text-primary" style={{ fontFamily: 'var(--font-display)' }}>.</span>
             </Link>
-            <p className="text-sm text-white/50 leading-relaxed mb-6 max-w-xs">
+            <p className="text-sm text-slate-400 leading-relaxed mb-5 max-w-xs">
               {t('description')}
             </p>
-            <div className="space-y-2.5">
+            <div className="space-y-2">
               <a
                 href={`https://wa.me/${WHATSAPP_NUMBER}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2.5 text-sm text-white/70 hover:text-white transition-colors"
+                className="flex items-center gap-2.5 text-sm text-slate-500 hover:text-primary transition-colors"
               >
-                <MessageCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+                <MessageCircle className="w-4 h-4 text-emerald-500 shrink-0" />
                 {PHONE_DISPLAY}
               </a>
               <a
                 href={`tel:+${WHATSAPP_NUMBER}`}
-                className="flex items-center gap-2.5 text-sm text-white/70 hover:text-white transition-colors"
+                className="flex items-center gap-2.5 text-sm text-slate-500 hover:text-primary transition-colors"
               >
-                <Phone className="w-4 h-4 text-secondary shrink-0" />
+                <Phone className="w-4 h-4 text-primary shrink-0" />
                 {PHONE_DISPLAY}
               </a>
-              <div className="flex items-center gap-2.5 text-sm text-white/50">
+              <div className="flex items-center gap-2.5 text-sm text-slate-400">
                 <MapPin className="w-4 h-4 shrink-0" />
                 Torrevieja, Alicante — España
               </div>
@@ -73,11 +73,11 @@ export function Footer() {
 
           {/* Explora */}
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-widest text-white/40 mb-4">{t('activities')}</h3>
-            <ul className="space-y-2.5">
+            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3.5">{t('activities')}</h3>
+            <ul className="space-y-2">
               {exploreLinks.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="text-sm text-white/70 hover:text-white transition-colors">
+                  <Link href={link.href} className="text-sm text-slate-500 hover:text-primary transition-colors">
                     {link.label}
                   </Link>
                 </li>
@@ -87,11 +87,11 @@ export function Footer() {
 
           {/* Empresa */}
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-widest text-white/40 mb-4">{t('company')}</h3>
-            <ul className="space-y-2.5">
+            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3.5">{t('company')}</h3>
+            <ul className="space-y-2">
               {companyLinks.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="text-sm text-white/70 hover:text-white transition-colors">
+                  <Link href={link.href} className="text-sm text-slate-500 hover:text-primary transition-colors">
                     {link.label}
                   </Link>
                 </li>
@@ -101,11 +101,11 @@ export function Footer() {
 
           {/* Legal */}
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-widest text-white/40 mb-4">{t('legal')}</h3>
-            <ul className="space-y-2.5">
+            <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3.5">{t('legal')}</h3>
+            <ul className="space-y-2">
               {legalLinks.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="text-sm text-white/70 hover:text-white transition-colors">
+                  <Link href={link.href} className="text-sm text-slate-500 hover:text-primary transition-colors">
                     {link.label}
                   </Link>
                 </li>
@@ -113,15 +113,13 @@ export function Footer() {
             </ul>
           </div>
         </div>
-      </div>
 
-      {/* Bottom bar */}
-      <div className="border-t border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p className="text-xs text-white/40">
+        {/* Bottom bar */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-2 mt-10 pt-6 border-t border-slate-100">
+          <p className="text-xs text-slate-400">
             © {new Date().getFullYear()} BookActivities — {t('rights')}
           </p>
-          <p className="text-xs text-white/40">
+          <p className="text-xs text-slate-400">
             Servicios receptivos · Torrevieja, Costa Blanca
           </p>
         </div>
