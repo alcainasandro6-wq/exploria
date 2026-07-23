@@ -23,46 +23,52 @@ export function ActivitiesTopRow({ activities }: ActivitiesTopRowProps) {
   }
 
   return (
-    <div className="bg-slate-50 rounded-3xl p-6 sm:p-8">
+    <div className="bg-white border border-slate-100 rounded-2xl shadow-sm p-5 sm:p-6">
       {/* Header — title left, description right, like the reference */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
-        <h2 className="text-2xl sm:text-3xl font-black text-[#070D1F] tracking-tight">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-6">
+        <h2 className="text-lg sm:text-xl font-bold text-[#070D1F]">
           Actividades destacadas
         </h2>
-        <p className="text-sm text-slate-500 max-w-sm sm:text-right">
-          Desde escapadas junto al mar hasta rutas por la naturaleza — descubre tu próxima experiencia.
+        <p className="text-xs text-slate-400 max-w-xs sm:text-right leading-relaxed">
+          Desde escapadas junto al mar hasta rutas por la naturaleza, descubre tu próxima experiencia.
         </p>
       </div>
 
       {/* Card row */}
-      <div ref={scrollerRef} className="flex gap-5 overflow-x-auto scrollbar-hide scroll-smooth snap-x snap-mandatory">
+      <div ref={scrollerRef} className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth snap-x snap-mandatory">
         {activities.map((activity) => {
           const cover = activity.images?.find((img) => img.is_cover)?.url || activity.images?.[0]?.url || FALLBACK_IMAGE
           return (
             <Link
               key={activity.id}
               href={`/activities/${activity.slug}`}
-              className="group shrink-0 snap-start w-[220px] sm:w-[calc(25%-15px)] sm:min-w-[220px] bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300"
+              className="group shrink-0 snap-start w-[160px] sm:w-[calc(25%-12px)] sm:min-w-[160px] rounded-xl overflow-hidden"
             >
-              <div className="relative aspect-[4/3] overflow-hidden">
+              <div className="relative aspect-[4/5] overflow-hidden rounded-xl">
                 <Image
                   src={cover}
                   alt={activity.title}
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-500"
-                  sizes="(max-width: 640px) 220px, 25vw"
+                  sizes="(max-width: 640px) 160px, 25vw"
                 />
-                <span className="absolute top-3 left-3 bg-primary text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-sm">
-                  Desde {formatPrice(activity.price_from)}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/5 to-transparent" />
+                <span className="absolute top-2.5 left-2.5 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-md">
+                  desde {formatPrice(activity.price_from)}
                 </span>
-              </div>
-              <div className="p-4">
-                <h3 className="font-bold text-sm text-[#070D1F] leading-snug line-clamp-1 mb-1.5">
-                  {activity.title}
-                </h3>
-                <div className="flex items-center gap-1 text-xs text-slate-500">
-                  <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
-                  {activity.category?.name || activity.city}
+                <div className="absolute bottom-0 inset-x-0 p-3">
+                  <h3 className="font-bold text-[13px] text-white leading-snug line-clamp-1 mb-0.5">
+                    {activity.title}
+                  </h3>
+                  {activity.short_description && (
+                    <p className="text-[11px] text-white/70 leading-snug line-clamp-1 mb-1">
+                      {activity.short_description}
+                    </p>
+                  )}
+                  <div className="flex items-center gap-1 text-[11px] text-white/85">
+                    <MapPin className="w-3 h-3 text-red-500 shrink-0 fill-red-500/20" />
+                    {activity.category?.name || activity.city}
+                  </div>
                 </div>
               </div>
             </Link>
@@ -70,22 +76,27 @@ export function ActivitiesTopRow({ activities }: ActivitiesTopRowProps) {
         })}
       </div>
 
-      {/* Nav arrows */}
-      <div className="flex items-center justify-end gap-2 mt-6">
-        <button
-          onClick={() => scrollByCards(-1)}
-          aria-label="Anterior"
-          className="w-9 h-9 rounded-full border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:text-primary hover:border-primary transition-colors"
-        >
-          <ChevronLeft className="w-4 h-4" />
-        </button>
-        <button
-          onClick={() => scrollByCards(1)}
-          aria-label="Siguiente"
-          className="w-9 h-9 rounded-full border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:text-primary hover:border-primary transition-colors"
-        >
-          <ChevronRight className="w-4 h-4" />
-        </button>
+      {/* Footer — view more (left), nav arrows (right) */}
+      <div className="flex items-center justify-between mt-5">
+        <Link href="/activities" className="text-xs font-semibold text-slate-500 hover:text-primary transition-colors">
+          Ver más
+        </Link>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => scrollByCards(-1)}
+            aria-label="Anterior"
+            className="w-8 h-8 rounded-full border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:text-primary hover:border-primary transition-colors"
+          >
+            <ChevronLeft className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={() => scrollByCards(1)}
+            aria-label="Siguiente"
+            className="w-8 h-8 rounded-full border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:text-primary hover:border-primary transition-colors"
+          >
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
     </div>
   )
