@@ -42,7 +42,7 @@ export function Hero() {
         {/* Parallax background */}
         <div
           ref={bgRef}
-          className="absolute inset-0 scale-[1.18]"
+          className="absolute inset-0"
           style={{ transformOrigin: 'center top', willChange: 'transform' }}
         >
           <Image
