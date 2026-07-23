@@ -120,3 +120,14 @@ h1, h2, h3, h4, h5, h6, .font-display {
   from { height: var(--radix-accordion-content-height); }
   to   { height: 0; }
 }
+
+/* Coverflow activity carousel — dim/scale every slide except the centered one */
+.activities-coverflow .swiper-slide {
+  opacity: 0.45;
+  filter: saturate(0.7);
+  transition: opacity 0.35s ease, filter 0.35s ease;
+}
+.activities-coverflow .swiper-slide-active {
+  opacity: 1;
+  filter: saturate(1);
+}
