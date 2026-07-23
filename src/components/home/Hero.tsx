@@ -3,9 +3,17 @@
 import { useState, useEffect, useRef } from 'react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from '@/i18n/navigation'
-import { Search, MapPin } from 'lucide-react'
+import { Playfair_Display } from 'next/font/google'
+import { Search, MapPin, Star } from 'lucide-react'
 import Image from 'next/image'
 import { CITIES } from '@/lib/constants'
+
+const serif = Playfair_Display({
+  subsets: ['latin'],
+  weight: ['500', '700', '900'],
+  style: ['normal', 'italic'],
+  variable: '--font-hero-serif',
+})
 
 export function Hero() {
   const t = useTranslations('home')
@@ -34,59 +42,80 @@ export function Hero() {
   }
 
   return (
-    <section>
+    <section className={serif.variable}>
       {/* Photo banner — pulled up under the transparent glass header so the image shows through it,
           full viewport height so the background media covers the entire first screen */}
       <div className="relative overflow-hidden -mt-20" style={{ height: '100dvh', minHeight: 640 }}>
 
-        {/* Parallax background */}
+        {/* Parallax background — softly blurred so the yacht already present in this photo
+            reads as ambient texture, letting the sharp layered cutout below be the one clear boat */}
         <div
           ref={bgRef}
-          className="absolute inset-0 scale-[1.18]"
+          className="absolute -inset-4"
           style={{ transformOrigin: 'center top', willChange: 'transform' }}
         >
           <Image
             src="/hero-background.jpg"
-            alt="Costa de Torrevieja"
+            alt="Textura del mar en la Costa Blanca"
             fill
-            className="object-cover object-center"
+            className="object-cover object-center blur-lg scale-110"
             priority
           />
         </div>
 
-        {/* Gradient overlay — lighter than before, closer to an editorial photo caption than a dramatic poster */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-black/35 to-black/70" />
+        {/* Gradient overlay — the source photo is already dark, keep this light */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/15 to-black/45" />
 
-        {/* Extra scrim behind the transparent glass header — keeps white nav text legible
-            regardless of how light the photo is at the very top (e.g. pale sky). */}
+        {/* Extra scrim behind the transparent glass header */}
         <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black/45 to-transparent pointer-events-none" />
 
         {/* Main content — centered */}
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 sm:px-8 pb-16">
 
-          {/* Overline + place name, tripalicante-style */}
-          <span className="text-xs font-bold uppercase tracking-[0.25em] text-white/70 mb-5">
-            Descubre
-          </span>
-          <h2 className="text-[clamp(2.75rem,7vw,4.75rem)] font-black text-white leading-[1.15] tracking-tight mb-7">
-            Torrevieja
-          </h2>
-
-          {/* Divider */}
-          <div className="flex items-center gap-3 mb-7 w-full max-w-xs">
-            <span className="h-px flex-1 bg-white/25" />
-            <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/60 whitespace-nowrap">Costa Blanca</span>
-            <span className="h-px flex-1 bg-white/25" />
+          {/* Side info — location (left) and rating (right), hidden on small screens */}
+          <div className="hidden md:flex items-center gap-2 absolute left-8 lg:left-16 top-1/2 -translate-y-1/2 text-white/80">
+            <MapPin className="w-4 h-4 shrink-0" />
+            <span className="text-xs font-semibold uppercase tracking-[0.2em] whitespace-nowrap">
+              Torrevieja, España
+            </span>
+          </div>
+          <div className="hidden md:flex items-center gap-2 absolute right-8 lg:right-16 top-1/2 -translate-y-1/2 text-white/80">
+            <Star className="w-4 h-4 shrink-0 fill-current" />
+            <span className="text-xs font-semibold uppercase tracking-[0.2em] whitespace-nowrap">
+              4.8 valoración media
+            </span>
           </div>
 
-          {/* Heading */}
-          <p className="text-[clamp(1.15rem,2.2vw,1.5rem)] font-bold text-white leading-[1.6] tracking-tight mb-5 max-w-2xl">
-            {t('hero_title')}
-          </p>
+          {/* Headline with the yacht layered on top, tripalicante/regatta-style */}
+          <div className="relative w-full max-w-3xl mb-10">
+            <h1
+              className="text-white leading-[1.25] tracking-tight text-[clamp(1.9rem,5vw,3.5rem)]"
+              style={{ fontFamily: 'var(--font-hero-serif)' }}
+            >
+              <span className="font-bold">Descubre </span>
+              <span className="font-medium italic">Torrevieja.</span>
+              <br />
+              <span className="font-bold">Actividades y experiencias</span>
+              <br />
+              <span className="font-bold">con </span>
+              <span className="font-medium italic">proveedores verificados</span>
+              <br />
+              <span className="font-bold">y garantía total</span>
+            </h1>
 
-          <p className="text-white/70 text-base md:text-lg mb-10 max-w-xl leading-[1.9]">
-            {t('hero_subtitle')}
-          </p>
+            {/* Layered yacht cutout — sits on top of the headline for a sense of depth */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="relative w-[42%] sm:w-[32%] max-w-[340px] aspect-[16/9]">
+                <Image
+                  src="/hero-boat.png"
+                  alt=""
+                  fill
+                  className="object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.45)]"
+                  priority
+                />
+              </div>
+            </div>
+          </div>
 
           {/* Search bar — pill shape */}
           <form onSubmit={handleSearch} className="w-full max-w-2xl">
