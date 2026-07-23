@@ -12,12 +12,8 @@ export async function FeaturedActivities() {
 
   return (
     <section className="py-24 bg-white space-y-16">
-      {/* Full-width, edge-to-edge (minus a 15px gutter) — not contained to max-w-7xl */}
-      <div className="mx-[15px]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
         <ActivitiesTopRow activities={topRowActivities} />
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <ActivityPackages activities={packageActivities} />
       </div>
     </section>
