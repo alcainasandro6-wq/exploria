@@ -102,7 +102,7 @@ export function ActivitiesResults({ activities, categories, filters }: Activitie
                   activeCategory === cat.slug ? 'bg-primary text-white shadow-md shadow-primary/25' : 'bg-white text-slate-600 border border-slate-200 hover:border-primary hover:text-primary'
                 }`}
               >
-                {cat.icon} {cat.name}
+                {cat.name}
               </button>
             ))}
           </div>

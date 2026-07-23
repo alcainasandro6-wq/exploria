@@ -27,9 +27,6 @@ export default async function ActivitiesPage({
       <div className="relative bg-gradient-to-br from-[#0A0F1E] via-primary-dark to-primary overflow-hidden">
         <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, #60a5fa 0%, transparent 60%), radial-gradient(circle at 80% 20%, #818cf8 0%, transparent 50%)' }} />
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-20 text-center">
-          <span className="inline-block text-xs font-bold uppercase tracking-widest text-blue-300 bg-blue-500/20 px-3 py-1 rounded-full mb-5">
-            {cityName} · Costa Blanca
-          </span>
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white mb-5 leading-[1.05]">
             Descubre las mejores<br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-cyan-300">actividades</span> cerca del mar

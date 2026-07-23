@@ -103,7 +103,6 @@ export function ActivityFilters({ onClose }: ActivityFiltersProps) {
                     : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                 )}
               >
-                <span className="text-base leading-none">{cat.icon}</span>
                 <span className="flex-1">{cat.name}</span>
                 {active && <X className="w-3 h-3 shrink-0" />}
               </button>

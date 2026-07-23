@@ -29,9 +29,6 @@ export function ProviderCTA() {
 
           {/* Left: copy */}
           <div>
-            <span className="inline-block text-[11px] font-bold uppercase tracking-[0.25em] text-[#005B8D] mb-4">
-              Para proveedores de actividades
-            </span>
             <h2 className="text-4xl md:text-5xl font-black text-[#070D1F] tracking-tight leading-none mb-5">
               {t('cta_title')}
             </h2>

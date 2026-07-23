@@ -20,9 +20,6 @@ export async function BlogSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-end justify-between mb-12">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-primary mb-3">
-              Del blog
-            </p>
             <h2 className="text-4xl md:text-5xl font-black text-[#070D1F] tracking-tight leading-none">
               Guías y consejos
             </h2>
