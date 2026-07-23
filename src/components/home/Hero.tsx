@@ -47,18 +47,17 @@ export function Hero() {
           full viewport height so the background media covers the entire first screen */}
       <div className="relative overflow-hidden -mt-20" style={{ height: '100dvh', minHeight: 640 }}>
 
-        {/* Parallax background — softly blurred so the yacht already present in this photo
-            reads as ambient texture, letting the sharp layered cutout below be the one clear boat */}
+        {/* Parallax background */}
         <div
           ref={bgRef}
-          className="absolute -inset-4"
+          className="absolute inset-0"
           style={{ transformOrigin: 'center top', willChange: 'transform' }}
         >
           <Image
             src="/hero-background.jpg"
-            alt="Textura del mar en la Costa Blanca"
+            alt="Yate navegando la costa de Torrevieja"
             fill
-            className="object-cover object-center blur-lg scale-110"
+            className="object-cover object-center"
             priority
           />
         </div>
@@ -86,7 +85,8 @@ export function Hero() {
             </span>
           </div>
 
-          {/* Headline with the yacht layered on top, tripalicante/regatta-style */}
+          {/* Headline — the yacht cutout is layered on top separately below, aligned to
+              the exact same position/size as the yacht already visible in the background photo */}
           <div className="relative w-full max-w-3xl mb-10">
             <h1
               className="text-white leading-[1.25] tracking-tight text-[clamp(1.9rem,5vw,3.5rem)]"
@@ -102,19 +102,6 @@ export function Hero() {
               <br />
               <span className="font-bold">y garantía total</span>
             </h1>
-
-            {/* Layered yacht cutout — sits on top of the headline for a sense of depth */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="relative w-[42%] sm:w-[32%] max-w-[340px] aspect-[16/9]">
-                <Image
-                  src="/hero-boat.png"
-                  alt=""
-                  fill
-                  className="object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.45)]"
-                  priority
-                />
-              </div>
-            </div>
           </div>
 
           {/* Search bar — pill shape */}
@@ -152,6 +139,18 @@ export function Hero() {
               </button>
             </div>
           </form>
+        </div>
+
+        {/* Yacht cutout — same fill/crop as the background photo it was cut from, so it
+            lands exactly on top of the yacht already visible there (same size, same spot) */}
+        <div className="absolute inset-0 pointer-events-none">
+          <Image
+            src="/hero-boat.png"
+            alt=""
+            fill
+            className="object-cover object-center"
+            priority
+          />
         </div>
       </div>
     </section>
