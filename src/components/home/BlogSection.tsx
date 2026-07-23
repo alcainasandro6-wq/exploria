@@ -20,7 +20,7 @@ export async function BlogSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-end justify-between mb-12">
           <div>
-            <h2 className="text-4xl md:text-5xl font-black text-[#070D1F] tracking-tight leading-none">
+            <h2 className="text-3xl md:text-4xl font-bold text-black tracking-tight leading-none">
               Guías y consejos
             </h2>
           </div>

@@ -50,7 +50,7 @@ export function StatsSection() {
         </p>
         <h2
           className={cn(
-            'text-4xl md:text-6xl font-black text-white tracking-tight leading-[1.05] transition-all duration-700 ease-out delay-150',
+            'text-4xl md:text-6xl font-bold text-white tracking-tight leading-[1.05] transition-all duration-700 ease-out delay-150',
             visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           )}
         >

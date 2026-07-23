@@ -29,10 +29,10 @@ export function ProviderCTA() {
 
           {/* Left: copy */}
           <div>
-            <h2 className="text-4xl md:text-5xl font-black text-[#070D1F] tracking-tight leading-none mb-5">
+            <h2 className="text-3xl md:text-4xl font-bold text-black tracking-tight leading-none mb-5">
               {t('cta_title')}
             </h2>
-            <p className="text-slate-500 text-lg leading-relaxed mb-8 max-w-lg">
+            <p className="text-[15px] text-slate-500 leading-relaxed mb-8 max-w-lg">
               {t('cta_subtitle')}
             </p>
 
@@ -50,7 +50,7 @@ export function ProviderCTA() {
             <div className="flex flex-wrap items-center gap-4">
               <Link
                 href="/providers"
-                className="inline-flex items-center gap-2 bg-[#005B8D] hover:bg-[#003654] text-white font-bold py-3.5 px-8 rounded-xl transition-colors"
+                className="inline-flex items-center gap-2 bg-[#005B8D] hover:bg-[#003654] text-white font-semibold py-3.5 px-8 rounded-xl transition-colors"
               >
                 {t('cta_button')} <ArrowRight className="w-4 h-4" />
               </Link>

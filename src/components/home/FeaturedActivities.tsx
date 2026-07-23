@@ -11,9 +11,13 @@ export async function FeaturedActivities() {
   const packageActivities = activities.length > 4 ? activities.slice(4, 6) : activities.slice(0, 2)
 
   return (
-    <section className="py-24 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+    <section className="py-24 bg-white space-y-16">
+      {/* Full-width, edge-to-edge (minus a 15px gutter) — not contained to max-w-7xl */}
+      <div className="mx-[15px]">
         <ActivitiesTopRow activities={topRowActivities} />
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <ActivityPackages activities={packageActivities} />
       </div>
     </section>

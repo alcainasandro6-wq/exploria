@@ -127,22 +127,23 @@ h1, h2, h3, h4, h5, h6, .font-display {
    color:transparent, which would hide currentColor-based icons). */
 .glass-sheen-bg {
   background: linear-gradient(135deg,
-    rgba(255,255,255,0.3) 0%,
-    rgba(255,255,255,0.05) 50%,
-    rgba(255,255,255,0.3) 100%);
+    rgba(255,255,255,0.18) 0%,
+    rgba(255,255,255,0.04) 50%,
+    rgba(255,255,255,0.18) 100%);
   background-size: 200% 200%;
 }
 
 .glass-sheen-text {
   color: transparent;
   -webkit-text-fill-color: transparent;
+  font-weight: 500;
   background: linear-gradient(135deg,
-    rgba(255,255,255,0.3) 0%,
-    rgba(255,255,255,0.05) 50%,
-    rgba(255,255,255,0.3) 100%);
+    rgba(255,255,255,0.22) 0%,
+    rgba(255,255,255,0.04) 50%,
+    rgba(255,255,255,0.22) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   background-size: 200% 200%;
-  -webkit-text-stroke: 1px rgba(255,255,255,0.14);
+  -webkit-text-stroke: 1px rgba(255,255,255,0.1);
   filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
 }

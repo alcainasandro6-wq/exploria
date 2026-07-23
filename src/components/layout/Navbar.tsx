@@ -228,7 +228,7 @@ export function Navbar() {
                 <Link
                   href="/auth/register"
                   className={cn(
-                    'px-4 py-2 text-sm font-bold rounded-full transition-colors shadow-sm',
+                    'px-4 py-2 text-sm font-semibold rounded-full transition-colors shadow-sm',
                     transparent
                       ? 'glass-sheen-bg text-white backdrop-blur-md border border-white/25 shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]'
                       : 'text-white bg-[#005B8D] hover:bg-[#003654]'

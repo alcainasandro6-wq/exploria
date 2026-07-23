@@ -68,7 +68,7 @@ export function Hero() {
           <span className="text-xs font-bold uppercase tracking-[0.25em] text-white/70 mb-5">
             Descubre
           </span>
-          <h2 className="text-[clamp(2.75rem,7vw,4.75rem)] font-black text-white leading-[1.15] tracking-tight mb-7">
+          <h2 className="text-[clamp(2.75rem,7vw,4.75rem)] font-bold text-white leading-[1.15] tracking-tight mb-7">
             Torrevieja
           </h2>
 
@@ -84,7 +84,7 @@ export function Hero() {
             {t('hero_title')}
           </p>
 
-          <p className="text-white/70 text-base md:text-lg mb-10 max-w-xl leading-[1.9]">
+          <p className="text-white/70 text-[15px] mb-10 max-w-xl leading-[1.9]">
             {t('hero_subtitle')}
           </p>
 

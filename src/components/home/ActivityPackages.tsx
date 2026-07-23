@@ -16,15 +16,15 @@ export function ActivityPackages({ activities }: ActivityPackagesProps) {
     <div className="grid lg:grid-cols-3 gap-8 items-start">
       {/* Left column — heading + copy + link */}
       <div className="lg:col-span-1">
-        <h2 className="text-2xl sm:text-3xl font-black text-[#070D1F] tracking-tight mb-3">
+        <h2 className="text-3xl md:text-4xl font-bold text-black tracking-tight mb-3">
           Paquetes de experiencias
         </h2>
-        <p className="text-sm text-slate-500 leading-relaxed mb-6">
+        <p className="text-[15px] text-slate-500 leading-relaxed mb-6">
           Combinaciones cuidadas de actividades, pensadas para sacarle el máximo partido a tu visita a Torrevieja.
         </p>
         <Link
           href="/activities"
-          className="inline-flex items-center gap-1.5 text-sm font-bold text-primary hover:text-primary-dark transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary-dark transition-colors"
         >
           Ver todas las actividades <ArrowRight className="w-4 h-4" />
         </Link>
@@ -58,7 +58,7 @@ export function ActivityPackages({ activities }: ActivityPackagesProps) {
                   {activity.title}
                 </h3>
                 {activity.short_description && (
-                  <p className="text-white/75 text-sm leading-relaxed line-clamp-2">
+                  <p className="text-white/75 text-[15px] leading-relaxed line-clamp-2">
                     {activity.short_description}
                   </p>
                 )}
