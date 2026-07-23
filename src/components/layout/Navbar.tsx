@@ -115,7 +115,7 @@ export function Navbar() {
               className={cn(
                 'flex items-center gap-0.5 rounded-full p-1 transition-colors',
                 transparent
-                  ? 'bg-black/20 backdrop-blur-md backdrop-saturate-150 border border-white/25 shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]'
+                  ? 'glass-sheen-bg backdrop-blur-md backdrop-saturate-150 border border-white/25 shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]'
                   : 'bg-slate-100/80'
               )}
             >
@@ -145,7 +145,12 @@ export function Navbar() {
             <div className="relative">
               <button
                 onClick={() => { setIsLangOpen(!isLangOpen); setIsUserOpen(false) }}
-                className="flex items-center gap-1.5 text-sm text-white bg-primary hover:bg-primary-dark px-3.5 py-2 rounded-full transition-colors font-semibold"
+                className={cn(
+                  'flex items-center gap-1.5 text-sm px-3.5 py-2 rounded-full transition-colors font-semibold',
+                  transparent
+                    ? 'text-white glass-sheen-bg backdrop-blur-md border border-white/25 shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]'
+                    : 'text-white bg-primary hover:bg-primary-dark'
+                )}
               >
                 <ReactCountryFlag countryCode={LOCALE_TO_COUNTRY[locale]} svg style={{ width: '1.1em', height: '1.1em' }} />
                 <span className="uppercase text-xs">{locale}</span>
@@ -213,14 +218,21 @@ export function Navbar() {
                   href="/auth/login"
                   className={cn(
                     'px-4 py-2 text-sm font-medium rounded-lg transition-colors',
-                    transparent ? 'text-white/90 hover:text-white hover:bg-white/10' : 'text-slate-700 hover:text-slate-900 hover:bg-slate-50'
+                    transparent
+                      ? 'glass-sheen-text hover:brightness-125'
+                      : 'text-slate-700 hover:text-slate-900 hover:bg-slate-50'
                   )}
                 >
                   {t('login')}
                 </Link>
                 <Link
                   href="/auth/register"
-                  className="px-4 py-2 text-sm font-bold text-white bg-[#005B8D] hover:bg-[#003654] rounded-full transition-colors shadow-sm"
+                  className={cn(
+                    'px-4 py-2 text-sm font-bold rounded-full transition-colors shadow-sm',
+                    transparent
+                      ? 'glass-sheen-bg text-white backdrop-blur-md border border-white/25 shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]'
+                      : 'text-white bg-[#005B8D] hover:bg-[#003654]'
+                  )}
                 >
                   {t('register')}
                 </Link>
