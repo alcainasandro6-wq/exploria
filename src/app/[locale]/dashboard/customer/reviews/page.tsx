@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { getTranslations } from 'next-intl/server'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -9,6 +10,7 @@ import { ReviewForm } from '@/components/dashboard/customer/ReviewForm'
 import { formatDate } from '@/lib/utils'
 
 export default async function CustomerReviewsPage() {
+  const t = await getTranslations('customer_reviews_page')
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
@@ -20,11 +22,11 @@ export default async function CustomerReviewsPage() {
 
   return (
     <DashboardLayout role="customer">
-      <DashboardHeader title="Mis valoraciones" subtitle="Comparte tu experiencia con otros viajeros" />
+      <DashboardHeader title={t('title')} subtitle={t('subtitle')} />
 
       {reviewable.length > 0 && (
         <Card className="mb-6">
-          <CardHeader><CardTitle>Actividades pendientes de valorar</CardTitle></CardHeader>
+          <CardHeader><CardTitle>{t('pending_reviews_title')}</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             {reviewable.map((r) => (
               <ReviewForm key={r.id} reservationId={r.id} activityId={r.activity_id} activityTitle={r.activity?.title ?? ''} />
@@ -34,10 +36,10 @@ export default async function CustomerReviewsPage() {
       )}
 
       <Card>
-        <CardHeader><CardTitle>Valoraciones enviadas</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t('submitted_reviews_title')}</CardTitle></CardHeader>
         <CardContent>
           {reviews.length === 0 ? (
-            <p className="text-sm text-slate-400 py-6 text-center">Todavía no has dejado ninguna valoración.</p>
+            <p className="text-sm text-slate-400 py-6 text-center">{t('empty_state')}</p>
           ) : (
             <div className="space-y-5">
               {reviews.map((review) => (

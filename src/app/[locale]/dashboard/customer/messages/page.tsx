@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { getTranslations } from 'next-intl/server'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader'
 import { Card, CardContent } from '@/components/ui/card'
@@ -8,6 +9,7 @@ import { getCustomerMessages } from '@/lib/services/customer'
 import { formatDate, cn } from '@/lib/utils'
 
 export default async function CustomerMessagesPage() {
+  const t = await getTranslations('customer_messages_page')
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
@@ -16,13 +18,13 @@ export default async function CustomerMessagesPage() {
 
   return (
     <DashboardLayout role="customer">
-      <DashboardHeader title="Mensajes" subtitle="Conversaciones con proveedores sobre tus reservas" />
+      <DashboardHeader title={t('title')} subtitle={t('subtitle')} />
 
       {messages.length === 0 ? (
         <Card>
           <CardContent className="p-10 text-center text-slate-400 flex flex-col items-center gap-2">
             <MessageSquare className="w-8 h-8 text-slate-300" />
-            No tienes mensajes todavía.
+            {t('empty_state')}
           </CardContent>
         </Card>
       ) : (
@@ -41,7 +43,7 @@ export default async function CustomerMessagesPage() {
                       <span className="text-xs text-slate-400 shrink-0">{formatDate(msg.created_at)}</span>
                     </div>
                     <p className="text-sm text-slate-600 mt-1">{msg.body}</p>
-                    <p className="text-xs text-slate-400 mt-1">{isSent ? 'Enviado' : 'Recibido'}</p>
+                    <p className="text-xs text-slate-400 mt-1">{isSent ? t('sent_label') : t('received_label')}</p>
                   </div>
                 </CardContent>
               </Card>

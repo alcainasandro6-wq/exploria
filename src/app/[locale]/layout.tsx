@@ -8,7 +8,7 @@ import { WhatsAppButton } from '@/components/layout/WhatsAppButton'
 import { CurrencyProvider } from '@/context/CurrencyContext'
 import { Toaster } from 'sonner'
 import type { Metadata } from 'next'
-import { Plus_Jakarta_Sans, Inter } from 'next/font/google'
+import { Plus_Jakarta_Sans, Inter, Fredoka } from 'next/font/google'
 
 const displayFont = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -20,6 +20,15 @@ const displayFont = Plus_Jakarta_Sans({
 const bodyFont = Inter({
   subsets: ['latin'],
   variable: '--font-body',
+  display: 'swap',
+})
+
+// Used for headings on the public site only — dashboards keep --font-display
+// (see globals.css .dashboard-shell override).
+const titleFont = Fredoka({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-title',
   display: 'swap',
 })
 
@@ -37,7 +46,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       template: '%s | BookActivities',
       default: 'BookActivities - Actividades en Torrevieja',
     },
-    description: t('hero_subtitle'),
+    description: t.markup('hero_subtitle', { bold: (chunks) => chunks }),
     keywords: ['actividades torrevieja', 'turismo alicante', 'excursiones torrevieja', 'deportes acuáticos'],
     authors: [{ name: 'BookActivities' }],
     metadataBase: new URL((process.env.NEXT_PUBLIC_SITE_URL || 'https://bookactivities.com').trim().replace(/^﻿/, '')),
@@ -81,8 +90,8 @@ export default async function LocaleLayout({ children, params }: Props) {
   }
 
   return (
-    <html lang={locale} suppressHydrationWarning className={`${displayFont.variable} ${bodyFont.variable}`}>
-      <body className="min-h-screen w-full flex flex-col antialiased overflow-x-hidden">
+    <html lang={locale} suppressHydrationWarning className={`${displayFont.variable} ${bodyFont.variable} ${titleFont.variable}`}>
+      <body className="min-h-screen w-full flex flex-col antialiased overflow-x-clip">
         <NextIntlClientProvider messages={messages}>
           <CurrencyProvider>
             <Navbar />

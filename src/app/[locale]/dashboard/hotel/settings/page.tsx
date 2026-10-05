@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { getTranslations } from 'next-intl/server'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader'
 import { createClient } from '@/lib/supabase/server'
@@ -6,6 +7,7 @@ import { getHotelByProfileId } from '@/lib/services/hotels'
 import { HotelSettingsForm } from '@/components/dashboard/hotel/HotelSettingsForm'
 
 export default async function HotelSettingsPage() {
+  const t = await getTranslations('hotel_settings_page')
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
@@ -15,7 +17,7 @@ export default async function HotelSettingsPage() {
 
   return (
     <DashboardLayout role="hotel">
-      <DashboardHeader title="Configuración" subtitle="Información pública de tu hotel" />
+      <DashboardHeader title={t('title')} subtitle={t('subtitle')} />
       <HotelSettingsForm hotel={hotel} />
     </DashboardLayout>
   )

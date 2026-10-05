@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import type { HotelDashboardStats, HotelTopActivity } from '@/types/database'
@@ -8,20 +9,22 @@ const PRIMARY = '#005B8D'
 const CATEGORICAL = ['#005B8D', '#3D84AC']
 
 export function HotelStatsCharts({ stats, topActivities }: { stats: HotelDashboardStats; topActivities: HotelTopActivity[] }) {
+  const t = useTranslations('hotel_stats_charts')
+
   const bookingsData = topActivities.map((a) => ({
     name: a.activity_title.length > 22 ? a.activity_title.slice(0, 22) + '…' : a.activity_title,
     reservas: a.total_bookings,
   }))
 
   const sourceData = [
-    { name: 'Vía QR', value: stats.qr_conversions },
-    { name: 'Vía web', value: stats.web_conversions },
+    { name: t('source_qr'), value: stats.qr_conversions },
+    { name: t('source_web'), value: stats.web_conversions },
   ]
 
   return (
     <div className="grid lg:grid-cols-2 gap-6">
       <Card>
-        <CardHeader><CardTitle>Actividades más reservadas</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t('top_activities_title')}</CardTitle></CardHeader>
         <CardContent>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
@@ -30,7 +33,7 @@ export function HotelStatsCharts({ stats, topActivities }: { stats: HotelDashboa
                 <XAxis type="number" allowDecimals={false} tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
                 <YAxis type="category" dataKey="name" width={140} tick={{ fontSize: 12, fill: '#334155' }} axisLine={false} tickLine={false} />
                 <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 13 }} />
-                <Bar dataKey="reservas" fill={PRIMARY} radius={[0, 4, 4, 0]} maxBarSize={22} />
+                <Bar dataKey="reservas" name={t('bookings_legend')} fill={PRIMARY} radius={[0, 4, 4, 0]} maxBarSize={22} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -38,7 +41,7 @@ export function HotelStatsCharts({ stats, topActivities }: { stats: HotelDashboa
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>Origen de las conversiones</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t('conversion_source_title')}</CardTitle></CardHeader>
         <CardContent>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">

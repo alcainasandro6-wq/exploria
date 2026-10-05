@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 
@@ -32,6 +33,7 @@ function lastSixMonthKeys(): string[] {
 }
 
 export function AdminAnalyticsCharts({ reservations, profiles, topActivities }: AdminAnalyticsChartsProps) {
+  const t = useTranslations('admin_analytics_charts')
   const months = lastSixMonthKeys()
 
   const bookingsByMonth = months.map((key) => {
@@ -50,7 +52,7 @@ export function AdminAnalyticsCharts({ reservations, profiles, topActivities }: 
   })
 
   const providerBookings = topActivities.reduce<Record<string, number>>((acc, a) => {
-    const name = a.provider?.company_name ?? 'Desconocido'
+    const name = a.provider?.company_name ?? t('unknown_provider')
     acc[name] = (acc[name] ?? 0) + a.booking_count
     return acc
   }, {})
@@ -62,7 +64,7 @@ export function AdminAnalyticsCharts({ reservations, profiles, topActivities }: 
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader><CardTitle>Reservas e ingresos (últimos 6 meses)</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t('bookings_revenue_title')}</CardTitle></CardHeader>
         <CardContent>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
@@ -72,7 +74,7 @@ export function AdminAnalyticsCharts({ reservations, profiles, topActivities }: 
                 <YAxis tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} allowDecimals={false} />
                 <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 13 }} />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
-                <Line type="monotone" dataKey="reservas" stroke={PRIMARY} strokeWidth={2} dot={{ r: 3 }} name="Reservas" />
+                <Line type="monotone" dataKey="reservas" stroke={PRIMARY} strokeWidth={2} dot={{ r: 3 }} name={t('legend_bookings')} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -81,7 +83,7 @@ export function AdminAnalyticsCharts({ reservations, profiles, topActivities }: 
 
       <div className="grid lg:grid-cols-2 gap-6">
         <Card>
-          <CardHeader><CardTitle>Nuevos registros por mes</CardTitle></CardHeader>
+          <CardHeader><CardTitle>{t('new_signups_title')}</CardTitle></CardHeader>
           <CardContent>
             <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
@@ -91,9 +93,9 @@ export function AdminAnalyticsCharts({ reservations, profiles, topActivities }: 
                   <YAxis tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} allowDecimals={false} />
                   <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 13 }} />
                   <Legend wrapperStyle={{ fontSize: 12 }} />
-                  <Bar dataKey="clientes" fill={PRIMARY} radius={[4, 4, 0, 0]} maxBarSize={18} name="Clientes" />
-                  <Bar dataKey="proveedores" fill={SECONDARY} radius={[4, 4, 0, 0]} maxBarSize={18} name="Proveedores" />
-                  <Bar dataKey="hoteles" fill="#94a3b8" radius={[4, 4, 0, 0]} maxBarSize={18} name="Hoteles" />
+                  <Bar dataKey="clientes" fill={PRIMARY} radius={[4, 4, 0, 0]} maxBarSize={18} name={t('legend_customers')} />
+                  <Bar dataKey="proveedores" fill={SECONDARY} radius={[4, 4, 0, 0]} maxBarSize={18} name={t('legend_providers')} />
+                  <Bar dataKey="hoteles" fill="#94a3b8" radius={[4, 4, 0, 0]} maxBarSize={18} name={t('legend_hotels')} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -101,7 +103,7 @@ export function AdminAnalyticsCharts({ reservations, profiles, topActivities }: 
         </Card>
 
         <Card>
-          <CardHeader><CardTitle>Proveedores con más reservas</CardTitle></CardHeader>
+          <CardHeader><CardTitle>{t('top_providers_title')}</CardTitle></CardHeader>
           <CardContent>
             <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">

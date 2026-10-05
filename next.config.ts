@@ -10,6 +10,7 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'images.unsplash.com' },
       { protocol: 'https', hostname: 'res.cloudinary.com' },
     ],
+    qualities: [75, 95],
   },
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],

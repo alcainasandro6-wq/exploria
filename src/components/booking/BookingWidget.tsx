@@ -1,25 +1,35 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useTranslations } from 'next-intl'
-import { Calendar, Users, Info, Shield, LogIn, Clock, CheckCircle2, Loader2 } from 'lucide-react'
+import { useLocale, useTranslations } from 'next-intl'
+import { Users, Shield, LogIn, Clock, CheckCircle2, Loader2, Calendar, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatPrice } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from '@/i18n/navigation'
 import { getAttributionFromCookie } from '@/lib/services/attribution'
+import { BookingCalendar } from '@/components/booking/BookingCalendar'
+import { TimeSlotPicker } from '@/components/booking/TimeSlotPicker'
 import type { Activity } from '@/types/database'
 
 interface BookingWidgetProps {
   activity: Activity
 }
 
+function formatSelectedDate(isoDate: string, locale: string): string {
+  const raw = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', year: 'numeric' })
+    .format(new Date(isoDate + 'T00:00:00'))
+  return raw.charAt(0).toUpperCase() + raw.slice(1)
+}
+
 export function BookingWidget({ activity }: BookingWidgetProps) {
   const t = useTranslations('activity')
+  const locale = useLocale()
   const router = useRouter()
   const [participants, setParticipants] = useState(Math.max(activity.min_participants, 1))
   const [selectedDate, setSelectedDate] = useState('')
-  const [selectedTime, setSelectedTime] = useState('10:00')
+  const [selectedTime, setSelectedTime] = useState('')
+  const [calendarOpen, setCalendarOpen] = useState(false)
   const [notes, setNotes] = useState('')
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null)
   const [submitting, setSubmitting] = useState(false)
@@ -34,7 +44,6 @@ export function BookingWidget({ activity }: BookingWidgetProps) {
     })
   }, [supabase])
 
-  const total = activity.price_from * participants
 
   const handleBook = async () => {
     if (!isLoggedIn) {
@@ -67,6 +76,12 @@ export function BookingWidget({ activity }: BookingWidgetProps) {
         setError(data.error || 'No se pudo completar la solicitud de reserva')
         return
       }
+      if (data.checkoutUrl) {
+        window.location.assign(data.checkoutUrl)
+        return
+      }
+      // Checkout session creation failed server-side but the reservation
+      // exists — let the customer retry payment from their bookings list.
       setSuccess({ confirmation_code: data.reservation.confirmation_code })
     } catch {
       setError('No se pudo conectar con el servidor. Inténtalo de nuevo.')
@@ -112,34 +127,42 @@ export function BookingWidget({ activity }: BookingWidgetProps) {
       </div>
 
       <div className="p-5 space-y-4">
-        {/* Date + time */}
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-sm font-medium text-slate-700 mb-1.5 block">
-              <Calendar className="w-4 h-4 inline mr-1.5" />
-              {t('select_date')}
-            </label>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              min={new Date().toISOString().split('T')[0]}
-              className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
+        {/* Date */}
+        <div>
+          <label className="text-sm font-medium text-slate-700 mb-1.5 block">
+            <Calendar className="w-4 h-4 inline mr-1.5" />
+            {t('select_date')}
+          </label>
+          <button
+            type="button"
+            onClick={() => setCalendarOpen((v) => !v)}
+            className="w-full flex items-center justify-between border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-left hover:border-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <span className={selectedDate ? 'text-slate-900 font-medium' : 'text-slate-400'}>
+              {selectedDate ? formatSelectedDate(selectedDate, locale) : t('select_date')}
+            </span>
+            <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${calendarOpen ? 'rotate-180' : ''}`} />
+          </button>
+          {calendarOpen && (
+            <div className="mt-2">
+              <BookingCalendar
+                value={selectedDate}
+                onChange={(date) => { setSelectedDate(date); setCalendarOpen(false) }}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Time */}
+        {selectedDate && (
           <div>
             <label className="text-sm font-medium text-slate-700 mb-1.5 block">
               <Clock className="w-4 h-4 inline mr-1.5" />
               Hora
             </label>
-            <input
-              type="time"
-              value={selectedTime}
-              onChange={(e) => setSelectedTime(e.target.value)}
-              className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            />
+            <TimeSlotPicker value={selectedTime} onChange={setSelectedTime} />
           </div>
-        </div>
+        )}
 
         {/* Participants */}
         <div>
@@ -169,32 +192,6 @@ export function BookingWidget({ activity }: BookingWidgetProps) {
           </p>
         </div>
 
-        {/* Notes */}
-        <div>
-          <label className="text-sm font-medium text-slate-700 mb-1.5 block">Notas (opcional)</label>
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows={2}
-            placeholder="Alergias, nivel de experiencia, peticiones especiales..."
-            className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-          />
-        </div>
-
-        {/* Total */}
-        <div className="bg-slate-50 rounded-xl p-4">
-          <div className="flex items-center justify-between text-sm mb-2">
-            <span className="text-slate-600">
-              {formatPrice(activity.price_from)} × {participants} persona{participants !== 1 ? 's' : ''}
-            </span>
-            <span className="font-semibold text-slate-900">{formatPrice(total)}</span>
-          </div>
-          <div className="flex items-center justify-between font-bold text-base border-t border-slate-200 pt-2 mt-2">
-            <span>{t('total')}</span>
-            <span className="text-primary">{formatPrice(total)}</span>
-          </div>
-        </div>
-
         {error && (
           <p className="text-sm text-red-600 bg-red-50 rounded-xl px-3 py-2">{error}</p>
         )}
@@ -217,25 +214,11 @@ export function BookingWidget({ activity }: BookingWidgetProps) {
           </Button>
         )}
 
-        {/* Legal Notice */}
-        <div className="flex items-start gap-2 bg-blue-50 rounded-xl p-3">
-          <Info className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-          <p className="text-xs text-slate-600 leading-relaxed">
-            {t('legal_notice')}
-          </p>
-        </div>
-
-        {/* Trust Signals */}
-        <div className="flex items-center justify-center gap-4 text-xs text-slate-400">
-          <div className="flex items-center gap-1">
-            <Shield className="w-3.5 h-3.5" />
-            Sin pago online
-          </div>
-          <div className="flex items-center gap-1">
-            <Calendar className="w-3.5 h-3.5" />
-            Cancelación gratis
-          </div>
-        </div>
+        {/* Legal Notice — compact */}
+        <p className="text-xs text-center text-slate-400">
+          <Shield className="w-3 h-3 inline mr-1" />
+          Pago seguro · {t('legal_notice')}
+        </p>
       </div>
     </div>
   )

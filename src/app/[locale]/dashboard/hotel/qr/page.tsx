@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { getTranslations } from 'next-intl/server'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader'
 import { createClient } from '@/lib/supabase/server'
@@ -6,6 +7,7 @@ import { getHotelByProfileId } from '@/lib/services/hotels'
 import { HotelQrCard } from '@/components/dashboard/hotel/HotelQrCard'
 
 export default async function HotelQrPage() {
+  const t = await getTranslations('hotel_qr_page')
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
@@ -17,7 +19,7 @@ export default async function HotelQrPage() {
 
   return (
     <DashboardLayout role="hotel">
-      <DashboardHeader title="Mi código QR" subtitle="Imprímelo y colócalo en recepción, habitaciones o zonas comunes" />
+      <DashboardHeader title={t('title')} subtitle={t('subtitle')} />
       <HotelQrCard url={trackingUrl} hotelName={hotel.name} />
     </DashboardLayout>
   )

@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import type {
+  Database,
   Reservation,
   ReservationStatus,
   ReservationSource,
@@ -19,6 +21,10 @@ export interface CreateReservationInput {
   affiliateCode?: string
   source?: ReservationSource
   totalPrice: number
+  /** Explicit hotel attribution (e.g. concierge bookings created by hotel staff).
+   *  Left unset for normal customer bookings — the DB trigger resolves hotel_id
+   *  from affiliateCode itself when this is null (see migration 004). */
+  hotelId?: string
 }
 
 export interface ReservationFilters {
@@ -59,9 +65,16 @@ export function isTerminal(status: ReservationStatus): boolean {
 
 export async function createReservation(
   input: CreateReservationInput,
-  customerId: string
+  customerId: string,
+  // Optional pre-built client — e.g. a service-role client for flows like
+  // hotel concierge bookings, where the caller (hotel staff) isn't the
+  // customer_id being inserted, so the "Customer can create reservations"
+  // RLS policy (customer_id = auth.uid()) would otherwise block the insert.
+  // Defaults to the normal cookie-bound client for the existing customer-
+  // initiated call path, which is unchanged.
+  client?: SupabaseClient<Database>
 ): Promise<Reservation> {
-  const supabase = await createClient()
+  const supabase = client ?? await createClient()
 
   const { data, error } = await supabase
     .from('reservations')
@@ -69,6 +82,7 @@ export async function createReservation(
       activity_id:      input.activityId,
       provider_id:      input.providerId,
       customer_id:      customerId,
+      hotel_id:         input.hotelId ?? null,
       activity_date:    input.activityDate,
       activity_time:    input.activityTime,
       booking_date:     new Date().toISOString().split('T')[0],
@@ -78,7 +92,8 @@ export async function createReservation(
       affiliate_code:   input.affiliateCode ?? null,
       source:           input.source ?? 'web',
       status:           'pending',
-      // hotel_id resolved automatically by DB trigger via affiliate_code
+      // hotel_id, when left unset, is resolved automatically by the DB
+      // trigger from affiliate_code (see migration 004).
     })
     .select(`
       *,
@@ -154,9 +169,9 @@ export async function getCustomerReservations(
     .order('created_at', { ascending: false })
 
   if (filters.status) {
-    Array.isArray(filters.status)
-      ? query = query.in('status', filters.status)
-      : query = query.eq('status', filters.status)
+    query = Array.isArray(filters.status)
+      ? query.in('status', filters.status)
+      : query.eq('status', filters.status)
   }
   if (filters.limit) query = query.limit(filters.limit)
 
@@ -184,9 +199,9 @@ export async function getProviderReservations(
     .order('created_at', { ascending: false })
 
   if (filters.status) {
-    Array.isArray(filters.status)
-      ? query = query.in('status', filters.status)
-      : query = query.eq('status', filters.status)
+    query = Array.isArray(filters.status)
+      ? query.in('status', filters.status)
+      : query.eq('status', filters.status)
   }
   if (filters.dateFrom) query = query.gte('activity_date', filters.dateFrom)
   if (filters.dateTo)   query = query.lte('activity_date', filters.dateTo)
@@ -217,9 +232,9 @@ export async function getHotelReservations(
     .order('created_at', { ascending: false })
 
   if (filters.status) {
-    Array.isArray(filters.status)
-      ? query = query.in('status', filters.status)
-      : query = query.eq('status', filters.status)
+    query = Array.isArray(filters.status)
+      ? query.in('status', filters.status)
+      : query.eq('status', filters.status)
   }
   if (filters.source)   query = query.eq('source', filters.source)
   if (filters.dateFrom) query = query.gte('activity_date', filters.dateFrom)
@@ -249,9 +264,9 @@ export async function getAllReservations(
     .order('created_at', { ascending: false })
 
   if (filters.status) {
-    Array.isArray(filters.status)
-      ? query = query.in('status', filters.status)
-      : query = query.eq('status', filters.status)
+    query = Array.isArray(filters.status)
+      ? query.in('status', filters.status)
+      : query.eq('status', filters.status)
   }
   if (filters.limit)  query = query.limit(filters.limit)
   if (filters.offset) query = query.range(filters.offset, (filters.offset + (filters.limit ?? 50)) - 1)

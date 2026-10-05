@@ -2,112 +2,62 @@
 
 import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
-import { CheckCircle2, TrendingUp, Users, BarChart3, ArrowRight } from 'lucide-react'
+import { ArrowRight, Check } from 'lucide-react'
+import { ParallaxImage } from '@/components/ui/parallax-image'
+import { Reveal } from '@/components/ui/reveal'
 
 export function ProviderCTA() {
   const t = useTranslations('home')
 
   const benefits = [
-    { icon: Users, text: 'Accede a miles de turistas activos cada mes' },
-    { icon: TrendingUp, text: 'Aumenta tus reservas hasta un 40%' },
-    { icon: BarChart3, text: 'Panel de gestión profesional en tiempo real' },
-    { icon: CheckCircle2, text: 'Sin coste fijo — comisión solo por reserva' },
-  ]
-
-  const stats = [
-    { value: '150+', label: 'Actividades' },
-    { value: '8.000+', label: 'Clientes' },
-    { value: '4.8', label: 'Valoración' },
-    { value: '45+', label: 'Proveedores' },
+    t.rich('cta_benefit_1', { bold: (chunks) => <strong className="font-bold text-slate-900">{chunks}</strong> }),
+    t.rich('cta_benefit_2', { bold: (chunks) => <strong className="font-bold text-slate-900">{chunks}</strong> }),
+    t.rich('cta_benefit_3', { bold: (chunks) => <strong className="font-bold text-slate-900">{chunks}</strong> }),
+    t.rich('cta_benefit_4', { bold: (chunks) => <strong className="font-bold text-slate-900">{chunks}</strong> }),
   ]
 
   return (
-    <section className="py-24 bg-white border-t border-slate-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="provider-section">
+      <div className="provider-container">
 
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
+        {/* Left — copy */}
+        <Reveal className="provider-copy">
+          <p className="provider-label">Para proveedores</p>
+          <h2 className="provider-title">{t('cta_title')}</h2>
+          <p className="provider-desc">
+            {t.rich('cta_subtitle', { bold: (chunks) => <strong className="font-bold text-slate-900">{chunks}</strong> })}
+          </p>
 
-          {/* Left: copy */}
-          <div>
-            <h2 className="text-3xl md:text-4xl font-bold text-black tracking-tight leading-none mb-5">
-              {t('cta_title')}
-            </h2>
-            <p className="text-[15px] text-slate-500 leading-relaxed mb-8 max-w-lg">
-              {t('cta_subtitle')}
-            </p>
+          <ul className="provider-benefits">
+            {benefits.map((item, idx) => (
+              <li key={idx} className="provider-benefit">
+                <span className="provider-benefit-icon" aria-hidden="true">
+                  <Check className="w-3.5 h-3.5 text-emerald-600" />
+                </span>
+                <span className="provider-benefit-text">{item}</span>
+              </li>
+            ))}
+          </ul>
 
-            <ul className="space-y-4 mb-10">
-              {benefits.map(({ icon: Icon, text }) => (
-                <li key={text} className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-[#005B8D]/10 flex items-center justify-center shrink-0 mt-0.5">
-                    <Icon className="w-3.5 h-3.5 text-[#005B8D]" />
-                  </div>
-                  <span className="text-sm text-slate-600 leading-relaxed">{text}</span>
-                </li>
-              ))}
-            </ul>
-
-            <div className="flex flex-wrap items-center gap-4">
-              <Link
-                href="/providers"
-                className="inline-flex items-center gap-2 bg-[#005B8D] hover:bg-[#003654] text-white font-semibold py-3.5 px-8 rounded-xl transition-colors"
-              >
-                {t('cta_button')} <ArrowRight className="w-4 h-4" />
-              </Link>
-              <span className="text-xs text-slate-400">
-                Solicitud revisada en 24–48 h
-              </span>
-            </div>
+          <div className="provider-actions">
+            <Link href="/providers" className="provider-btn">
+              {t('cta_button')}
+              <ArrowRight className="provider-btn-icon" />
+            </Link>
+            <span className="provider-note">{t('cta_note')}</span>
           </div>
+        </Reveal>
 
-          {/* Right: visual stats panel */}
-          <div className="relative">
-            {/* Background decoration */}
-            <div className="absolute -inset-4 bg-gradient-to-br from-[#005B8D]/5 via-transparent to-sky-400/5 rounded-3xl" />
+        {/* Right — real photo, swap /public/provider-background.jpg for your own */}
+        <Reveal className="provider-image" delay={120}>
+          <ParallaxImage
+            src="/provider-background.jpg"
+            alt="Proveedor de actividades en Torrevieja"
+            speed={0.1}
+            sizes="(max-width: 900px) 100vw, 45vw"
+          />
+        </Reveal>
 
-            <div className="relative bg-[#070D1F] rounded-3xl p-8 overflow-hidden">
-              {/* Inner glow */}
-              <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-[#005B8D]/15 blur-[60px] pointer-events-none" />
-
-              {/* Header */}
-              <div className="relative mb-8">
-                <p className="text-slate-400 text-sm mb-1">Plataforma BookActivities</p>
-                <p className="text-white font-black text-2xl">Tu negocio, en la Costa Blanca</p>
-              </div>
-
-              {/* Stats grid */}
-              <div className="relative grid grid-cols-2 gap-3">
-                {stats.map((s, i) => (
-                  <div
-                    key={s.label}
-                    className={`rounded-2xl p-5 border ${
-                      i === 0 ? 'bg-[#005B8D]/15 border-[#005B8D]/25' :
-                      i === 1 ? 'bg-emerald-500/10 border-emerald-500/20' :
-                      i === 2 ? 'bg-amber-400/10 border-amber-400/20' :
-                                'bg-purple-500/10 border-purple-500/20'
-                    }`}
-                  >
-                    <div className="text-2xl font-black text-white mb-0.5">{s.value}</div>
-                    <div className="text-xs text-slate-400">{s.label}</div>
-                  </div>
-                ))}
-              </div>
-
-              {/* CTA inside card */}
-              <div className="relative mt-6 pt-6 border-t border-white/8">
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400 text-sm">Empieza con 30 días gratis</span>
-                  <Link
-                    href="/providers"
-                    className="flex items-center gap-1.5 text-sm font-bold text-[#4D9EFF] hover:text-white transition-colors"
-                  >
-                    Únete <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </section>
   )

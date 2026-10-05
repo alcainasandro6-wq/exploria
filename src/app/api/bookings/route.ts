@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
+import Stripe from 'stripe'
 import { createClient } from '@/lib/supabase/server'
 import { generateConfirmationCode } from '@/lib/utils'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnySupabase = any
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2026-05-27.dahlia',
+})
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient() as AnySupabase
@@ -24,7 +29,7 @@ export async function POST(request: NextRequest) {
 
   const { data: activity, error: activityError } = await supabase
     .from('activities')
-    .select('id, provider_id, price_from, status')
+    .select('id, title, provider_id, price_from, status')
     .eq('id', activity_id)
     .eq('status', 'published')
     .single()
@@ -99,7 +104,85 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to create reservation' }, { status: 500 })
   }
 
-  return NextResponse.json({ reservation }, { status: 201 })
+  // Centralized payment collection: BookActivities charges the customer
+  // directly (own Stripe account, no Connect needed), holds the money, and
+  // settles with the provider/hotel later via the commissions ledger. If
+  // checkout creation fails, the reservation still exists as pending/unpaid
+  // — the customer can retry payment from their bookings list.
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
+  let checkoutUrl: string | null = null
+  try {
+    const session = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      payment_method_types: ['card'],
+      customer_email: user.email,
+      line_items: [{
+        price_data: {
+          currency: 'eur',
+          product_data: { name: activity.title },
+          unit_amount: Math.round(total_price * 100),
+        },
+        quantity: 1,
+      }],
+      success_url: `${siteUrl}/es/dashboard/customer/bookings?payment=success`,
+      cancel_url: `${siteUrl}/es/dashboard/customer/bookings?payment=cancelled`,
+      metadata: { reservation_id: reservation.id },
+      payment_intent_data: { metadata: { reservation_id: reservation.id } },
+    })
+    checkoutUrl = session.url
+  } catch (checkoutError) {
+    console.error('Checkout session error:', checkoutError)
+  }
+
+  return NextResponse.json({ reservation, checkoutUrl }, { status: 201 })
+}
+
+// Re-creates a Checkout Session for an existing unpaid pending reservation
+// (e.g. the customer abandoned the first checkout attempt).
+export async function PATCH(request: NextRequest) {
+  const supabase = await createClient() as AnySupabase
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { reservation_id } = await request.json()
+  if (!reservation_id) return NextResponse.json({ error: 'Missing reservation_id' }, { status: 400 })
+
+  const { data: reservation } = await supabase
+    .from('reservations')
+    .select('id, customer_id, total_price, payment_status, status, activity:activities(title)')
+    .eq('id', reservation_id)
+    .single()
+
+  if (!reservation || reservation.customer_id !== user.id) {
+    return NextResponse.json({ error: 'Reservation not found' }, { status: 404 })
+  }
+  if (reservation.payment_status === 'paid') {
+    return NextResponse.json({ error: 'Already paid' }, { status: 400 })
+  }
+  if (reservation.status !== 'pending') {
+    return NextResponse.json({ error: 'Reservation is no longer payable' }, { status: 400 })
+  }
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
+  const session = await stripe.checkout.sessions.create({
+    mode: 'payment',
+    payment_method_types: ['card'],
+    customer_email: user.email,
+    line_items: [{
+      price_data: {
+        currency: 'eur',
+        product_data: { name: reservation.activity?.title ?? 'Actividad' },
+        unit_amount: Math.round(reservation.total_price * 100),
+      },
+      quantity: 1,
+    }],
+    success_url: `${siteUrl}/es/dashboard/customer/bookings?payment=success`,
+    cancel_url: `${siteUrl}/es/dashboard/customer/bookings?payment=cancelled`,
+    metadata: { reservation_id: reservation.id },
+    payment_intent_data: { metadata: { reservation_id: reservation.id } },
+  })
+
+  return NextResponse.json({ checkoutUrl: session.url })
 }
 
 export async function GET(request: NextRequest) {

@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { createPublicClient } from '@/lib/supabase/public'
 import type { Activity, ActivityImage, Category, Review } from '@/types/database'
 
 export interface ActivitySearchFilters {
@@ -6,6 +7,8 @@ export interface ActivitySearchFilters {
   categorySlug?: string
   city?: string
   maxPrice?: number
+  duration?: 'under1' | '1to3' | '3to6' | 'full'
+  language?: string
   sort?: 'relevance' | 'rating' | 'price_asc' | 'price_desc' | 'popular'
 }
 
@@ -16,7 +19,7 @@ export interface ActivityListItem extends Activity {
 
 // Public listing/search: only ever returns published activities.
 export async function getPublishedActivities(filters: ActivitySearchFilters = {}): Promise<ActivityListItem[]> {
-  const supabase = await createClient()
+  const supabase = createPublicClient()
 
   let query = supabase
     .from('activities')
@@ -25,6 +28,13 @@ export async function getPublishedActivities(filters: ActivitySearchFilters = {}
 
   if (filters.city) query = query.ilike('city', filters.city)
   if (filters.maxPrice) query = query.lte('price_from', filters.maxPrice)
+  if (filters.language) query = query.contains('languages', [filters.language])
+  switch (filters.duration) {
+    case 'under1': query = query.lt('duration_minutes', 60); break
+    case '1to3': query = query.gte('duration_minutes', 60).lte('duration_minutes', 180); break
+    case '3to6': query = query.gt('duration_minutes', 180).lte('duration_minutes', 360); break
+    case 'full': query = query.gt('duration_minutes', 360); break
+  }
   if (filters.q?.trim()) {
     const q = filters.q.trim()
     query = query.or(`title.ilike.%${q}%,description.ilike.%${q}%,short_description.ilike.%${q}%`)
@@ -65,7 +75,7 @@ export interface ActivityDetail extends Activity {
 
 // Public product page: only ever returns published activities.
 export async function getActivityBySlug(slug: string): Promise<ActivityDetail | null> {
-  const supabase = await createClient()
+  const supabase = createPublicClient()
 
   const { data, error } = await supabase
     .from('activities')
@@ -73,7 +83,7 @@ export async function getActivityBySlug(slug: string): Promise<ActivityDetail | 
       *,
       images:activity_images(*),
       category:categories(*),
-      provider:providers(id, company_name, slug, description, address, city, country, phone, logo_url, website, is_verified)
+      provider:providers(id, company_name, slug, description, address, city, country, phone, logo_url, website, is_verified, turitop_company_code)
     `)
     .eq('slug', slug)
     .eq('status', 'published')
@@ -84,7 +94,7 @@ export async function getActivityBySlug(slug: string): Promise<ActivityDetail | 
 }
 
 export async function getActivityReviews(activityId: string): Promise<ReviewWithAuthor[]> {
-  const supabase = await createClient()
+  const supabase = createPublicClient()
 
   const { data: reviews, error } = await supabase
     .from('reviews')

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { Calendar, Clock, Users, Loader2, Phone, Mail } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -14,12 +15,13 @@ const STATUS_STYLES: Record<string, 'success' | 'warning' | 'secondary' | 'destr
   confirmed: 'success', pending: 'warning', completed: 'secondary',
   cancelled: 'destructive', rejected: 'destructive', no_show: 'destructive',
 }
-const STATUS_LABELS: Record<string, string> = {
-  confirmed: 'Confirmado', pending: 'Pendiente', completed: 'Completado',
-  cancelled: 'Cancelado', rejected: 'Rechazado', no_show: 'No presentado',
-}
 
 export function ProviderBookingRow({ booking }: { booking: Reservation }) {
+  const t = useTranslations('provider_booking_row')
+  const STATUS_LABELS: Record<string, string> = {
+    confirmed: t('status_confirmed'), pending: t('status_pending'), completed: t('status_completed'),
+    cancelled: t('status_cancelled'), rejected: t('status_rejected'), no_show: t('status_no_show'),
+  }
   const [status, setStatus] = useState<ReservationStatus>(booking.status)
   const [loading, setLoading] = useState<string | null>(null)
 
@@ -29,17 +31,17 @@ export function ProviderBookingRow({ booking }: { booking: Reservation }) {
     setLoading(null)
     if (!res.success) { toast.error(res.error); return }
     setStatus(nextStatus)
-    toast.success('Reserva actualizada')
+    toast.success(t('updated_toast'))
   }
 
   return (
     <Card>
       <CardContent className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-4">
         <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-primary font-bold">
-          {getInitials(booking.customer?.full_name || 'Cliente')}
+          {getInitials(booking.customer?.full_name || t('default_customer_name'))}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-slate-900">{booking.customer?.full_name || 'Cliente'}</p>
+          <p className="font-semibold text-slate-900">{booking.customer?.full_name || t('default_customer_name')}</p>
           <p className="text-sm text-slate-600 truncate">{booking.activity?.title}</p>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 mt-1.5">
             <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{formatDate(booking.activity_date)}</span>
@@ -56,23 +58,23 @@ export function ProviderBookingRow({ booking }: { booking: Reservation }) {
           {status === 'pending' && (
             <div className="flex gap-1.5">
               <Button size="sm" className="text-xs h-7" disabled={loading !== null} onClick={() => run('confirm', () => confirmReservationAction(booking.id), 'confirmed')}>
-                {loading === 'confirm' ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Confirmar'}
+                {loading === 'confirm' ? <Loader2 className="w-3 h-3 animate-spin" /> : t('confirm_button')}
               </Button>
               <Button size="sm" variant="outline" className="text-xs h-7" disabled={loading !== null} onClick={() => {
-                const reason = window.prompt('Motivo del rechazo:') ?? ''
+                const reason = window.prompt(t('reject_prompt')) ?? ''
                 if (reason.trim()) run('reject', () => rejectReservationAction(booking.id, reason.trim()), 'rejected')
               }}>
-                {loading === 'reject' ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Rechazar'}
+                {loading === 'reject' ? <Loader2 className="w-3 h-3 animate-spin" /> : t('reject_button')}
               </Button>
             </div>
           )}
           {status === 'confirmed' && (
             <div className="flex gap-1.5">
               <Button size="sm" className="text-xs h-7" disabled={loading !== null} onClick={() => run('complete', () => completeReservationAction(booking.id), 'completed')}>
-                {loading === 'complete' ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Completada'}
+                {loading === 'complete' ? <Loader2 className="w-3 h-3 animate-spin" /> : t('complete_button')}
               </Button>
               <Button size="sm" variant="outline" className="text-xs h-7" disabled={loading !== null} onClick={() => run('noshow', () => markNoShowAction(booking.id), 'no_show')}>
-                {loading === 'noshow' ? <Loader2 className="w-3 h-3 animate-spin" /> : 'No presentado'}
+                {loading === 'noshow' ? <Loader2 className="w-3 h-3 animate-spin" /> : t('no_show_button')}
               </Button>
             </div>
           )}

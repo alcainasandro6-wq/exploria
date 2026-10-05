@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
 import { Link, usePathname, useRouter } from '@/i18n/navigation'
 import { Menu, X, ChevronDown, LayoutDashboard, LogOut } from 'lucide-react'
+import Image from 'next/image'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { createClient } from '@/lib/supabase/client'
 import { cn, getInitials } from '@/lib/utils'
@@ -28,10 +29,21 @@ export function Navbar() {
 
   const supabase = createClient()
 
-  // Only the homepage has a full-bleed hero photo for the header to float over —
-  // everywhere else there's nothing but white page content behind it.
+  // On the homepage the header keeps the glass look (white text, glass pill)
+  // for the whole scroll — it never turns into an opaque white bar.
   const isHome = pathname === '/'
-  const transparent = isHome && !isScrolled && !isMenuOpen
+  const transparent = isHome && !isMenuOpen
+  // But the outer bar itself only shows a background once scrolled, so at
+  // the very top it blends fully into the hero photo with no dark strip.
+  const showBar = !isHome || isMenuOpen || isScrolled
+
+  useEffect(() => {
+    if (!isHome) return
+    const onScroll = () => setIsScrolled(window.scrollY > 40)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [isHome])
 
   useEffect(() => {
     const getUser = async () => {
@@ -42,15 +54,20 @@ export function Navbar() {
       }
     }
     getUser()
-  }, [])
 
-  useEffect(() => {
-    if (!isHome) return
-    const handleScroll = () => setIsScrolled(window.scrollY > 40)
-    handleScroll()
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [isHome])
+    // Navbar lives in the root layout and never remounts across client-side
+    // navigations, so a login redirect (router.push from /auth/login) would
+    // otherwise leave the header stuck showing "Log in" until a hard reload.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single()
+        setUser(data)
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null)
+      }
+    })
+    return () => subscription.unsubscribe()
+  }, [])
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
@@ -61,7 +78,6 @@ export function Navbar() {
   const navLinks = [
     { href: '/', label: t('home') },
     { href: '/activities', label: t('activities') },
-    { href: '/categories', label: t('categories') },
     { href: '/providers', label: t('providers') },
     { href: '/blog', label: t('blog') },
     { href: '/contact', label: t('contact') },
@@ -77,39 +93,36 @@ export function Navbar() {
     }
   }
 
+  // The dashboard has its own sidebar (with language switcher + sign-out),
+  // so the public site header doesn't render there at all.
+  if (pathname.startsWith('/dashboard')) return null
+
   return (
     <nav
       className={cn(
         'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
-        transparent ? 'bg-transparent' : 'bg-white border-b border-slate-100 shadow-[0_1px_20px_rgba(15,23,42,0.06)]'
+        !showBar
+          ? 'bg-transparent border-b border-transparent'
+          : transparent
+            ? 'bg-black/35 backdrop-blur-xl backdrop-saturate-150 border-b border-white/10'
+            : 'bg-white border-b border-slate-100 shadow-[0_1px_20px_rgba(15,23,42,0.06)]'
       )}
     >
       <div className="w-full px-5 sm:px-8 lg:px-10">
         <div className="flex items-center justify-between h-20 gap-6">
 
+
           {/* Logo */}
           <Link href="/" className="flex items-center shrink-0">
-            <span
-              className={cn(
-                'text-[28px] font-black tracking-[-0.06em] transition-colors',
-                transparent ? 'text-white [text-shadow:0_1px_12px_rgba(0,0,0,0.35)]' : 'text-primary-dark'
-              )}
-              style={{ fontFamily: 'var(--font-display)' }}
-            >
-              bookactivities
-            </span>
-            <span
-              className={cn(
-                'text-[28px] font-black transition-colors',
-                transparent ? 'text-white [text-shadow:0_1px_12px_rgba(0,0,0,0.35)]' : 'text-primary'
-              )}
-              style={{ fontFamily: 'var(--font-display)' }}
-            >
-              .
-            </span>
+            <Image
+              src={transparent ? '/logo-byn.svg' : '/logo.svg'}
+              alt="BookActivities"
+              width={320}
+              height={80}
+              className="h-12 lg:h-16 w-auto object-contain"
+              priority
+            />
           </Link>
-
-          {/* Desktop nav links — floating pill capsule, active tab gets a white pill */}
           <div className="hidden lg:flex items-center flex-1 justify-center">
             <div
               className={cn(

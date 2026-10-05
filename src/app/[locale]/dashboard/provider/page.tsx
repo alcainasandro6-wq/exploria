@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { getTranslations } from 'next-intl/server'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader'
 import { StatCard } from '@/components/dashboard/StatCard'
@@ -23,6 +24,8 @@ export default async function ProviderDashboardPage() {
   const provider = await getProviderByProfileId(user.id)
   if (!provider) redirect('/dashboard')
 
+  const t = await getTranslations('provider_home_page')
+
   const [subscription, performance, pendingBookings, revenueResult] = await Promise.all([
     getProviderSubscription(provider.id),
     getProviderActivityPerformance(provider.id),
@@ -38,21 +41,21 @@ export default async function ProviderDashboardPage() {
   const publishedCount = performance.length
 
   const stats = [
-    { icon: Package, label: 'Actividades activas', value: publishedCount, color: 'blue' as const },
-    { icon: Calendar, label: 'Reservas totales', value: totalBookingsThisPeriod, color: 'purple' as const },
-    { icon: DollarSign, label: 'Ingresos estimados', value: formatPrice(estimatedRevenue), color: 'emerald' as const },
-    { icon: Star, label: 'Valoración media', value: avgRating, color: 'amber' as const },
+    { icon: Package, label: t('stat_active_activities'), value: publishedCount, color: 'blue' as const },
+    { icon: Calendar, label: t('stat_total_bookings'), value: totalBookingsThisPeriod, color: 'purple' as const },
+    { icon: DollarSign, label: t('stat_estimated_revenue'), value: formatPrice(estimatedRevenue), color: 'emerald' as const },
+    { icon: Star, label: t('stat_avg_rating'), value: avgRating, color: 'amber' as const },
   ]
 
   return (
     <DashboardLayout role="provider">
       <DashboardHeader
-        title="Panel de Proveedor"
+        title={t('title')}
         subtitle={provider.company_name}
         action={
           <Link href="/dashboard/provider/activities/new" className={cn(buttonVariants({ variant: 'white' }), 'gap-1.5')}>
             <PlusCircle className="w-4 h-4" />
-            Nueva actividad
+            {t('new_activity_button')}
           </Link>
         }
       />
@@ -76,15 +79,15 @@ export default async function ProviderDashboardPage() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>Mis actividades</CardTitle>
+              <CardTitle>{t('my_activities_title')}</CardTitle>
               <Link href="/dashboard/provider/activities" className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }))}>
-                Ver todas
+                {t('view_all')}
               </Link>
             </div>
           </CardHeader>
           <CardContent>
             {performance.length === 0 ? (
-              <p className="text-sm text-slate-400 py-6 text-center">Todavía no tienes actividades publicadas.</p>
+              <p className="text-sm text-slate-400 py-6 text-center">{t('no_published_activities')}</p>
             ) : (
               <div className="space-y-3">
                 {performance.slice(0, 5).map((activity) => (
@@ -95,13 +98,13 @@ export default async function ProviderDashboardPage() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-slate-900 truncate">{activity.activity_title}</p>
                       <div className="flex items-center gap-3 text-xs text-slate-500 mt-0.5">
-                        <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{activity.total_bookings} reservas</span>
+                        <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{t('bookings_count', { count: activity.total_bookings })}</span>
                         {activity.avg_rating > 0 && (
                           <span className="flex items-center gap-1"><Star className="w-3 h-3" />{activity.avg_rating.toFixed(1)}</span>
                         )}
                       </div>
                     </div>
-                    <Badge variant="success">{activity.confirmed} confirmadas</Badge>
+                    <Badge variant="success">{t('confirmed_count', { count: activity.confirmed })}</Badge>
                   </div>
                 ))}
               </div>
@@ -112,15 +115,15 @@ export default async function ProviderDashboardPage() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>Reservas pendientes</CardTitle>
+              <CardTitle>{t('pending_bookings_title')}</CardTitle>
               <Link href="/dashboard/provider/bookings" className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }))}>
-                Ver todas
+                {t('view_all')}
               </Link>
             </div>
           </CardHeader>
           <CardContent>
             {pendingBookings.length === 0 ? (
-              <p className="text-sm text-slate-400 py-6 text-center">No tienes reservas pendientes de confirmar.</p>
+              <p className="text-sm text-slate-400 py-6 text-center">{t('no_pending_bookings')}</p>
             ) : (
               <div className="space-y-3">
                 {pendingBookings.map((booking) => <PendingBookingRow key={booking.id} booking={booking} />)}

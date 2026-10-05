@@ -26,11 +26,11 @@ export default function RegisterPage() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     if (password !== confirmPassword) {
-      toast.error('Las contraseñas no coinciden')
+      toast.error(t('toast_password_mismatch'))
       return
     }
     if (password.length < 8) {
-      toast.error('La contraseña debe tener al menos 8 caracteres')
+      toast.error(t('toast_password_too_short'))
       return
     }
 
@@ -55,11 +55,11 @@ export default function RegisterPage() {
           locale: 'en',
         })
 
-        toast.success('¡Cuenta creada exitosamente! Bienvenido a BookActivities.')
+        toast.success(t('toast_register_success'))
         router.push('/dashboard/customer')
       }
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Error al crear la cuenta'
+      const message = err instanceof Error ? err.message : t('toast_register_error_fallback')
       toast.error(message)
     } finally {
       setLoading(false)
@@ -80,7 +80,7 @@ export default function RegisterPage() {
             id="fullName"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            placeholder="Tu nombre completo"
+            placeholder={t('placeholder_full_name')}
             required
           />
         </div>
@@ -92,7 +92,7 @@ export default function RegisterPage() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="tu@email.com"
+            placeholder={t('placeholder_email')}
             required
           />
         </div>
@@ -105,7 +105,7 @@ export default function RegisterPage() {
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Mínimo 8 caracteres"
+              placeholder={t('placeholder_password_min')}
               required
             />
             <button
@@ -126,7 +126,7 @@ export default function RegisterPage() {
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="Repite tu contraseña"
+            placeholder={t('placeholder_password_repeat')}
             required
           />
         </div>
@@ -138,17 +138,20 @@ export default function RegisterPage() {
         </Button>
       </form>
 
-      <div className="mt-7 text-center">
-        <span className="text-sm text-slate-500">¿Ya tienes cuenta? </span>
-        <Link href="/auth/login" className="text-sm text-primary font-bold hover:text-primary-dark">
-          Inicia sesión
-        </Link>
+      <div className="mt-7 text-center text-sm text-slate-500">
+        {t.rich('login_link', {
+          link: (chunks) => (
+            <Link href="/auth/login" className="text-primary font-bold hover:text-primary-dark">
+              {chunks}
+            </Link>
+          ),
+        })}
       </div>
 
       <div className="mt-5 pt-5 border-t border-slate-100 text-center">
-        <span className="text-sm text-slate-400">¿Eres proveedor de actividades u hotel? </span>
+        <span className="text-sm text-slate-400">{t('provider_or_hotel_question')} </span>
         <Link href="/providers" className="text-sm text-primary font-bold hover:text-primary-dark">
-          Solicita unirte →
+          {t('apply_now')} →
         </Link>
       </div>
     </AuthLayout>

@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { getTranslations } from 'next-intl/server'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader'
 import { StatCard } from '@/components/dashboard/StatCard'
@@ -22,6 +23,8 @@ export default async function ProviderCommissionsPage() {
   const provider = await getProviderByProfileId(user.id)
   if (!provider) redirect('/dashboard')
 
+  const t = await getTranslations('provider_commissions_page')
+
   const [commissionsResult, { data: payments }] = await Promise.all([
     supabase
       .from('commissions')
@@ -43,27 +46,27 @@ export default async function ProviderCommissionsPage() {
 
   return (
     <DashboardLayout role="provider">
-      <DashboardHeader title="Comisiones y facturación" subtitle="Comisión de plataforma por reserva confirmada + facturas de tu suscripción" />
+      <DashboardHeader title={t('title')} subtitle={t('subtitle')} />
 
       <div className="grid grid-cols-2 gap-5 mb-6">
-        <StatCard icon={DollarSign} label="Pendiente de liquidar" value={formatPrice(pendingTotal)} color="amber" />
-        <StatCard icon={DollarSign} label="Liquidado" value={formatPrice(paidTotal)} color="emerald" />
+        <StatCard icon={DollarSign} label={t('stat_pending')} value={formatPrice(pendingTotal)} color="amber" />
+        <StatCard icon={DollarSign} label={t('stat_paid')} value={formatPrice(paidTotal)} color="emerald" />
       </div>
 
       <Card className="mb-6">
-        <CardHeader><CardTitle>Comisiones por reserva</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t('commissions_table_title')}</CardTitle></CardHeader>
         <CardContent>
           {(commissions ?? []).length === 0 ? (
-            <p className="text-sm text-slate-400 py-6 text-center">Todavía no hay comisiones registradas.</p>
+            <p className="text-sm text-slate-400 py-6 text-center">{t('no_commissions')}</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-slate-100">
-                    <th className="text-left py-2 px-3 text-xs font-semibold text-slate-500 uppercase">Reserva</th>
-                    <th className="text-left py-2 px-3 text-xs font-semibold text-slate-500 uppercase">Fecha actividad</th>
-                    <th className="text-left py-2 px-3 text-xs font-semibold text-slate-500 uppercase">Comisión plataforma</th>
-                    <th className="text-left py-2 px-3 text-xs font-semibold text-slate-500 uppercase">Estado</th>
+                    <th className="text-left py-2 px-3 text-xs font-semibold text-slate-500 uppercase">{t('table_header_reservation')}</th>
+                    <th className="text-left py-2 px-3 text-xs font-semibold text-slate-500 uppercase">{t('table_header_activity_date')}</th>
+                    <th className="text-left py-2 px-3 text-xs font-semibold text-slate-500 uppercase">{t('table_header_platform_commission')}</th>
+                    <th className="text-left py-2 px-3 text-xs font-semibold text-slate-500 uppercase">{t('table_header_status')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -74,7 +77,7 @@ export default async function ProviderCommissionsPage() {
                       <td className="py-2.5 px-3 font-semibold text-slate-900">{formatPrice(Number(c.platform_commission_amount))}</td>
                       <td className="py-2.5 px-3">
                         <Badge variant={c.status === 'paid' ? 'success' : c.status === 'pending' ? 'warning' : 'secondary'}>
-                          {c.status === 'paid' ? 'Liquidada' : c.status === 'pending' ? 'Pendiente' : 'Cancelada'}
+                          {c.status === 'paid' ? t('status_paid') : c.status === 'pending' ? t('status_pending') : t('status_cancelled')}
                         </Badge>
                       </td>
                     </tr>
@@ -87,16 +90,16 @@ export default async function ProviderCommissionsPage() {
       </Card>
 
       <Card>
-        <CardHeader><CardTitle className="flex items-center gap-2"><Receipt className="w-4 h-4" />Facturas de suscripción</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="flex items-center gap-2"><Receipt className="w-4 h-4" />{t('invoices_title')}</CardTitle></CardHeader>
         <CardContent>
           {(payments ?? []).length === 0 ? (
-            <p className="text-sm text-slate-400 py-6 text-center">Todavía no hay facturas.</p>
+            <p className="text-sm text-slate-400 py-6 text-center">{t('no_invoices')}</p>
           ) : (
             <div className="space-y-2">
               {(payments ?? []).map((p) => (
                 <div key={p.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
                   <div>
-                    <p className="text-sm font-medium text-slate-900">{p.description || 'Suscripción'}</p>
+                    <p className="text-sm font-medium text-slate-900">{p.description || t('subscription_fallback_label')}</p>
                     <p className="text-xs text-slate-400">{formatDate(p.created_at)}</p>
                   </div>
                   <div className="flex items-center gap-3">

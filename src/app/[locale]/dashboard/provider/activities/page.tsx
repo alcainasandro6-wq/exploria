@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { getTranslations } from 'next-intl/server'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader'
 import { SubscriptionBanner } from '@/components/dashboard/provider/SubscriptionBanner'
@@ -20,14 +21,6 @@ const STATUS_STYLES: Record<string, string> = {
   archived: 'bg-slate-100 text-slate-500',
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  published: 'Publicada',
-  pending_review: 'En revisión',
-  draft: 'Borrador',
-  suspended: 'Suspendida',
-  archived: 'Archivada',
-}
-
 export default async function ProviderActivitiesPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -35,6 +28,16 @@ export default async function ProviderActivitiesPage() {
 
   const provider = await getProviderByProfileId(user.id)
   if (!provider) redirect('/dashboard')
+
+  const t = await getTranslations('provider_activities_page')
+
+  const STATUS_LABELS: Record<string, string> = {
+    published: t('status_published'),
+    pending_review: t('status_pending_review'),
+    draft: t('status_draft'),
+    suspended: t('status_suspended'),
+    archived: t('status_archived'),
+  }
 
   const [{ activities }, subscription, usage] = await Promise.all([
     getProviderActivitiesAction(),
@@ -56,18 +59,22 @@ export default async function ProviderActivitiesPage() {
       )}
 
       <DashboardHeader
-        title="Mis actividades"
-        subtitle={`${activities.length} actividades · Plan ${subscription?.plan?.display_name ?? '—'} (máx. ${usage.maxActivities === -1 ? 'ilimitadas' : usage.maxActivities})`}
+        title={t('title')}
+        subtitle={t('subtitle', {
+          count: activities.length,
+          plan: subscription?.plan?.display_name ?? '—',
+          maxActivities: usage.maxActivities === -1 ? t('unlimited') : usage.maxActivities,
+        })}
         action={
           <Link href="/dashboard/provider/activities/new" className={cn(buttonVariants({ variant: 'white' }), 'gap-1.5')}>
             <PlusCircle className="w-4 h-4" />
-            Nueva actividad
+            {t('new_activity_button')}
           </Link>
         }
       />
 
       {activities.length === 0 ? (
-        <Card><CardContent className="p-10 text-center text-slate-400">Todavía no has creado ninguna actividad.</CardContent></Card>
+        <Card><CardContent className="p-10 text-center text-slate-400">{t('empty_state')}</CardContent></Card>
       ) : (
         <div className="space-y-4">
           {activities.map((activity) => {
@@ -93,8 +100,8 @@ export default async function ProviderActivitiesPage() {
                     </div>
                     <h3 className="font-semibold text-slate-900 truncate">{activity.title}</h3>
                     <div className="flex items-center gap-4 mt-1.5 text-xs text-slate-500">
-                      <span className="font-semibold text-slate-700">{activity.price_from}€/persona</span>
-                      <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{activity.booking_count ?? 0} reservas</span>
+                      <span className="font-semibold text-slate-700">{t('price_per_person', { price: activity.price_from })}</span>
+                      <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{t('bookings_count', { count: activity.booking_count ?? 0 })}</span>
                       {activity.rating > 0 && (
                         <span className="flex items-center gap-1"><Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />{activity.rating}</span>
                       )}
@@ -104,12 +111,12 @@ export default async function ProviderActivitiesPage() {
                   <div className="flex items-center gap-2 shrink-0">
                     <Link href={`/dashboard/provider/activities/${activity.id}`} className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'gap-1.5')}>
                       <Edit2 className="w-3.5 h-3.5" />
-                      Editar
+                      {t('edit_button')}
                     </Link>
                     {activity.status === 'published' && (
                       <Link href={`/activities/${activity.slug}`} target="_blank" className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'gap-1.5')}>
                         <Eye className="w-3.5 h-3.5" />
-                        Ver
+                        {t('view_button')}
                       </Link>
                     )}
                   </div>

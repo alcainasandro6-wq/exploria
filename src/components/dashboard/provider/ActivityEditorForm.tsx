@@ -1,64 +1,96 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import {
-  Save, Send, ArrowLeft, Plus, X, Upload, Languages,
+  Save, Send, Plus, X, Upload, Languages,
   MapPin, Clock, Users, DollarSign, Globe, Shield, Image as ImageIcon,
-  Loader2, CheckCircle2, AlertCircle, Map, Video, HelpCircle, PlugZap, Trash2, Star
+  Loader2, CheckCircle2, AlertCircle, Map, Video, HelpCircle, PlugZap, Trash2, Star, Building2
 } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Link, useRouter } from '@/i18n/navigation'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { useRouter } from '@/i18n/navigation'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { LOCALES, LOCALE_NAMES } from '@/lib/constants'
 import {
   createActivityAction, updateActivityAction, submitActivityForReviewAction,
   addActivityImageAction, removeActivityImageAction, setActivityCoverImageAction,
+  listTuriTopProductsAction,
   type CreateActivityInput,
 } from '@/app/actions/providers'
+import type { TuriTopProduct } from '@/lib/services/turitop'
+import {
+  adminCreateActivityAction, adminUpdateActivityAction, adminUpdateActivityStatusAction,
+  adminAddActivityImageAction, adminRemoveActivityImageAction, adminSetActivityCoverImageAction,
+} from '@/app/actions/admin'
 import { uploadActivityPhoto, uploadActivityVideo } from '@/lib/services/upload'
-import type { Category, ExternalBookingPlatform } from '@/types/database'
+import type { Category, ExternalBookingPlatform, Provider } from '@/types/database'
 import type { ActivityDetail } from '@/lib/services/activities'
 
-const CANCELLATION_PRESETS = [
-  { label: 'Cancelación gratuita 24h', value: 'Cancelación gratuita hasta 24 horas antes de la actividad. En caso de cancelación tardía se cobrará el 50% del precio.' },
-  { label: 'Cancelación gratuita 48h', value: 'Cancelación gratuita hasta 48 horas antes de la actividad. Cancelaciones tardías no reembolsables.' },
-  { label: 'No reembolsable', value: 'Esta actividad no admite cancelaciones ni reembolsos una vez confirmada la reserva.' },
-]
+type Section = 'basic' | 'details' | 'location' | 'template' | 'media' | 'translations'
 
-const PLATFORM_OPTIONS: { value: ExternalBookingPlatform; label: string }[] = [
+// Third-party platform brand names — not UI copy, left untranslated.
+const PLATFORM_BRAND_OPTIONS: { value: ExternalBookingPlatform; label: string }[] = [
   { value: 'bokun', label: 'Bokun' },
   { value: 'turitop', label: 'TuriTop' },
   { value: 'civitatis', label: 'Civitatis' },
   { value: 'getyourguide', label: 'GetYourGuide' },
   { value: 'clickandboat', label: 'ClickAndBoat' },
-  { value: 'other', label: 'Otro' },
 ]
-
-const STATUS_LABELS: Record<string, { label: string; className: string }> = {
-  draft: { label: 'Borrador', className: 'bg-slate-100 text-slate-600' },
-  pending_review: { label: 'En revisión', className: 'bg-amber-100 text-amber-700' },
-  published: { label: 'Publicada', className: 'bg-emerald-100 text-emerald-700' },
-  suspended: { label: 'Suspendida', className: 'bg-red-100 text-red-700' },
-  archived: { label: 'Archivada', className: 'bg-slate-100 text-slate-500' },
-}
-
-type Section = 'basic' | 'details' | 'location' | 'template' | 'media' | 'translations'
 
 interface ActivityEditorFormProps {
   providerId: string
   categories: Category[]
   activity: ActivityDetail | null
+  /** Admin mode reuses this same form to create/edit ANY provider's activity
+   *  and can publish directly, skipping the provider submit-for-review flow. */
+  mode?: 'provider' | 'admin'
+  /** Only used in admin mode when creating a brand-new activity (activity===null),
+   *  to let the admin pick which provider it belongs to. */
+  providers?: Provider[]
+  /** The owning provider's one-time global TuriTop company code, if already set —
+   *  shown read-only here; actually edited from the provider's own settings page. */
+  providerTuritopCode?: string | null
 }
 
-export function ActivityEditorForm({ providerId, categories, activity }: ActivityEditorFormProps) {
+export function ActivityEditorForm({ providerId, categories, activity, mode = 'provider', providers = [], providerTuritopCode }: ActivityEditorFormProps) {
+  const t = useTranslations('provider_activity_editor_form')
+  const isAdmin = mode === 'admin'
   const router = useRouter()
   const [activeSection, setActiveSection] = useState<Section>('basic')
   const [saving, setSaving] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
   const [uploadingVideo, setUploadingVideo] = useState(false)
+  const [selectedProviderId, setSelectedProviderId] = useState(providerId || providers[0]?.id || '')
+
+  const CANCELLATION_PRESETS = [
+    { label: t('cancellation_preset_24h_label'), value: t('cancellation_preset_24h_value') },
+    { label: t('cancellation_preset_48h_label'), value: t('cancellation_preset_48h_value') },
+    { label: t('cancellation_preset_non_refundable_label'), value: t('cancellation_preset_non_refundable_value') },
+  ]
+
+  const PLATFORM_OPTIONS: { value: ExternalBookingPlatform; label: string }[] = [
+    ...PLATFORM_BRAND_OPTIONS,
+    { value: 'other', label: t('platform_other_label') },
+  ]
+
+  const STATUS_LABELS: Record<string, { label: string; className: string }> = {
+    draft: { label: t('status_draft'), className: 'bg-slate-100 text-slate-600' },
+    pending_review: { label: t('status_pending_review'), className: 'bg-amber-100 text-amber-700' },
+    published: { label: t('status_published'), className: 'bg-emerald-100 text-emerald-700' },
+    suspended: { label: t('status_suspended'), className: 'bg-red-100 text-red-700' },
+    archived: { label: t('status_archived'), className: 'bg-slate-100 text-slate-500' },
+  }
+
+  // One indirection point: admin-scoped actions have identical signatures to
+  // the provider ones (minus the ownership check) except for create, which
+  // needs the admin-picked providerId threaded in separately (see handleSave).
+  const api = isAdmin
+    ? { update: adminUpdateActivityAction, addImage: adminAddActivityImageAction, setCover: adminSetActivityCoverImageAction, removeImage: adminRemoveActivityImageAction }
+    : { update: updateActivityAction, addImage: addActivityImageAction, setCover: setActivityCoverImageAction, removeImage: removeActivityImageAction }
 
   const [form, setForm] = useState({
     title: activity?.title ?? '',
@@ -85,7 +117,19 @@ export function ActivityEditorForm({ providerId, categories, activity }: Activit
     extra_info: activity?.extra_info ?? ([] as { title: string; content: string }[]),
     booking_widget_embed_code: activity?.booking_widget_embed_code ?? '',
     external_booking_platform: activity?.external_booking_platform ?? ('' as ExternalBookingPlatform | ''),
+    turitop_service_code: activity?.turitop_service_code ?? '',
+    turitop_product_id: activity?.turitop_product_id ?? '',
   })
+
+  const [turitopProducts, setTuritopProducts] = useState<TuriTopProduct[]>([])
+  useEffect(() => {
+    if (form.external_booking_platform !== 'turitop') return
+    let cancelled = false
+    listTuriTopProductsAction(isAdmin ? selectedProviderId : undefined).then((res) => {
+      if (!cancelled) setTuritopProducts(res.products)
+    })
+    return () => { cancelled = true }
+  }, [form.external_booking_platform, isAdmin, selectedProviderId])
 
   const [images, setImages] = useState(activity?.images ?? [])
   const [newIncluded, setNewIncluded] = useState('')
@@ -151,25 +195,32 @@ export function ActivityEditorForm({ providerId, categories, activity }: Activit
     extraInfo: form.extra_info,
     bookingWidgetEmbedCode: form.booking_widget_embed_code || undefined,
     externalBookingPlatform: form.external_booking_platform || undefined,
+    turitopServiceCode: form.turitop_service_code || undefined,
+    turitopProductId: form.turitop_product_id,
   })
 
   const handleSave = async () => {
     if (!form.title || !form.description || !form.price_from) {
-      toast.error('Rellena los campos obligatorios: título, descripción y precio')
+      toast.error(t('required_fields_error'))
       setActiveSection('basic')
       return
     }
     setSaving(true)
     try {
       if (activity) {
-        const res = await updateActivityAction(activity.id, buildInput())
+        const res = await api.update(activity.id, buildInput())
         if (!res.success) { toast.error(res.error); return }
-        toast.success('Cambios guardados')
+        toast.success(t('changes_saved_toast'))
         router.refresh()
+      } else if (isAdmin) {
+        const res = await adminCreateActivityAction(selectedProviderId, buildInput())
+        if (!res.success) { toast.error(res.error); return }
+        toast.success(t('activity_created_admin_toast'))
+        router.push(`/dashboard/admin/activities/${res.activity!.id}`)
       } else {
         const res = await createActivityAction(buildInput())
         if (!res.success) { toast.error(res.error); return }
-        toast.success('Actividad creada como borrador. Ya puedes añadir fotos.')
+        toast.success(t('activity_created_draft_toast'))
         router.push(`/dashboard/provider/activities/${res.activity!.id}`)
       }
     } finally {
@@ -183,7 +234,20 @@ export function ActivityEditorForm({ providerId, categories, activity }: Activit
     try {
       const res = await submitActivityForReviewAction(activity.id)
       if (!res.success) { toast.error(res.error); return }
-      toast.success('Enviada a revisión. El administrador la publicará tras aprobarla.')
+      toast.success(t('submitted_for_review_toast'))
+      router.refresh()
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleAdminStatusChange = async (newStatus: 'published' | 'suspended' | 'draft') => {
+    if (!activity) return
+    setSubmitting(true)
+    try {
+      const res = await adminUpdateActivityStatusAction(activity.id, newStatus)
+      if (!res.success) { toast.error(res.error); return }
+      toast.success(newStatus === 'published' ? t('activity_published_toast') : newStatus === 'suspended' ? t('activity_suspended_toast') : t('changes_saved_toast'))
       router.refresh()
     } finally {
       setSubmitting(false)
@@ -196,12 +260,12 @@ export function ActivityEditorForm({ providerId, categories, activity }: Activit
     if (!file || !activity) return
     setUploadingPhoto(true)
     try {
-      const uploaded = await uploadActivityPhoto(providerId, activity.id, file)
-      if (!uploaded.success || !uploaded.url) { toast.error(uploaded.error || 'Error al subir la foto'); return }
-      const res = await addActivityImageAction(activity.id, uploaded.url)
+      const uploaded = await uploadActivityPhoto(activity.provider_id, activity.id, file)
+      if (!uploaded.success || !uploaded.url) { toast.error(uploaded.error || t('photo_upload_error')); return }
+      const res = await api.addImage(activity.id, uploaded.url)
       if (!res.success || !res.image) { toast.error(res.error); return }
       setImages((imgs) => [...imgs, res.image!])
-      toast.success('Foto añadida')
+      toast.success(t('photo_added_toast'))
     } finally {
       setUploadingPhoto(false)
     }
@@ -213,10 +277,10 @@ export function ActivityEditorForm({ providerId, categories, activity }: Activit
     if (!file || !activity) return
     setUploadingVideo(true)
     try {
-      const uploaded = await uploadActivityVideo(providerId, activity.id, file)
-      if (!uploaded.success || !uploaded.url) { toast.error(uploaded.error || 'Error al subir el vídeo'); return }
+      const uploaded = await uploadActivityVideo(activity.provider_id, activity.id, file)
+      if (!uploaded.success || !uploaded.url) { toast.error(uploaded.error || t('video_upload_error')); return }
       setForm((f) => ({ ...f, video_url: uploaded.url! }))
-      toast.success('Vídeo subido. Recuerda guardar los cambios.')
+      toast.success(t('video_uploaded_toast'))
     } finally {
       setUploadingVideo(false)
     }
@@ -224,97 +288,95 @@ export function ActivityEditorForm({ providerId, categories, activity }: Activit
 
   const handleDeleteImage = async (imageId: string) => {
     if (!activity) return
-    const res = await removeActivityImageAction(imageId, activity.id)
+    const res = await api.removeImage(imageId, activity.id)
     if (!res.success) { toast.error(res.error); return }
     setImages((imgs) => imgs.filter((i) => i.id !== imageId))
   }
 
   const handleSetCover = async (imageId: string) => {
     if (!activity) return
-    const res = await setActivityCoverImageAction(imageId, activity.id)
+    const res = await api.setCover(imageId, activity.id)
     if (!res.success) { toast.error(res.error); return }
     setImages((imgs) => imgs.map((i) => ({ ...i, is_cover: i.id === imageId })))
   }
 
   const sections: { key: Section; label: string; icon: typeof Save }[] = [
-    { key: 'basic', label: 'Info básica', icon: AlertCircle },
-    { key: 'details', label: 'Detalles', icon: CheckCircle2 },
-    { key: 'location', label: 'Ubicación', icon: MapPin },
-    { key: 'template', label: 'Ficha (FAQ, vídeo, API)', icon: PlugZap },
-    { key: 'media', label: 'Fotos', icon: ImageIcon },
-    { key: 'translations', label: 'Traducciones', icon: Languages },
+    { key: 'basic', label: t('section_basic'), icon: AlertCircle },
+    { key: 'details', label: t('section_details'), icon: CheckCircle2 },
+    { key: 'location', label: t('section_location'), icon: MapPin },
+    { key: 'template', label: t('section_template'), icon: PlugZap },
+    { key: 'media', label: t('section_media'), icon: ImageIcon },
+    { key: 'translations', label: t('section_translations'), icon: Languages },
   ]
 
   const status = activity?.status ?? 'draft'
   const statusInfo = STATUS_LABELS[status]
-  const canSubmitForReview = activity && (status === 'draft')
+  const canSubmitForReview = !isAdmin && activity && (status === 'draft')
+  const backHref = isAdmin ? '/dashboard/admin/activities' : '/dashboard/provider/activities'
 
   return (
-    <div>
-      {/* Top bar */}
-      <div className="sticky top-20 z-10 bg-white border-b border-slate-200 px-4 sm:px-8 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-3 min-w-0">
-          <Link href="/dashboard/provider/activities" className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'gap-1.5 shrink-0')}>
-            <ArrowLeft className="w-4 h-4" />
-            <span className="hidden sm:inline">Mis actividades</span>
-          </Link>
-          <div className="w-px h-5 bg-slate-200 shrink-0 hidden sm:block" />
-          <h1 className="text-base font-semibold text-slate-900 truncate max-w-[10rem] sm:max-w-sm">{form.title || 'Nueva actividad'}</h1>
-          <span className={cn('text-xs font-semibold px-2 py-0.5 rounded-full shrink-0', statusInfo.className)}>{statusInfo.label}</span>
+    <Dialog open onOpenChange={(open) => { if (!open) router.push(backHref) }}>
+      <DialogContent
+        className="max-w-4xl w-[95vw] h-[88vh] p-0 gap-0 flex flex-col overflow-hidden"
+        onInteractOutside={(e) => e.preventDefault()}
+      >
+        {/* Header */}
+        <div className="shrink-0 flex items-center justify-between gap-3 border-b border-slate-100 px-6 py-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <h1 className="text-base font-semibold text-slate-900 truncate max-w-[12rem] sm:max-w-sm">{form.title || t('new_activity_title')}</h1>
+            <span className={cn('text-xs font-semibold px-2 py-0.5 rounded-full shrink-0', statusInfo.className)}>{statusInfo.label}</span>
+          </div>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          {canSubmitForReview && (
-            <Button variant="outline" size="sm" onClick={handleSubmitForReview} disabled={submitting} className="gap-1.5">
-              {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
-              Enviar a revisión
-            </Button>
-          )}
-          <Button size="sm" onClick={handleSave} disabled={saving} className="gap-1.5">
-            {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-            {activity ? 'Guardar' : 'Crear borrador'}
-          </Button>
-        </div>
-      </div>
 
-      {activity?.admin_feedback && status === 'draft' && (
-        <div className="mx-4 sm:mx-8 mt-4 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">
-          <strong>Comentario del administrador:</strong> {activity.admin_feedback}
-        </div>
-      )}
+        {activity?.admin_feedback && status === 'draft' && (
+          <div className="shrink-0 mx-6 mt-4 bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">
+            <strong>{t('admin_feedback_label')}</strong> {activity.admin_feedback}
+          </div>
+        )}
 
-      <div className="flex flex-col lg:flex-row gap-0">
-        {/* Section nav */}
-        <nav className="lg:w-52 shrink-0 border-b lg:border-b-0 lg:border-r border-slate-200 bg-white pt-4 lg:pt-6 pb-3 lg:pb-8 px-3 flex lg:flex-col gap-1 overflow-x-auto">
+        {/* Section tabs */}
+        <div className="shrink-0 border-b border-slate-100 px-6 flex gap-1 overflow-x-auto">
           {sections.map(({ key, label, icon: Icon }) => (
             <button
               key={key}
               onClick={() => setActiveSection(key)}
               className={cn(
-                'text-left flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors whitespace-nowrap shrink-0',
-                activeSection === key ? 'bg-primary/10 text-primary' : 'text-slate-600 hover:bg-slate-50'
+                'flex items-center gap-2 px-3.5 py-3 -mb-px text-sm font-medium whitespace-nowrap border-b-2 transition-colors shrink-0',
+                activeSection === key ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-800'
               )}
             >
               <Icon className="w-4 h-4 shrink-0" />
               {label}
             </button>
           ))}
-        </nav>
+        </div>
 
-        {/* Content */}
-        <div className="flex-1 p-4 sm:p-8 max-w-3xl">
+        {/* Scrollable content */}
+        <div className="flex-1 overflow-y-auto px-6 py-6">
           {activeSection === 'basic' && (
             <div className="space-y-6">
-              <SectionHeader title="Información básica" desc="Título, descripción y categoría de la actividad." />
-              <Field label="Título de la actividad *">
-                <Input value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder="Ej: Buceo con instructores certificados en Torrevieja" />
+              <SectionHeader title={t('basic_section_title')} desc={t('basic_section_desc')} />
+              {isAdmin && (
+                <Field label={t('field_provider_label')} icon={<Building2 className="w-4 h-4" />}>
+                  {activity ? (
+                    <p className="text-sm font-medium text-slate-700 bg-slate-50 rounded-xl px-4 py-2.5">{activity.provider?.company_name}</p>
+                  ) : (
+                    <select value={selectedProviderId} onChange={(e) => setSelectedProviderId(e.target.value)} className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary bg-white">
+                      {providers.map((p) => <option key={p.id} value={p.id}>{p.company_name}</option>)}
+                    </select>
+                  )}
+                </Field>
+              )}
+              <Field label={t('field_title_label')}>
+                <Input value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder={t('field_title_placeholder')} />
               </Field>
-              <Field label="Descripción corta *" hint="Aparece en las tarjetas de búsqueda (máx. 160 car.)">
+              <Field label={t('field_short_description_label')} hint={t('field_short_description_hint')}>
                 <textarea value={form.short_description} onChange={(e) => setForm((f) => ({ ...f, short_description: e.target.value }))} rows={2} maxLength={160} className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary resize-none" />
               </Field>
-              <Field label="Descripción completa *">
+              <Field label={t('field_full_description_label')}>
                 <textarea value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} rows={8} className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary resize-none" />
               </Field>
-              <Field label="Categoría *">
+              <Field label={t('field_category_label')}>
                 <select value={form.category_id} onChange={(e) => setForm((f) => ({ ...f, category_id: e.target.value }))} className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary bg-white">
                   {categories.map((cat) => <option key={cat.id} value={cat.id}>{cat.icon} {cat.name}</option>)}
                 </select>
@@ -324,14 +386,14 @@ export function ActivityEditorForm({ providerId, categories, activity }: Activit
 
           {activeSection === 'details' && (
             <div className="space-y-6">
-              <SectionHeader title="Detalles de la actividad" desc="Precio, duración, participantes, idiomas y políticas." />
+              <SectionHeader title={t('details_section_title')} desc={t('details_section_desc')} />
               <div className="grid grid-cols-2 gap-4">
-                <Field label="Precio desde (€/persona) *" icon={<DollarSign className="w-4 h-4" />}><Input type="number" min="1" value={form.price_from} onChange={(e) => setForm((f) => ({ ...f, price_from: e.target.value }))} /></Field>
-                <Field label="Duración (minutos) *" icon={<Clock className="w-4 h-4" />}><Input type="number" min="30" step="30" value={form.duration_minutes} onChange={(e) => setForm((f) => ({ ...f, duration_minutes: e.target.value }))} /></Field>
-                <Field label="Mín. participantes" icon={<Users className="w-4 h-4" />}><Input type="number" min="1" value={form.min_participants} onChange={(e) => setForm((f) => ({ ...f, min_participants: e.target.value }))} /></Field>
-                <Field label="Máx. participantes" icon={<Users className="w-4 h-4" />}><Input type="number" min="1" value={form.max_participants} onChange={(e) => setForm((f) => ({ ...f, max_participants: e.target.value }))} /></Field>
+                <Field label={t('field_price_label')} icon={<DollarSign className="w-4 h-4" />}><Input type="number" min="1" value={form.price_from} onChange={(e) => setForm((f) => ({ ...f, price_from: e.target.value }))} /></Field>
+                <Field label={t('field_duration_label')} icon={<Clock className="w-4 h-4" />}><Input type="number" min="30" step="30" value={form.duration_minutes} onChange={(e) => setForm((f) => ({ ...f, duration_minutes: e.target.value }))} /></Field>
+                <Field label={t('field_min_participants_label')} icon={<Users className="w-4 h-4" />}><Input type="number" min="1" value={form.min_participants} onChange={(e) => setForm((f) => ({ ...f, min_participants: e.target.value }))} /></Field>
+                <Field label={t('field_max_participants_label')} icon={<Users className="w-4 h-4" />}><Input type="number" min="1" value={form.max_participants} onChange={(e) => setForm((f) => ({ ...f, max_participants: e.target.value }))} /></Field>
               </div>
-              <Field label="Idiomas en que se realiza *" icon={<Globe className="w-4 h-4" />}>
+              <Field label={t('field_languages_label')} icon={<Globe className="w-4 h-4" />}>
                 <div className="flex flex-wrap gap-2 mt-1">
                   {LOCALES.map((loc) => (
                     <button key={loc} type="button" onClick={() => toggleLanguage(loc)} className={cn('px-3 py-1.5 rounded-full text-sm font-medium border transition-colors', form.languages.includes(loc) ? 'bg-primary text-white border-primary' : 'bg-white text-slate-600 border-slate-200 hover:border-primary')}>
@@ -340,7 +402,7 @@ export function ActivityEditorForm({ providerId, categories, activity }: Activit
                   ))}
                 </div>
               </Field>
-              <Field label="Qué incluye" icon={<CheckCircle2 className="w-4 h-4 text-emerald-500" />}>
+              <Field label={t('field_included_label')} icon={<CheckCircle2 className="w-4 h-4 text-emerald-500" />}>
                 <div className="space-y-2 mb-2">
                   {form.included.map((item, i) => (
                     <div key={i} className="flex items-center gap-2 bg-emerald-50 rounded-lg px-3 py-2 text-sm">
@@ -350,11 +412,11 @@ export function ActivityEditorForm({ providerId, categories, activity }: Activit
                   ))}
                 </div>
                 <div className="flex gap-2">
-                  <Input value={newIncluded} onChange={(e) => setNewIncluded(e.target.value)} placeholder="Ej: Instructor certificado PADI" onKeyDown={(e) => e.key === 'Enter' && addToList('included', newIncluded, setNewIncluded)} />
+                  <Input value={newIncluded} onChange={(e) => setNewIncluded(e.target.value)} placeholder={t('field_included_placeholder')} onKeyDown={(e) => e.key === 'Enter' && addToList('included', newIncluded, setNewIncluded)} />
                   <Button type="button" variant="outline" size="sm" onClick={() => addToList('included', newIncluded, setNewIncluded)}><Plus className="w-4 h-4" /></Button>
                 </div>
               </Field>
-              <Field label="Qué NO incluye" icon={<X className="w-4 h-4 text-red-400" />}>
+              <Field label={t('field_excluded_label')} icon={<X className="w-4 h-4 text-red-400" />}>
                 <div className="space-y-2 mb-2">
                   {form.excluded.map((item, i) => (
                     <div key={i} className="flex items-center gap-2 bg-red-50 rounded-lg px-3 py-2 text-sm">
@@ -364,11 +426,11 @@ export function ActivityEditorForm({ providerId, categories, activity }: Activit
                   ))}
                 </div>
                 <div className="flex gap-2">
-                  <Input value={newExcluded} onChange={(e) => setNewExcluded(e.target.value)} placeholder="Ej: Traslados" onKeyDown={(e) => e.key === 'Enter' && addToList('excluded', newExcluded, setNewExcluded)} />
+                  <Input value={newExcluded} onChange={(e) => setNewExcluded(e.target.value)} placeholder={t('field_excluded_placeholder')} onKeyDown={(e) => e.key === 'Enter' && addToList('excluded', newExcluded, setNewExcluded)} />
                   <Button type="button" variant="outline" size="sm" onClick={() => addToList('excluded', newExcluded, setNewExcluded)}><Plus className="w-4 h-4" /></Button>
                 </div>
               </Field>
-              <Field label="Requisitos" icon={<AlertCircle className="w-4 h-4 text-amber-500" />}>
+              <Field label={t('field_requirements_label')} icon={<AlertCircle className="w-4 h-4 text-amber-500" />}>
                 <div className="space-y-2 mb-2">
                   {form.requirements.map((item, i) => (
                     <div key={i} className="flex items-center gap-2 bg-amber-50 rounded-lg px-3 py-2 text-sm">
@@ -378,11 +440,11 @@ export function ActivityEditorForm({ providerId, categories, activity }: Activit
                   ))}
                 </div>
                 <div className="flex gap-2">
-                  <Input value={newRequirement} onChange={(e) => setNewRequirement(e.target.value)} placeholder="Ej: Saber nadar" onKeyDown={(e) => e.key === 'Enter' && addToList('requirements', newRequirement, setNewRequirement)} />
+                  <Input value={newRequirement} onChange={(e) => setNewRequirement(e.target.value)} placeholder={t('field_requirements_placeholder')} onKeyDown={(e) => e.key === 'Enter' && addToList('requirements', newRequirement, setNewRequirement)} />
                   <Button type="button" variant="outline" size="sm" onClick={() => addToList('requirements', newRequirement, setNewRequirement)}><Plus className="w-4 h-4" /></Button>
                 </div>
               </Field>
-              <Field label="Política de cancelación *" icon={<Shield className="w-4 h-4" />}>
+              <Field label={t('field_cancellation_policy_label')} icon={<Shield className="w-4 h-4" />}>
                 <div className="flex flex-wrap gap-2 mb-2">
                   {CANCELLATION_PRESETS.map((preset) => (
                     <button key={preset.label} type="button" onClick={() => setForm((f) => ({ ...f, cancellation_policy: preset.value }))} className={cn('text-xs px-2.5 py-1 rounded-full border transition-colors', form.cancellation_policy === preset.value ? 'bg-primary text-white border-primary' : 'bg-white text-slate-600 border-slate-200 hover:border-primary')}>
@@ -397,24 +459,24 @@ export function ActivityEditorForm({ providerId, categories, activity }: Activit
 
           {activeSection === 'location' && (
             <div className="space-y-6">
-              <SectionHeader title="Ubicación y mapa" desc="Punto de encuentro, coordenadas y ficha de Google Maps para reseñas." />
+              <SectionHeader title={t('location_section_title')} desc={t('location_section_desc')} />
               <div className="grid grid-cols-2 gap-4">
-                <Field label="Ciudad"><Input value={form.city} onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))} /></Field>
-                <Field label="País"><Input value={form.country} onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))} /></Field>
+                <Field label={t('field_city_label')}><Input value={form.city} onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))} /></Field>
+                <Field label={t('field_country_label')}><Input value={form.country} onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))} /></Field>
               </div>
-              <Field label="Punto de encuentro *" icon={<MapPin className="w-4 h-4" />}>
-                <Input value={form.meeting_point} onChange={(e) => setForm((f) => ({ ...f, meeting_point: e.target.value }))} placeholder="Ej: Puerto Deportivo, Muelle de Levante" />
+              <Field label={t('field_meeting_point_label')} icon={<MapPin className="w-4 h-4" />}>
+                <Input value={form.meeting_point} onChange={(e) => setForm((f) => ({ ...f, meeting_point: e.target.value }))} placeholder={t('field_meeting_point_placeholder')} />
               </Field>
               <div className="grid grid-cols-2 gap-4">
-                <Field label="Latitud"><Input value={form.latitude} onChange={(e) => setForm((f) => ({ ...f, latitude: e.target.value }))} placeholder="37.9781" /></Field>
-                <Field label="Longitud"><Input value={form.longitude} onChange={(e) => setForm((f) => ({ ...f, longitude: e.target.value }))} placeholder="-0.6782" /></Field>
+                <Field label={t('field_latitude_label')}><Input value={form.latitude} onChange={(e) => setForm((f) => ({ ...f, latitude: e.target.value }))} placeholder="37.9781" /></Field>
+                <Field label={t('field_longitude_label')}><Input value={form.longitude} onChange={(e) => setForm((f) => ({ ...f, longitude: e.target.value }))} placeholder="-0.6782" /></Field>
               </div>
-              <Field label="URL de Google Maps" hint="Pega la URL de tu negocio en Google Maps." icon={<Map className="w-4 h-4" />}>
+              <Field label={t('field_google_maps_url_label')} hint={t('field_google_maps_url_hint')} icon={<Map className="w-4 h-4" />}>
                 <Input value={form.google_maps_url} onChange={(e) => setForm((f) => ({ ...f, google_maps_url: e.target.value }))} placeholder="https://www.google.com/maps/place/..." />
               </Field>
               {form.latitude && form.longitude && (
                 <div className="rounded-2xl overflow-hidden border border-slate-200">
-                  <iframe src={`https://maps.google.com/maps?q=${form.latitude},${form.longitude}&z=15&output=embed`} width="100%" height="240" style={{ border: 0 }} loading="lazy" title="Mapa" />
+                  <iframe src={`https://maps.google.com/maps?q=${form.latitude},${form.longitude}&z=15&output=embed`} width="100%" height="240" style={{ border: 0 }} loading="lazy" title={t('map_iframe_title')} />
                 </div>
               )}
             </div>
@@ -422,32 +484,59 @@ export function ActivityEditorForm({ providerId, categories, activity }: Activit
 
           {activeSection === 'template' && (
             <div className="space-y-8">
-              <SectionHeader title="Ficha de producto" desc="Vídeo, preguntas frecuentes, información extra y calendario de reservas externo." />
+              <SectionHeader title={t('template_section_title')} desc={t('template_section_desc')} />
 
-              <Field label="Vídeo (URL o sube un archivo)" icon={<Video className="w-4 h-4" />}>
+              <Field label={t('field_video_label')} icon={<Video className="w-4 h-4" />}>
                 <Input value={form.video_url} onChange={(e) => setForm((f) => ({ ...f, video_url: e.target.value }))} placeholder="https://..." />
                 {activity ? (
                   <label className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'mt-2 cursor-pointer gap-1.5 w-fit')}>
                     {uploadingVideo ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
-                    Subir vídeo
+                    {t('upload_video_button')}
                     <input type="file" accept="video/*" className="hidden" onChange={handleVideoUpload} disabled={uploadingVideo} />
                   </label>
                 ) : (
-                  <p className="text-xs text-slate-400 mt-1">Guarda la actividad primero para poder subir un archivo de vídeo.</p>
+                  <p className="text-xs text-slate-400 mt-1">{t('save_activity_first_for_video')}</p>
                 )}
               </Field>
 
               <div>
-                <Field label="Calendario de disponibilidad externo" icon={<PlugZap className="w-4 h-4" />} hint="Pega aquí el shortcode/iframe que te da Bokun, TuriTop, Civitatis, GetYourGuide o ClickAndBoat. Se mostrará en la ficha pública como calendario en tiempo real.">
+                <Field label={t('field_external_calendar_label')} icon={<PlugZap className="w-4 h-4" />} hint={t('field_external_calendar_hint')}>
                   <select value={form.external_booking_platform} onChange={(e) => setForm((f) => ({ ...f, external_booking_platform: e.target.value as ExternalBookingPlatform }))} className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary bg-white mb-2">
-                    <option value="">Sin integración externa</option>
+                    <option value="">{t('no_external_integration_option')}</option>
                     {PLATFORM_OPTIONS.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
                   </select>
-                  <textarea value={form.booking_widget_embed_code} onChange={(e) => setForm((f) => ({ ...f, booking_widget_embed_code: e.target.value }))} rows={3} placeholder='<iframe src="https://widgets.bokun.io/..."></iframe>' className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm font-mono outline-none focus:ring-2 focus:ring-primary resize-none" />
+                  {form.external_booking_platform === 'turitop' ? (
+                    <div className="space-y-2">
+                      <Input
+                        value={form.turitop_service_code}
+                        onChange={(e) => setForm((f) => ({ ...f, turitop_service_code: e.target.value }))}
+                        placeholder={t('field_turitop_service_code_placeholder')}
+                      />
+                      <select
+                        value={form.turitop_product_id}
+                        onChange={(e) => setForm((f) => ({ ...f, turitop_product_id: e.target.value }))}
+                        className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary bg-white"
+                      >
+                        <option value="">{t('turitop_product_none')}</option>
+                        {turitopProducts.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                        {form.turitop_product_id && !turitopProducts.some((p) => p.id === form.turitop_product_id) && (
+                          <option value={form.turitop_product_id}>{form.turitop_product_id}</option>
+                        )}
+                      </select>
+                      <p className="text-xs text-slate-400">{t('turitop_product_hint')}</p>
+                      <p className="text-xs text-slate-400">
+                        {providerTuritopCode
+                          ? t('turitop_company_code_label', { code: providerTuritopCode })
+                          : t('turitop_company_code_missing')}
+                      </p>
+                    </div>
+                  ) : (
+                    <textarea value={form.booking_widget_embed_code} onChange={(e) => setForm((f) => ({ ...f, booking_widget_embed_code: e.target.value }))} rows={3} placeholder='<iframe src="https://widgets.bokun.io/..."></iframe>' className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm font-mono outline-none focus:ring-2 focus:ring-primary resize-none" />
+                  )}
                 </Field>
               </div>
 
-              <Field label="Preguntas frecuentes" icon={<HelpCircle className="w-4 h-4" />}>
+              <Field label={t('field_faqs_label')} icon={<HelpCircle className="w-4 h-4" />}>
                 <div className="space-y-2 mb-3">
                   {form.faqs.map((faq, i) => (
                     <div key={i} className="bg-slate-50 rounded-lg px-3 py-2.5 text-sm">
@@ -460,15 +549,15 @@ export function ActivityEditorForm({ providerId, categories, activity }: Activit
                   ))}
                 </div>
                 <div className="space-y-2">
-                  <Input value={newFaqQ} onChange={(e) => setNewFaqQ(e.target.value)} placeholder="Pregunta" />
+                  <Input value={newFaqQ} onChange={(e) => setNewFaqQ(e.target.value)} placeholder={t('field_faq_question_placeholder')} />
                   <div className="flex gap-2">
-                    <Input value={newFaqA} onChange={(e) => setNewFaqA(e.target.value)} placeholder="Respuesta" onKeyDown={(e) => e.key === 'Enter' && addFaq()} />
+                    <Input value={newFaqA} onChange={(e) => setNewFaqA(e.target.value)} placeholder={t('field_faq_answer_placeholder')} onKeyDown={(e) => e.key === 'Enter' && addFaq()} />
                     <Button type="button" variant="outline" size="sm" onClick={addFaq}><Plus className="w-4 h-4" /></Button>
                   </div>
                 </div>
               </Field>
 
-              <Field label="Información adicional">
+              <Field label={t('field_extra_info_label')}>
                 <div className="space-y-2 mb-3">
                   {form.extra_info.map((block, i) => (
                     <div key={i} className="bg-slate-50 rounded-lg px-3 py-2.5 text-sm">
@@ -481,9 +570,9 @@ export function ActivityEditorForm({ providerId, categories, activity }: Activit
                   ))}
                 </div>
                 <div className="space-y-2">
-                  <Input value={newInfoTitle} onChange={(e) => setNewInfoTitle(e.target.value)} placeholder="Título (ej: Qué llevar)" />
+                  <Input value={newInfoTitle} onChange={(e) => setNewInfoTitle(e.target.value)} placeholder={t('field_extra_info_title_placeholder')} />
                   <div className="flex gap-2">
-                    <textarea value={newInfoContent} onChange={(e) => setNewInfoContent(e.target.value)} rows={2} placeholder="Contenido" className="flex-1 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary resize-none" />
+                    <textarea value={newInfoContent} onChange={(e) => setNewInfoContent(e.target.value)} rows={2} placeholder={t('field_extra_info_content_placeholder')} className="flex-1 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary resize-none" />
                     <Button type="button" variant="outline" size="sm" onClick={addInfo}><Plus className="w-4 h-4" /></Button>
                   </div>
                 </div>
@@ -493,9 +582,9 @@ export function ActivityEditorForm({ providerId, categories, activity }: Activit
 
           {activeSection === 'media' && (
             <div className="space-y-6">
-              <SectionHeader title="Fotos de la actividad" desc="Sube fotos atractivas. La primera será la foto de portada." />
+              <SectionHeader title={t('media_section_title')} desc={t('media_section_desc')} />
               {!activity ? (
-                <p className="text-sm text-slate-500 bg-slate-50 rounded-xl p-4">Guarda la actividad como borrador primero para poder subir fotos.</p>
+                <p className="text-sm text-slate-500 bg-slate-50 rounded-xl p-4">{t('save_activity_first_for_photos')}</p>
               ) : (
                 <>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -503,15 +592,15 @@ export function ActivityEditorForm({ providerId, categories, activity }: Activit
                       <div key={img.id} className="relative group rounded-xl overflow-hidden border border-slate-200 aspect-square">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={img.url} alt={img.alt ?? ''} className="w-full h-full object-cover" />
-                        {img.is_cover && <span className="absolute top-2 left-2 bg-primary text-white text-xs font-bold px-2 py-0.5 rounded-full">Portada</span>}
+                        {img.is_cover && <span className="absolute top-2 left-2 bg-primary text-white text-xs font-bold px-2 py-0.5 rounded-full">{t('cover_badge')}</span>}
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                           {!img.is_cover && (
                             <button onClick={() => handleSetCover(img.id)} className="bg-white text-slate-700 text-xs font-medium px-2 py-1 rounded-lg hover:bg-slate-50 flex items-center gap-1">
-                              <Star className="w-3 h-3" /> Portada
+                              <Star className="w-3 h-3" /> {t('set_cover_button')}
                             </button>
                           )}
                           <button onClick={() => handleDeleteImage(img.id)} className="bg-red-500 text-white text-xs font-medium px-2 py-1 rounded-lg hover:bg-red-600 flex items-center gap-1">
-                            <Trash2 className="w-3 h-3" /> Eliminar
+                            <Trash2 className="w-3 h-3" /> {t('delete_button')}
                           </button>
                         </div>
                       </div>
@@ -521,14 +610,14 @@ export function ActivityEditorForm({ providerId, categories, activity }: Activit
                       uploadingPhoto && 'opacity-50 pointer-events-none'
                     )}>
                       {uploadingPhoto ? <Loader2 className="w-6 h-6 animate-spin" /> : <Upload className="w-6 h-6" />}
-                      <span className="text-xs font-medium">Subir foto</span>
+                      <span className="text-xs font-medium">{t('upload_photo_button')}</span>
                       <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={uploadingPhoto} />
                     </label>
                   </div>
                   <div className="bg-slate-50 rounded-xl p-4 text-xs text-slate-500 space-y-1">
-                    <p className="font-medium text-slate-700">Consejos:</p>
-                    <p>• Mínimo 4 fotos, máximo 20</p>
-                    <p>• Resolución mínima 1200×800px · Formato JPG/PNG · Máx. 5MB</p>
+                    <p className="font-medium text-slate-700">{t('tips_label')}</p>
+                    <p>• {t('tip_min_max_photos')}</p>
+                    <p>• {t('tip_resolution')}</p>
                   </div>
                 </>
               )}
@@ -537,23 +626,43 @@ export function ActivityEditorForm({ providerId, categories, activity }: Activit
 
           {activeSection === 'translations' && (
             <div className="space-y-6">
-              <SectionHeader title="Traducciones" desc="La actividad se traduce automáticamente a todos los idiomas de la plataforma." />
+              <SectionHeader title={t('translations_section_title')} desc={t('translations_section_desc')} />
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
                 <Languages className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-                <p className="text-sm text-slate-600">La traducción automática con DeepL se gestiona desde el panel de administración una vez la actividad está publicada.</p>
+                <p className="text-sm text-slate-600">{t('translations_info_text')}</p>
               </div>
             </div>
           )}
 
-          <div className="pt-8 flex justify-end">
-            <Button onClick={handleSave} disabled={saving} className="gap-2">
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              {activity ? 'Guardar cambios' : 'Crear borrador'}
-            </Button>
-          </div>
         </div>
-      </div>
-    </div>
+
+        {/* Footer actions */}
+        <div className="shrink-0 border-t border-slate-100 px-6 py-4 flex items-center justify-end gap-2 flex-wrap">
+          {canSubmitForReview && (
+            <Button variant="outline" size="sm" onClick={handleSubmitForReview} disabled={submitting} className="gap-1.5">
+              {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+              {t('submit_for_review_button')}
+            </Button>
+          )}
+          {isAdmin && activity && status !== 'published' && (
+            <Button variant="outline" size="sm" onClick={() => handleAdminStatusChange('published')} disabled={submitting} className="gap-1.5 border-emerald-200 text-emerald-700 hover:bg-emerald-50">
+              {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+              {t('publish_button')}
+            </Button>
+          )}
+          {isAdmin && activity && status === 'published' && (
+            <Button variant="outline" size="sm" onClick={() => handleAdminStatusChange('suspended')} disabled={submitting} className="gap-1.5 border-red-200 text-red-600 hover:bg-red-50">
+              {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+              {t('suspend_button')}
+            </Button>
+          )}
+          <Button size="sm" onClick={handleSave} disabled={saving} className="gap-1.5">
+            {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+            {activity ? t('save_button') : t('create_draft_button')}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }
 

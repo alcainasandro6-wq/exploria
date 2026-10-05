@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnySupabase = any
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest) {
   const body = await request.json()
   const { plan, billing = 'monthly' } = body
 
-  if (!plan || !PLAN_PRICE_IDS[plan]) {
+  if (!plan || (plan !== 'free' && !PLAN_PRICE_IDS[plan])) {
     return NextResponse.json({ error: 'Invalid plan' }, { status: 400 })
   }
 
@@ -50,6 +51,42 @@ export async function POST(request: NextRequest) {
 
   if (!provider) {
     return NextResponse.json({ error: 'Provider not found' }, { status: 404 })
+  }
+
+  // Free plan needs no payment — activate it directly instead of going
+  // through Stripe checkout. Writing provider_subscriptions requires the
+  // service-role client since providers only have SELECT access to their
+  // own row under RLS (see "Provider can view their own subscription").
+  if (plan === 'free') {
+    const admin = createAdminClient()
+    const { data: freePlan } = await admin
+      .from('subscription_plans')
+      .select('id')
+      .eq('name', 'free')
+      .single()
+
+    if (!freePlan) {
+      return NextResponse.json({ error: 'Free plan not available' }, { status: 404 })
+    }
+
+    const periodEnd = new Date()
+    periodEnd.setFullYear(periodEnd.getFullYear() + 100)
+
+    const { error } = await admin.from('provider_subscriptions').insert({
+      provider_id: provider.id,
+      plan_id: freePlan.id,
+      status: 'active',
+      billing_cycle: 'monthly',
+      current_period_start: new Date().toISOString(),
+      current_period_end: periodEnd.toISOString(),
+    })
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
+    return NextResponse.json({ url: `${siteUrl}/es/dashboard/provider/subscription?success=true` })
   }
 
   // Get or create Stripe customer

@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { getTranslations } from 'next-intl/server'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader'
 import { StatCard } from '@/components/dashboard/StatCard'
@@ -21,19 +22,20 @@ const STATUS_STYLES: Record<string, 'success' | 'warning' | 'secondary' | 'destr
   no_show: 'destructive',
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  confirmed: 'Confirmado',
-  pending: 'Pendiente',
-  completed: 'Completado',
-  cancelled: 'Cancelado',
-  rejected: 'Rechazado',
-  no_show: 'No presentado',
-}
-
 export default async function CustomerDashboardPage() {
+  const t = await getTranslations('customer_home_page')
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
+
+  const STATUS_LABELS: Record<string, string> = {
+    confirmed: t('status_confirmed'),
+    pending: t('status_pending'),
+    completed: t('status_completed'),
+    cancelled: t('status_cancelled'),
+    rejected: t('status_rejected'),
+    no_show: t('status_no_show'),
+  }
 
   const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', user.id).single()
 
@@ -47,23 +49,23 @@ export default async function CustomerDashboardPage() {
   const completedCount = bookings.filter((b) => b.status === 'completed').length
 
   const stats = [
-    { icon: Calendar, label: 'Reservas activas', value: activeCount, color: 'blue' as const },
-    { icon: Heart, label: 'Favoritos', value: favorites.length, color: 'rose' as const },
-    { icon: Star, label: 'Valoraciones', value: reviews.length, color: 'amber' as const },
-    { icon: TrendingUp, label: 'Actividades completadas', value: completedCount, color: 'emerald' as const },
+    { icon: Calendar, label: t('stat_active_bookings'), value: activeCount, color: 'blue' as const },
+    { icon: Heart, label: t('stat_favorites'), value: favorites.length, color: 'rose' as const },
+    { icon: Star, label: t('stat_reviews'), value: reviews.length, color: 'amber' as const },
+    { icon: TrendingUp, label: t('stat_completed_activities'), value: completedCount, color: 'emerald' as const },
   ]
 
-  const firstName = profile?.full_name?.split(' ')[0] || 'viajero'
+  const firstName = profile?.full_name?.split(' ')[0] || t('default_first_name')
 
   const quickLinks = [
-    { href: '/activities', icon: MapPin, title: 'Explorar actividades', desc: 'Descubre nuevas experiencias', solid: true },
-    { href: '/dashboard/customer/favorites', icon: Heart, title: 'Mis favoritos', desc: `${favorites.length} actividades guardadas`, color: 'text-rose-500 bg-rose-50' },
-    { href: '/dashboard/customer/loyalty', icon: Star, title: 'Fidelidad', desc: 'Ver descuentos y promos', color: 'text-amber-500 bg-amber-50' },
+    { href: '/activities', icon: MapPin, title: t('quick_link_explore_title'), desc: t('quick_link_explore_desc'), solid: true },
+    { href: '/dashboard/customer/favorites', icon: Heart, title: t('quick_link_favorites_title'), desc: t('quick_link_favorites_desc', { count: favorites.length }), color: 'text-rose-500 bg-rose-50' },
+    { href: '/dashboard/customer/loyalty', icon: Star, title: t('quick_link_loyalty_title'), desc: t('quick_link_loyalty_desc'), color: 'text-amber-500 bg-amber-50' },
   ]
 
   return (
     <DashboardLayout role="customer">
-      <DashboardHeader title={`¡Hola, ${firstName}!`} subtitle="Aquí tienes el resumen de tu actividad" />
+      <DashboardHeader title={t('title', { firstName })} subtitle={t('subtitle')} />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
         {stats.map((s) => <StatCard key={s.label} {...s} />)}
@@ -72,17 +74,17 @@ export default async function CustomerDashboardPage() {
       <Card className="mb-6 overflow-hidden">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Próximas reservas</CardTitle>
+            <CardTitle>{t('upcoming_bookings_title')}</CardTitle>
             <Link href="/dashboard/customer/bookings" className="text-sm font-semibold text-primary hover:text-primary-dark inline-flex items-center gap-1">
-              Ver todas <ArrowUpRight className="w-3.5 h-3.5" />
+              {t('view_all')} <ArrowUpRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         </CardHeader>
         <CardContent>
           {bookings.length === 0 ? (
             <div className="text-center py-10">
-              <p className="text-sm text-slate-400 mb-3">Todavía no tienes reservas. ¡Explora actividades!</p>
-              <Link href="/activities" className={cn(buttonVariants({ size: 'sm' }))}>Explorar actividades</Link>
+              <p className="text-sm text-slate-400 mb-3">{t('empty_bookings')}</p>
+              <Link href="/activities" className={cn(buttonVariants({ size: 'sm' }))}>{t('quick_link_explore_title')}</Link>
             </div>
           ) : (
             <div className="space-y-3">
@@ -98,7 +100,7 @@ export default async function CustomerDashboardPage() {
                         <Calendar className="w-3 h-3" />
                         {formatDate(booking.activity_date)}
                       </span>
-                      <span>{booking.participants} personas</span>
+                      <span>{t('participants_label', { count: booking.participants })}</span>
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-1.5 shrink-0">

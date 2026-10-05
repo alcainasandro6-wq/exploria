@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import Stripe from 'stripe'
 import { createClient } from '@/lib/supabase/server'
 import {
   createReservation,
@@ -8,6 +9,34 @@ import {
   canTransition,
 } from '@/lib/services/reservations'
 import type { ReservationStatus, ReservationSource } from '@/types/database'
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2026-05-27.dahlia',
+})
+
+// Reservations are paid upfront (BookActivities charges the customer
+// directly, see /api/bookings) — rejecting/cancelling a paid one must
+// refund it, since the platform is the one holding the money.
+async function refundReservationIfPaid(reservationId: string) {
+  const supabase = await createClient()
+  const { data: res } = await supabase
+    .from('reservations')
+    .select('payment_status, stripe_payment_intent_id')
+    .eq('id', reservationId)
+    .single()
+
+  if (!res || res.payment_status !== 'paid' || !res.stripe_payment_intent_id) return
+
+  try {
+    await stripe.refunds.create({ payment_intent: res.stripe_payment_intent_id })
+    await supabase
+      .from('reservations')
+      .update({ payment_status: 'refunded' })
+      .eq('id', reservationId)
+  } catch (err) {
+    console.error('Refund failed for reservation', reservationId, err)
+  }
+}
 
 // =====================================================
 // Auth helper
@@ -88,6 +117,7 @@ export async function cancelReservationAction(reservationId: string) {
 
   try {
     await transitionReservation(reservationId, 'cancelled')
+    await refundReservationIfPaid(reservationId)
     revalidatePath('/dashboard/customer/reservations')
     return { success: true }
   } catch (err) {
@@ -143,6 +173,7 @@ export async function rejectReservationAction(reservationId: string, reason: str
 
   try {
     await transitionReservation(reservationId, 'rejected', reason)
+    await refundReservationIfPaid(reservationId)
     revalidatePath('/dashboard/provider/reservations')
     return { success: true }
   } catch (err) {
@@ -211,6 +242,9 @@ export async function adminTransitionReservationAction(
 
   try {
     const updated = await transitionReservation(reservationId, newStatus, notes)
+    if (newStatus === 'rejected' || newStatus === 'cancelled') {
+      await refundReservationIfPaid(reservationId)
+    }
     revalidatePath('/dashboard/admin/reservations')
     return { success: true, reservation: updated }
   } catch (err) {

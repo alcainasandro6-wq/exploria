@@ -1,8 +1,14 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import Image from 'next/image'
+import { ParallaxImage } from '@/components/ui/parallax-image'
 import { cn } from '@/lib/utils'
+
+const STATS = [
+  { value: '+3 000', label: 'Viajeros al año' },
+  { value: '98 %', label: 'Satisfacción media' },
+  { value: '+40', label: 'Actividades disponibles' },
+]
 
 export function StatsSection() {
   const sectionRef = useRef<HTMLDivElement>(null)
@@ -18,44 +24,60 @@ export function StatsSection() {
           observer.disconnect()
         }
       },
-      { threshold: 0.2 }
+      { threshold: 0.15 }
     )
     observer.observe(el)
     return () => observer.disconnect()
   }, [])
 
   return (
-    <section
-      ref={sectionRef}
-      className="relative overflow-hidden"
-      style={{ height: '100dvh', minHeight: 560 }}
-    >
-      <Image
-        src="/stats-background.jpg"
-        alt="Torrevieja"
-        fill
-        className="object-cover object-center"
-        sizes="100vw"
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/10" />
+    <section ref={sectionRef} className="stats-section">
+      {/* Full-bleed parallax backdrop */}
+      <ParallaxImage src="/stats-background.jpg" alt="Torrevieja" speed={0.08} sizes="100vw" priority />
 
-      <div className="absolute bottom-0 left-0 p-8 sm:p-12 lg:p-16 max-w-2xl">
-        <p
-          className={cn(
-            'text-xs font-bold uppercase tracking-[0.25em] text-white/70 mb-4 transition-all duration-700 ease-out',
-            visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-          )}
-        >
-          Costa Blanca
-        </p>
-        <h2
-          className={cn(
-            'text-4xl md:text-6xl font-bold text-white tracking-tight leading-[1.05] transition-all duration-700 ease-out delay-150',
-            visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-          )}
-        >
-          Vive Torrevieja<br />como nunca antes
-        </h2>
+      {/* Flat dark tints — no gradients */}
+      <div className="stats-tint stats-tint--base" />
+      <div className="stats-tint stats-tint--bottom" />
+
+      {/* Content layer */}
+      <div className="stats-inner">
+
+        {/* Eyebrow + headline — bottom-left editorial */}
+        <div className="stats-copy">
+          <p
+            className={cn(
+              'stats-eyebrow',
+              visible ? 'stats-anim--in' : 'stats-anim--out'
+            )}
+          >
+            Costa Blanca
+          </p>
+          <h2
+            className={cn(
+              'stats-headline',
+              visible ? 'stats-anim--in stats-anim--delay-1' : 'stats-anim--out'
+            )}
+          >
+            Vive Torrevieja<br />como nunca antes
+          </h2>
+        </div>
+
+        {/* Stat pills — bottom-right */}
+        <div className="stats-pills">
+          {STATS.map(({ value, label }, i) => (
+            <div
+              key={label}
+              style={{ transitionDelay: visible ? `${200 + i * 120}ms` : '0ms' }}
+              className={cn(
+                'stats-pill',
+                visible ? 'stats-anim--in' : 'stats-anim--out'
+              )}
+            >
+              <span className="stats-pill-value">{value}</span>
+              <span className="stats-pill-label">{label}</span>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   )

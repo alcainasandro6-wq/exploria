@@ -3,6 +3,8 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { isSubscriptionActive, getSubscriptionUsage } from '@/lib/services/subscriptions'
+import { testTuriTopConnection, saveTuriTopKey, getTuriTopKey, listTuriTopProducts, getTuriTopCalendar, type TuriTopProduct } from '@/lib/services/turitop'
+import type { CalendarEvent, CalendarAvailability } from '@/lib/calendar-types'
 import type { ActivityStatus, ExternalBookingPlatform } from '@/types/database'
 
 // =====================================================
@@ -55,6 +57,8 @@ export interface CreateActivityInput {
   extraInfo?: { title: string; content: string }[]
   bookingWidgetEmbedCode?: string
   externalBookingPlatform?: ExternalBookingPlatform
+  turitopServiceCode?: string
+  turitopProductId?: string
   publishImmediately?: boolean
 }
 
@@ -124,6 +128,8 @@ export async function createActivityAction(input: CreateActivityInput) {
       extra_info:                 input.extraInfo ?? [],
       booking_widget_embed_code:  input.bookingWidgetEmbedCode ?? null,
       external_booking_platform:  input.externalBookingPlatform ?? null,
+      turitop_service_code:       input.turitopServiceCode ?? null,
+      turitop_product_id:         input.turitopProductId ?? null,
       // A provider can only ever land a new activity in draft or pending_review —
       // 'published' is set exclusively by review_activity_submission() after admin approval.
       status:                     input.publishImmediately ? 'pending_review' : 'draft',
@@ -219,6 +225,8 @@ export async function updateActivityAction(
   if (updates.extraInfo !== undefined)               payload.extra_info                = updates.extraInfo
   if (updates.bookingWidgetEmbedCode !== undefined)  payload.booking_widget_embed_code = updates.bookingWidgetEmbedCode
   if (updates.externalBookingPlatform !== undefined) payload.external_booking_platform = updates.externalBookingPlatform
+  if (updates.turitopServiceCode !== undefined)      payload.turitop_service_code      = updates.turitopServiceCode
+  if (updates.turitopProductId !== undefined)        payload.turitop_product_id        = updates.turitopProductId || null
 
   const { error } = await supabase
     .from('activities')
@@ -424,6 +432,7 @@ export async function updateProviderProfileAction(updates: {
   website?: string
   taxId?: string
   logoUrl?: string
+  turitopCompanyCode?: string
 }) {
   const { providerId } = await requireProviderAuth()
   const supabase = await createClient()
@@ -437,10 +446,181 @@ export async function updateProviderProfileAction(updates: {
   if (updates.website !== undefined) payload.website = updates.website
   if (updates.taxId !== undefined) payload.tax_id = updates.taxId
   if (updates.logoUrl !== undefined) payload.logo_url = updates.logoUrl
+  if (updates.turitopCompanyCode !== undefined) payload.turitop_company_code = updates.turitopCompanyCode
 
   const { error } = await supabase.from('providers').update(payload).eq('id', providerId)
   if (error) return { success: false, error: error.message }
 
   revalidatePath('/dashboard/provider/settings')
   return { success: true }
+}
+
+// =====================================================
+// Public: "Hazte proveedor" application form (no auth — anonymous lead capture)
+// =====================================================
+
+export interface SubmitProviderApplicationInput {
+  companyName: string
+  contactName: string
+  email: string
+  phone?: string
+  activitiesDescription?: string
+  website?: string
+  referralCode?: string
+}
+
+export async function submitProviderApplicationAction(input: SubmitProviderApplicationInput) {
+  if (!input.companyName?.trim() || !input.contactName?.trim() || !input.email?.trim()) {
+    return { success: false, error: 'Faltan campos obligatorios' }
+  }
+
+  const supabase = await createClient()
+  const { error } = await supabase.from('provider_applications').insert({
+    company_name: input.companyName.trim(),
+    contact_name: input.contactName.trim(),
+    email: input.email.trim(),
+    phone: input.phone?.trim() || null,
+    activities_description: input.activitiesDescription?.trim() || null,
+    website: input.website?.trim() || null,
+    referral_code: input.referralCode?.trim() || null,
+  })
+
+  if (error) return { success: false, error: error.message }
+  return { success: true }
+}
+
+// =====================================================
+// TuriTop API connection (real API, distinct from the embed widget's
+// company/service codes) — provider connects their own calendar.
+// =====================================================
+
+export async function updateTuriTopConnectionAction(apiKey: string) {
+  const { providerId } = await requireProviderAuth()
+  const supabase = await createClient()
+
+  const result = await testTuriTopConnection(apiKey)
+
+  const credError = await saveTuriTopKey(supabase, providerId, apiKey)
+  if (credError) return { success: false, error: credError }
+
+  const { error } = await supabase
+    .from('providers')
+    .update({
+      turitop_has_key: !!apiKey.trim(),
+      turitop_connection_status: apiKey.trim() ? result.status : 'unverified',
+      turitop_connection_error: apiKey.trim() ? result.error : null,
+      turitop_connected_at: apiKey.trim() && result.status === 'ok' ? new Date().toISOString() : null,
+    })
+    .eq('id', providerId)
+
+  if (error) return { success: false, error: error.message }
+
+  revalidatePath('/dashboard/provider/settings')
+  return { success: true, status: apiKey.trim() ? result.status : 'unverified', connectionError: result.error }
+}
+
+// =====================================================
+// Per-provider calendar: reservations + the provider's own TuriTop availability
+// =====================================================
+
+export async function listTuriTopProductsAction(providerId?: string): Promise<{ success: boolean; products: TuriTopProduct[]; error?: string }> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { success: false, products: [], error: 'Not authenticated' }
+
+    const { data: own } = await supabase.from('providers').select('id').eq('profile_id', user.id).maybeSingle()
+    let targetId = own?.id as string | undefined
+    if (providerId && providerId !== targetId) {
+      const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+      if (profile?.role !== 'admin') return { success: false, products: [], error: 'Forbidden' }
+      targetId = providerId
+    }
+    if (!targetId) return { success: false, products: [], error: 'Provider not found' }
+
+    const key = await getTuriTopKey(targetId)
+    if (!key) return { success: true, products: [] }
+    return { success: true, products: await listTuriTopProducts(key) }
+  } catch (err) {
+    return { success: false, products: [], error: (err as Error).message }
+  }
+}
+
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
+
+export async function getProviderCalendarAction(from: string, to: string): Promise<{
+  success: boolean
+  events: CalendarEvent[]
+  availability: CalendarAvailability[]
+  turitopError?: string
+  error?: string
+}> {
+  if (!ISO_DATE.test(from) || !ISO_DATE.test(to)) {
+    return { success: false, events: [], availability: [], error: 'Invalid range' }
+  }
+  try {
+    const { providerId } = await requireProviderAuth()
+    const supabase = await createClient()
+
+    const { data: reservations, error } = await supabase
+      .from('reservations')
+      .select('id, activity_date, activity_time, participants, status, activity:activities(title), customer:profiles!customer_id(full_name)')
+      .eq('provider_id', providerId)
+      .gte('activity_date', from)
+      .lte('activity_date', to)
+      .order('activity_date')
+    if (error) return { success: false, events: [], availability: [], error: error.message }
+
+    type Row = { id: string; activity_date: string; activity_time: string; participants: number; status: CalendarEvent['status']; activity: { title: string } | null; customer: { full_name: string } | null }
+    const events: CalendarEvent[] = ((reservations ?? []) as unknown as Row[]).map((r) => ({
+      id: r.id,
+      date: r.activity_date,
+      time: (r.activity_time ?? '').slice(0, 5),
+      title: r.activity?.title ?? '—',
+      subtitle: r.customer?.full_name ?? undefined,
+      participants: r.participants,
+      status: r.status,
+    }))
+
+    // This provider's own TuriTop connection (each provider has its own key).
+    const availability: CalendarAvailability[] = []
+    let turitopError: string | undefined
+    const key = await getTuriTopKey(providerId)
+    if (key) {
+      const { data: mapped } = await supabase
+        .from('activities')
+        .select('id, title, turitop_product_id')
+        .eq('provider_id', providerId)
+        .not('turitop_product_id', 'is', null)
+        .neq('status', 'archived')
+      if (mapped && mapped.length > 0) {
+        try {
+          const products = await listTuriTopProducts(key)
+          const results = await Promise.allSettled(
+            mapped.map(async (a) => {
+              const product = products.find((p) => p.id === a.turitop_product_id)
+              const days = await getTuriTopCalendar(key, a.turitop_product_id as string, product?.optionId ?? null, from, to)
+              return days.map((d) => ({
+                date: d.date,
+                activityId: a.id as string,
+                activityTitle: a.title as string,
+                available: d.available,
+                vacancies: d.vacancies,
+              }))
+            })
+          )
+          for (const r of results) {
+            if (r.status === 'fulfilled') availability.push(...r.value)
+            else turitopError = (r.reason as Error).message
+          }
+        } catch (err) {
+          turitopError = (err as Error).message
+        }
+      }
+    }
+
+    return { success: true, events, availability, turitopError }
+  } catch (err) {
+    return { success: false, events: [], availability: [], error: (err as Error).message }
+  }
 }

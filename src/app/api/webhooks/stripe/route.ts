@@ -25,6 +25,14 @@ export async function POST(request: NextRequest) {
 
   try {
     switch (event.type) {
+      case 'checkout.session.completed': {
+        const session = event.data.object as Stripe.Checkout.Session
+        if (session.mode === 'payment') {
+          await handleBookingPaymentCompleted(session)
+        }
+        break
+      }
+
       case 'customer.subscription.created':
       case 'customer.subscription.updated': {
         const subscription = event.data.object as Stripe.Subscription
@@ -67,6 +75,23 @@ export async function POST(request: NextRequest) {
   }
 }
 
+async function handleBookingPaymentCompleted(session: Stripe.Checkout.Session) {
+  const reservationId = session.metadata?.reservation_id
+  if (!reservationId) {
+    console.error('Checkout session missing reservation_id metadata:', session.id)
+    return
+  }
+
+  const paymentIntentId = typeof session.payment_intent === 'string'
+    ? session.payment_intent
+    : session.payment_intent?.id ?? null
+
+  await supabase
+    .from('reservations')
+    .update({ payment_status: 'paid', stripe_payment_intent_id: paymentIntentId })
+    .eq('id', reservationId)
+}
+
 async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
   const statusMap: Record<string, string> = {
     active: 'active',
@@ -98,7 +123,38 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
       .from('provider_subscriptions')
       .update({ status, current_period_start: periodStart, current_period_end: periodEnd })
       .eq('stripe_subscription_id', subscription.id)
+    return
   }
+
+  // First time we see this subscription — no row was pre-created at checkout,
+  // so this insert is what actually activates the provider's plan after payment.
+  const metadata = subscription.metadata as { provider_id?: string; plan?: string; billing?: string }
+  if (!metadata.provider_id || !metadata.plan) {
+    console.error('Stripe subscription missing provider_id/plan metadata:', subscription.id)
+    return
+  }
+
+  const { data: planRow } = await supabase
+    .from('subscription_plans')
+    .select('id')
+    .eq('name', metadata.plan)
+    .single()
+
+  if (!planRow) {
+    console.error('Unknown plan in subscription metadata:', metadata.plan)
+    return
+  }
+
+  await supabase.from('provider_subscriptions').insert({
+    provider_id: metadata.provider_id,
+    plan_id: planRow.id,
+    status,
+    billing_cycle: metadata.billing === 'annual' ? 'annual' : 'monthly',
+    stripe_subscription_id: subscription.id,
+    stripe_customer_id: typeof subscription.customer === 'string' ? subscription.customer : subscription.customer?.id,
+    current_period_start: periodStart,
+    current_period_end: periodEnd,
+  })
 }
 
 async function handlePaymentSucceeded(invoice: Stripe.Invoice) {

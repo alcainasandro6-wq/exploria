@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { getTranslations } from 'next-intl/server'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -14,31 +15,33 @@ export default async function AdminCouponsPage() {
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   if (profile?.role !== 'admin') redirect('/dashboard')
 
+  const t = await getTranslations('admin_coupons_page')
+
   const coupons = await getAllCoupons()
 
   return (
     <DashboardLayout role="admin">
-      <DashboardHeader title="Cupones y promociones" subtitle="Descuentos globales o personalizados para el programa de fidelidad de clientes" />
+      <DashboardHeader title={t('title')} subtitle={t('subtitle')} />
 
       <Card className="mb-6">
-        <CardHeader><CardTitle>Nuevo cupón</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t('new_coupon_title')}</CardTitle></CardHeader>
         <CardContent>
           <CreateCouponForm />
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>Todos los cupones</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t('all_coupons_title')}</CardTitle></CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-slate-100">
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">Código</th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">Descuento</th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">Ámbito</th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">Usos</th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">Estado</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">{t('column_code')}</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">{t('column_discount')}</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">{t('column_scope')}</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">{t('column_uses')}</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">{t('column_status')}</th>
                   <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase"></th>
                 </tr>
               </thead>
@@ -47,7 +50,7 @@ export default async function AdminCouponsPage() {
               </tbody>
             </table>
           </div>
-          {coupons.length === 0 && <p className="text-sm text-slate-400 py-10 text-center">Todavía no hay cupones creados.</p>}
+          {coupons.length === 0 && <p className="text-sm text-slate-400 py-10 text-center">{t('empty_state')}</p>}
         </CardContent>
       </Card>
     </DashboardLayout>

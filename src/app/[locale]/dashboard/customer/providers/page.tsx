@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { getTranslations } from 'next-intl/server'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader'
 import { Card, CardContent } from '@/components/ui/card'
@@ -7,6 +8,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getProvidersDirectory } from '@/lib/services/customer'
 
 export default async function CustomerProvidersPage() {
+  const t = await getTranslations('customer_providers_page')
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
@@ -15,7 +17,7 @@ export default async function CustomerProvidersPage() {
 
   return (
     <DashboardLayout role="customer">
-      <DashboardHeader title="Proveedores" subtitle="Empresas verificadas que ofrecen actividades en BookActivities" />
+      <DashboardHeader title={t('title')} subtitle={t('subtitle')} />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {providers.map((provider) => (
@@ -39,7 +41,7 @@ export default async function CustomerProvidersPage() {
                   <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{provider.city}</span>
                   {provider.website && (
                     <a href={provider.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-primary">
-                      <Globe className="w-3 h-3" />Web
+                      <Globe className="w-3 h-3" />{t('website_label')}
                     </a>
                   )}
                 </div>

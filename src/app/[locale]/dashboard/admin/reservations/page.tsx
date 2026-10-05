@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { getTranslations } from 'next-intl/server'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -6,12 +7,10 @@ import { Badge } from '@/components/ui/badge'
 import { createClient } from '@/lib/supabase/server'
 import { getAllReservations } from '@/lib/services/reservations'
 import { formatPrice, formatDate } from '@/lib/utils'
+import { ActivityCalendar } from '@/components/booking/ActivityCalendar'
+import { reservationsToEvents } from '@/lib/calendar-utils'
 import { ExportButtons } from '@/components/dashboard/admin/ExportButtons'
 
-const STATUS_LABELS: Record<string, string> = {
-  confirmed: 'Confirmado', pending: 'Pendiente', completed: 'Completado',
-  cancelled: 'Cancelado', rejected: 'Rechazado', no_show: 'No presentado',
-}
 const STATUS_STYLES: Record<string, 'success' | 'warning' | 'secondary' | 'destructive'> = {
   confirmed: 'success', pending: 'warning', completed: 'secondary',
   cancelled: 'destructive', rejected: 'destructive', no_show: 'destructive',
@@ -23,6 +22,13 @@ export default async function AdminReservationsPage() {
   if (!user) redirect('/auth/login')
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   if (profile?.role !== 'admin') redirect('/dashboard')
+
+  const t = await getTranslations('admin_reservations_page')
+
+  const STATUS_LABELS: Record<string, string> = {
+    confirmed: t('status_confirmed'), pending: t('status_pending'), completed: t('status_completed'),
+    cancelled: t('status_cancelled'), rejected: t('status_rejected'), no_show: t('status_no_show'),
+  }
 
   const reservations = await getAllReservations({ limit: 200 })
 
@@ -41,24 +47,26 @@ export default async function AdminReservationsPage() {
   return (
     <DashboardLayout role="admin">
       <DashboardHeader
-        title="Reservas"
-        subtitle={`${reservations.length} reservas en toda la plataforma`}
-        action={<ExportButtons data={exportData} filename="reservas" title="Reservas — BookActivities" />}
+        title={t('title')}
+        subtitle={t('subtitle', { count: reservations.length })}
+        action={<ExportButtons data={exportData} filename="reservas" title={`${t('export_title')} — BookActivities`} />}
       />
 
+      <ActivityCalendar className="mb-6" events={reservationsToEvents(reservations, (r) => [r.provider?.company_name, r.customer?.full_name].filter(Boolean).join(' · ') || undefined)} />
+
       <Card>
-        <CardHeader><CardTitle>Todas las reservas</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t('all_reservations_title')}</CardTitle></CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-slate-100">
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">Código</th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">Cliente</th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">Proveedor</th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">Fecha</th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">Importe</th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">Estado</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">{t('column_code')}</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">{t('column_customer')}</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">{t('column_provider')}</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">{t('column_date')}</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">{t('column_amount')}</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">{t('column_status')}</th>
                 </tr>
               </thead>
               <tbody>

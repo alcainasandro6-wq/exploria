@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { getTranslations } from 'next-intl/server'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader'
 import { Card, CardContent } from '@/components/ui/card'
@@ -7,6 +8,7 @@ import { getHotelByProfileId, getHotelDashboardStats, getHotelTopActivities } fr
 import { HotelStatsCharts } from '@/components/dashboard/hotel/HotelStatsCharts'
 
 export default async function HotelStatsPage() {
+  const t = await getTranslations('hotel_stats_page')
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
@@ -21,10 +23,10 @@ export default async function HotelStatsPage() {
 
   return (
     <DashboardLayout role="hotel">
-      <DashboardHeader title="Estadísticas" subtitle="Rendimiento de tu QR y enlace de afiliado" />
+      <DashboardHeader title={t('title')} subtitle={t('subtitle')} />
 
       {topActivities.length === 0 ? (
-        <Card><CardContent className="p-10 text-center text-slate-400">Todavía no hay datos suficientes.</CardContent></Card>
+        <Card><CardContent className="p-10 text-center text-slate-400">{t('empty_state')}</CardContent></Card>
       ) : (
         <HotelStatsCharts stats={stats} topActivities={topActivities} />
       )}

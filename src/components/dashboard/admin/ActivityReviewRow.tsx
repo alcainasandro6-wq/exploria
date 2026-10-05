@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { Loader2, Check, X } from 'lucide-react'
 import { reviewActivitySubmissionAction } from '@/app/actions/admin'
@@ -12,6 +13,7 @@ interface ActivityReviewRowProps {
 }
 
 export function ActivityReviewRow({ activity }: ActivityReviewRowProps) {
+  const t = useTranslations('admin_activity_review_row')
   const [loading, setLoading] = useState<'approve' | 'reject' | null>(null)
   const [done, setDone] = useState(false)
 
@@ -22,18 +24,18 @@ export function ActivityReviewRow({ activity }: ActivityReviewRowProps) {
     const res = await reviewActivitySubmissionAction(activity.id, true)
     setLoading(null)
     if (!res.success) { toast.error(res.error); return }
-    toast.success('Actividad publicada')
+    toast.success(t('published_toast'))
     setDone(true)
   }
 
   const handleReject = async () => {
-    const feedback = window.prompt('Motivo del rechazo (se enviará al proveedor):') ?? ''
+    const feedback = window.prompt(t('reject_prompt')) ?? ''
     if (!feedback.trim()) return
     setLoading('reject')
     const res = await reviewActivitySubmissionAction(activity.id, false, feedback.trim())
     setLoading(null)
     if (!res.success) { toast.error(res.error); return }
-    toast.success('Actividad devuelta al proveedor')
+    toast.success(t('returned_toast'))
     setDone(true)
   }
 
@@ -48,11 +50,11 @@ export function ActivityReviewRow({ activity }: ActivityReviewRowProps) {
       <div className="flex gap-1.5 shrink-0">
         <Button size="sm" className="text-xs h-7 gap-1" onClick={handleApprove} disabled={loading !== null}>
           {loading === 'approve' ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
-          Aprobar
+          {t('approve_button')}
         </Button>
         <Button size="sm" variant="outline" className="text-xs h-7 gap-1" onClick={handleReject} disabled={loading !== null}>
           {loading === 'reject' ? <Loader2 className="w-3 h-3 animate-spin" /> : <X className="w-3 h-3" />}
-          Rechazar
+          {t('reject_button')}
         </Button>
       </div>
     </div>

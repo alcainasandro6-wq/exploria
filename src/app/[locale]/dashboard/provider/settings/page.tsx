@@ -1,9 +1,12 @@
 import { redirect } from 'next/navigation'
+import { getTranslations } from 'next-intl/server'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader'
 import { createClient } from '@/lib/supabase/server'
-import { getProviderByProfileId } from '@/lib/services/providers'
+import { getProviderByProfileId, getProviderReferralStats } from '@/lib/services/providers'
 import { ProviderCompanyForm } from '@/components/dashboard/provider/ProviderCompanyForm'
+import { ProviderReferralPanel } from '@/components/dashboard/provider/ProviderReferralPanel'
+import { TuriTopConnectionCard } from '@/components/dashboard/provider/TuriTopConnectionCard'
 
 export default async function ProviderSettingsPage() {
   const supabase = await createClient()
@@ -13,10 +16,17 @@ export default async function ProviderSettingsPage() {
   const provider = await getProviderByProfileId(user.id)
   if (!provider) redirect('/dashboard')
 
+  const t = await getTranslations('provider_settings_page')
+  const referralStats = await getProviderReferralStats(provider.id)
+
   return (
     <DashboardLayout role="provider">
-      <DashboardHeader title="Mi empresa" subtitle="Información pública de tu empresa proveedora" />
-      <ProviderCompanyForm provider={provider} />
+      <DashboardHeader title={t('title')} subtitle={t('subtitle')} />
+      <div className="space-y-6">
+        <ProviderCompanyForm provider={provider} />
+        <TuriTopConnectionCard provider={provider} />
+        <ProviderReferralPanel stats={referralStats} />
+      </div>
     </DashboardLayout>
   )
 }

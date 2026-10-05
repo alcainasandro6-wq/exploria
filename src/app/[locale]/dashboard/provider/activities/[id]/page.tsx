@@ -47,7 +47,7 @@ export default async function ActivityEditorPage({
           }}
         />
       )}
-      <ActivityEditorForm providerId={providerId} categories={categories} activity={activity as unknown as ActivityDetail} />
+      <ActivityEditorForm providerId={providerId} categories={categories} activity={activity as unknown as ActivityDetail} providerTuritopCode={provider.turitop_company_code} />
     </DashboardLayout>
   )
 }

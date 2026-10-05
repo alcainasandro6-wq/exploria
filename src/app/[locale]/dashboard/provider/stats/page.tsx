@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { getTranslations } from 'next-intl/server'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader'
 import { Card, CardContent } from '@/components/ui/card'
@@ -15,6 +16,8 @@ export default async function ProviderStatsPage() {
   const provider = await getProviderByProfileId(user.id)
   if (!provider) redirect('/dashboard')
 
+  const t = await getTranslations('provider_stats_page')
+
   const [performance, attribution] = await Promise.all([
     getProviderActivityPerformance(provider.id),
     getProviderAttributionStats(provider.id),
@@ -22,10 +25,10 @@ export default async function ProviderStatsPage() {
 
   return (
     <DashboardLayout role="provider">
-      <DashboardHeader title="Estadísticas" subtitle="Rendimiento de tus actividades y origen de las reservas" />
+      <DashboardHeader title={t('title')} subtitle={t('subtitle')} />
 
       {performance.length === 0 ? (
-        <Card><CardContent className="p-10 text-center text-slate-400">Todavía no hay datos suficientes.</CardContent></Card>
+        <Card><CardContent className="p-10 text-center text-slate-400">{t('empty_state')}</CardContent></Card>
       ) : (
         <ProviderStatsCharts performance={performance} attribution={attribution} />
       )}

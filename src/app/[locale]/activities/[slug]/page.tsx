@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion'
 import { BookingWidget } from '@/components/booking/BookingWidget'
 import { ActivityGallery } from '@/components/activities/ActivityGallery'
-import { BookingEmbed } from '@/components/activities/BookingEmbed'
+import { BookingEmbed, hasBookableEmbed } from '@/components/activities/BookingEmbed'
 import { getActivityBySlug, getActivityReviews } from '@/lib/services/activities'
 import { formatDuration, getRatingLabel, getInitials } from '@/lib/utils'
 import type { Metadata } from 'next'
@@ -16,6 +16,14 @@ import type { Metadata } from 'next'
 const LANG_NAMES: Record<string, string> = {
   es: '🇪🇸 Español', en: '🇬🇧 English', de: '🇩🇪 Deutsch',
   fr: '🇫🇷 Français', pl: '🇵🇱 Polski', ru: '🇷🇺 Русский',
+}
+
+function getCancellationLabel(policy: string): string {
+  const p = policy.toLowerCase()
+  if (p.includes('no admite cancelaciones') || p.includes('no reembolsable')) return 'No reembolsable'
+  if (p.includes('48 horas')) return 'Gratuita 48h'
+  if (p.includes('24 horas')) return 'Gratuita 24h'
+  return 'Ver política'
 }
 
 export async function generateMetadata({
@@ -37,13 +45,22 @@ export default async function ActivityPage({
 }: {
   params: Promise<{ locale: string; slug: string }>
 }) {
-  const { slug } = await params
+  const { locale, slug } = await params
   const t = await getTranslations('activity')
+  const ta = await getTranslations('a11y')
 
   const activity = await getActivityBySlug(slug)
   if (!activity) notFound()
 
   const reviews = await getActivityReviews(activity.id)
+
+  const embedInput = {
+    embedCode: activity.booking_widget_embed_code,
+    platform: activity.external_booking_platform,
+    turitopServiceCode: activity.turitop_service_code,
+    turitopCompanyCode: activity.provider?.turitop_company_code,
+  }
+  const hasExternalEmbed = hasBookableEmbed(embedInput)
 
   return (
     <div className="min-h-screen bg-white">
@@ -61,7 +78,7 @@ export default async function ActivityPage({
               </>
             )}
             <ChevronRight className="w-3 h-3 shrink-0" />
-            <span className="text-slate-900 font-medium truncate max-w-xs">{activity.title}</span>
+            <span className="text-slate-900 font-medium truncate min-w-0 max-w-xs">{activity.title}</span>
           </nav>
         </div>
       </div>
@@ -99,14 +116,14 @@ export default async function ActivityPage({
 
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className={hasExternalEmbed ? 'lg:col-span-3 space-y-8' : 'lg:col-span-2 space-y-8'}>
             {/* Quick Info */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
               {[
                 { icon: Clock, label: 'Duración', value: formatDuration(activity.duration_minutes) },
                 { icon: Users, label: 'Participantes', value: `Máx. ${activity.max_participants}` },
                 { icon: Globe, label: 'Idiomas', value: `${activity.languages.length} idiomas` },
-                { icon: Shield, label: 'Cancelación', value: 'Gratuita 24h' },
+                { icon: Shield, label: 'Cancelación', value: getCancellationLabel(activity.cancellation_policy) },
               ].map(({ icon: Icon, label, value }) => (
                 <div key={label} className="bg-slate-50 rounded-2xl p-4 text-center">
                   <Icon className="w-5 h-5 text-primary mx-auto mb-1.5" />
@@ -190,7 +207,7 @@ export default async function ActivityPage({
             </div>
 
             {/* Live availability embed (Bokun/TuriTop/Civitatis/GetYourGuide/ClickAndBoat) */}
-            <BookingEmbed embedCode={activity.booking_widget_embed_code} platform={activity.external_booking_platform} />
+            {hasExternalEmbed && <BookingEmbed {...embedInput} locale={locale} />}
 
             {/* Meeting Point */}
             <div>
@@ -208,7 +225,7 @@ export default async function ActivityPage({
                     style={{ border: 0 }}
                     loading="lazy"
                     referrerPolicy="no-referrer-when-downgrade"
-                    title="Ubicación de la actividad"
+                    title={ta('map_title')}
                   />
                   {activity.google_maps_url && (
                     <a
@@ -290,14 +307,6 @@ export default async function ActivityPage({
               </div>
             )}
 
-            {/* Legal Notice */}
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5">
-              <p className="text-xs text-slate-500 leading-relaxed">
-                <Shield className="w-3.5 h-3.5 inline mr-1 text-slate-400" />
-                <strong>{t('legal_notice')}</strong> BookActivities actúa únicamente como intermediario tecnológico. El servicio es prestado directamente por el proveedor, quien es responsable de gestionar la actividad, confirmar reservas y cobrar al cliente.
-              </p>
-            </div>
-
             {/* Reviews */}
             <div>
               <div className="flex items-center justify-between mb-4">
@@ -345,12 +354,14 @@ export default async function ActivityPage({
             </div>
           </div>
 
-          {/* Booking Widget - Sticky Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="lg:sticky lg:top-20">
-              <BookingWidget activity={activity} />
+          {/* Booking Widget - Sticky Sidebar (only when no external calendar takes over booking) */}
+          {!hasExternalEmbed && (
+            <div className="lg:col-span-1">
+              <div className="lg:sticky lg:top-20">
+                <BookingWidget activity={activity} />
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

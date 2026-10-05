@@ -1,13 +1,12 @@
 import { redirect } from 'next/navigation'
+import { getTranslations } from 'next-intl/server'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { BadgeCheck } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getAllProviders } from '@/lib/services/providers'
-import { formatDate } from '@/lib/utils'
+import { getAllSubscriptionPlans, getAllActiveSubscriptions } from '@/lib/services/subscriptions'
 import { ExportButtons } from '@/components/dashboard/admin/ExportButtons'
+import { ProvidersGrid } from '@/components/dashboard/admin/ProvidersGrid'
 
 export default async function AdminProvidersPage() {
   const supabase = await createClient()
@@ -16,7 +15,14 @@ export default async function AdminProvidersPage() {
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   if (profile?.role !== 'admin') redirect('/dashboard')
 
-  const providers = await getAllProviders()
+  const t = await getTranslations('admin_providers_page')
+
+  const [providers, plans, activeSubscriptions] = await Promise.all([
+    getAllProviders(),
+    getAllSubscriptionPlans(),
+    getAllActiveSubscriptions(),
+  ])
+  const subscriptionByProvider = Object.fromEntries(activeSubscriptions.map((s) => [s.provider_id, s]))
 
   const exportData = providers.map((p) => ({
     empresa: p.company_name,
@@ -33,32 +39,12 @@ export default async function AdminProvidersPage() {
   return (
     <DashboardLayout role="admin">
       <DashboardHeader
-        title="Proveedores"
-        subtitle={`${providers.length} empresas proveedoras registradas`}
-        action={<ExportButtons data={exportData} filename="proveedores" title="Proveedores — BookActivities" />}
+        title={t('title')}
+        subtitle={t('subtitle', { count: providers.length })}
+        action={<ExportButtons data={exportData} filename="proveedores" title={`${t('export_title')} — BookActivities`} />}
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {providers.map((p) => (
-          <Card key={p.id}>
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <p className="font-bold text-slate-900 truncate">{p.company_name}</p>
-                  {p.is_verified && <BadgeCheck className="w-4 h-4 text-primary shrink-0" />}
-                </div>
-                <Badge variant={p.is_active ? 'success' : 'secondary'}>{p.is_active ? 'Activo' : 'Inactivo'}</Badge>
-              </div>
-              <p className="text-sm text-slate-500">{p.city} · {p.phone}</p>
-              <p className="text-xs text-slate-400 mt-1">{p.profile?.email}</p>
-              <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100 text-xs text-slate-400">
-                <span>Comisión: {(p.commission_rate * 100).toFixed(0)}%</span>
-                <span>Alta: {formatDate(p.created_at)}</span>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <ProvidersGrid providers={providers} plans={plans} subscriptionByProvider={subscriptionByProvider} />
     </DashboardLayout>
   )
 }

@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import type { ProviderActivityPerformance, ProviderAttributionStats } from '@/types/database'
@@ -14,6 +15,7 @@ export function ProviderStatsCharts({
   performance: ProviderActivityPerformance[]
   attribution: ProviderAttributionStats[]
 }) {
+  const t = useTranslations('provider_stats_charts')
   const bookingsData = performance
     .map((p) => ({ name: p.activity_title.length > 22 ? p.activity_title.slice(0, 22) + '…' : p.activity_title, reservas: p.total_bookings }))
     .sort((a, b) => b.reservas - a.reservas)
@@ -22,14 +24,14 @@ export function ProviderStatsCharts({
   const totalHotel = attribution.reduce((s, a) => s + (a.hotel_id ? a.total_reservations : 0), 0)
   const totalDirect = attribution.reduce((s, a) => s + a.direct_bookings, 0)
   const attributionData = [
-    { name: 'Vía hotel', value: totalHotel },
-    { name: 'Directas', value: totalDirect },
+    { name: t('via_hotel_label'), value: totalHotel },
+    { name: t('direct_label'), value: totalDirect },
   ]
 
   return (
     <div className="grid lg:grid-cols-2 gap-6">
       <Card>
-        <CardHeader><CardTitle>Reservas por actividad</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t('bookings_by_activity_title')}</CardTitle></CardHeader>
         <CardContent>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
@@ -46,7 +48,7 @@ export function ProviderStatsCharts({
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>Origen de las reservas</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t('bookings_origin_title')}</CardTitle></CardHeader>
         <CardContent>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
@@ -65,18 +67,18 @@ export function ProviderStatsCharts({
       </Card>
 
       <Card className="lg:col-span-2">
-        <CardHeader><CardTitle>Detalle por actividad</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t('detail_by_activity_title')}</CardTitle></CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-100">
-                  <th className="text-left py-2 px-3 text-xs font-semibold text-slate-500 uppercase">Actividad</th>
-                  <th className="text-left py-2 px-3 text-xs font-semibold text-slate-500 uppercase">Reservas</th>
-                  <th className="text-left py-2 px-3 text-xs font-semibold text-slate-500 uppercase">Confirmadas</th>
-                  <th className="text-left py-2 px-3 text-xs font-semibold text-slate-500 uppercase">Completadas</th>
-                  <th className="text-left py-2 px-3 text-xs font-semibold text-slate-500 uppercase">Canceladas</th>
-                  <th className="text-left py-2 px-3 text-xs font-semibold text-slate-500 uppercase">Valoración</th>
+                  <th className="text-left py-2 px-3 text-xs font-semibold text-slate-500 uppercase">{t('table_header_activity')}</th>
+                  <th className="text-left py-2 px-3 text-xs font-semibold text-slate-500 uppercase">{t('table_header_bookings')}</th>
+                  <th className="text-left py-2 px-3 text-xs font-semibold text-slate-500 uppercase">{t('table_header_confirmed')}</th>
+                  <th className="text-left py-2 px-3 text-xs font-semibold text-slate-500 uppercase">{t('table_header_completed')}</th>
+                  <th className="text-left py-2 px-3 text-xs font-semibold text-slate-500 uppercase">{t('table_header_cancelled')}</th>
+                  <th className="text-left py-2 px-3 text-xs font-semibold text-slate-500 uppercase">{t('table_header_rating')}</th>
                 </tr>
               </thead>
               <tbody>

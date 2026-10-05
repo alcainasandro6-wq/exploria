@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
@@ -18,6 +19,7 @@ interface CommissionRowProps {
 }
 
 export function CommissionRow({ commission }: CommissionRowProps) {
+  const t = useTranslations('admin_commission_row')
   const [status, setStatus] = useState(commission.status)
   const [loading, setLoading] = useState(false)
 
@@ -27,7 +29,7 @@ export function CommissionRow({ commission }: CommissionRowProps) {
     setLoading(false)
     if (!res.success) { toast.error(res.error); return }
     setStatus('paid')
-    toast.success('Comisión marcada como liquidada')
+    toast.success(t('marked_paid_toast'))
   }
 
   return (
@@ -38,13 +40,13 @@ export function CommissionRow({ commission }: CommissionRowProps) {
       <td className="py-2.5 px-4 font-semibold text-slate-900">{formatPrice(Number(commission.total_amount))}</td>
       <td className="py-2.5 px-4">
         <Badge variant={status === 'paid' ? 'success' : status === 'pending' ? 'warning' : 'secondary'}>
-          {status === 'paid' ? 'Liquidada' : status === 'pending' ? 'Pendiente' : 'Cancelada'}
+          {status === 'paid' ? t('status_paid') : status === 'pending' ? t('status_pending') : t('status_cancelled')}
         </Badge>
       </td>
       <td className="py-2.5 px-4">
         {status === 'pending' && (
           <Button size="sm" variant="outline" className="text-xs h-7" onClick={handleMarkPaid} disabled={loading}>
-            {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Marcar pagada'}
+            {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : t('mark_paid_button')}
           </Button>
         )}
       </td>

@@ -45,10 +45,10 @@ export default function LoginPage() {
           customer: '/dashboard/customer',
         }
         router.push(roleRoutes[role] || '/dashboard/customer')
-        toast.success('¡Bienvenido de vuelta!')
+        toast.success(t('toast_login_success'))
       }
     } catch {
-      toast.error('Credenciales incorrectas. Verifica tu email y contraseña.')
+      toast.error(t('toast_login_error'))
     } finally {
       setLoading(false)
     }
@@ -69,7 +69,7 @@ export default function LoginPage() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="tu@email.com"
+            placeholder={t('placeholder_email')}
             required
             autoComplete="email"
           />
@@ -110,11 +110,14 @@ export default function LoginPage() {
         </Button>
       </form>
 
-      <div className="mt-7 text-center">
-        <span className="text-sm text-slate-500">{t('register_link').split('?')[0]} </span>
-        <Link href="/auth/register" className="text-sm text-primary font-bold hover:text-primary-dark">
-          Regístrate
-        </Link>
+      <div className="mt-7 text-center text-sm text-slate-500">
+        {t.rich('register_link', {
+          link: (chunks) => (
+            <Link href="/auth/register" className="text-primary font-bold hover:text-primary-dark">
+              {chunks}
+            </Link>
+          ),
+        })}
       </div>
     </AuthLayout>
   )

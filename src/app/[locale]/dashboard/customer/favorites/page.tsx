@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { getTranslations } from 'next-intl/server'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader'
 import { Card, CardContent } from '@/components/ui/card'
@@ -8,6 +9,7 @@ import { ActivityCard } from '@/components/activities/ActivityCard'
 import type { Activity } from '@/types/database'
 
 export default async function CustomerFavoritesPage() {
+  const t = await getTranslations('customer_favorites_page')
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
@@ -16,10 +18,10 @@ export default async function CustomerFavoritesPage() {
 
   return (
     <DashboardLayout role="customer">
-      <DashboardHeader title="Mis favoritos" subtitle={`${favorites.length} actividades guardadas`} />
+      <DashboardHeader title={t('title')} subtitle={t('subtitle', { count: favorites.length })} />
 
       {favorites.length === 0 ? (
-        <Card><CardContent className="p-10 text-center text-slate-400">Todavía no has guardado ninguna actividad.</CardContent></Card>
+        <Card><CardContent className="p-10 text-center text-slate-400">{t('empty_state')}</CardContent></Card>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {favorites.map((fav) => fav.activity && (

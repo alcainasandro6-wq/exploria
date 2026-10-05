@@ -1,12 +1,14 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import QRCode from 'qrcode'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Download } from 'lucide-react'
 
 export function HotelQrCard({ url, hotelName }: { url: string; hotelName: string }) {
+  const t = useTranslations('hotel_qr_card')
   const [dataUrl, setDataUrl] = useState<string | null>(null)
 
   useEffect(() => {
@@ -29,14 +31,14 @@ export function HotelQrCard({ url, hotelName }: { url: string; hotelName: string
         <div className="bg-slate-50 rounded-2xl p-6 flex items-center justify-center">
           {dataUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={dataUrl} alt="Código QR" className="w-56 h-56" />
+            <img src={dataUrl} alt={t('qr_alt')} className="w-56 h-56" />
           ) : (
             <div className="w-56 h-56 animate-pulse bg-slate-200 rounded-xl" />
           )}
         </div>
         <Button onClick={handleDownload} disabled={!dataUrl} className="w-full gap-2">
           <Download className="w-4 h-4" />
-          Descargar PNG
+          {t('download_button')}
         </Button>
         <p className="text-xs text-slate-400 text-center break-all">{url}</p>
       </CardContent>

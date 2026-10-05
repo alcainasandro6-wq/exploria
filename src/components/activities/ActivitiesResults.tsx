@@ -2,32 +2,37 @@
 
 import { useState } from 'react'
 import { Search, SlidersHorizontal, X, LayoutGrid, List, ChevronDown } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { useRouter } from '@/i18n/navigation'
 import { ActivityCard } from '@/components/activities/ActivityCard'
 import { ActivityFilters } from '@/components/activities/ActivityFilters'
+import { Reveal } from '@/components/ui/reveal'
 import { CITIES } from '@/lib/constants'
 import type { ActivityListItem } from '@/lib/services/activities'
 import type { Category } from '@/types/database'
 
-const SORT_OPTIONS = [
-  { value: 'relevance', label: 'Más relevantes' },
-  { value: 'rating', label: 'Mejor valorados' },
-  { value: 'price_asc', label: 'Precio: menor a mayor' },
-  { value: 'price_desc', label: 'Precio: mayor a menor' },
-  { value: 'popular', label: 'Más reservados' },
-]
-
 interface ActivitiesResultsProps {
   activities: ActivityListItem[]
   categories: Category[]
-  filters: { q: string; category: string; city: string; sort: string }
+  filters: { q: string; category: string; city: string; sort: string; maxPrice: string; duration: string; lang: string }
 }
 
 export function ActivitiesResults({ activities, categories, filters }: ActivitiesResultsProps) {
+  const t = useTranslations('activities')
+  const tp = useTranslations('activities_page')
+  const tc = useTranslations('common')
   const router = useRouter()
   const [search, setSearch] = useState(filters.q)
   const [showFilters, setShowFilters] = useState(false)
   const [view, setView] = useState<'grid' | 'list'>('grid')
+
+  const SORT_OPTIONS = [
+    { value: 'relevance', label: t('sort_relevance') },
+    { value: 'rating', label: t('sort_rating') },
+    { value: 'price_asc', label: t('sort_price_asc') },
+    { value: 'price_desc', label: t('sort_price_desc') },
+    { value: 'popular', label: tp('sort_popular') },
+  ]
 
   const pushFilters = (next: Partial<typeof filters>) => {
     const merged = { ...filters, ...next }
@@ -36,6 +41,9 @@ export function ActivitiesResults({ activities, categories, filters }: Activitie
     if (merged.category) params.set('category', merged.category)
     if (merged.city) params.set('city', merged.city)
     if (merged.sort && merged.sort !== 'relevance') params.set('sort', merged.sort)
+    if (merged.maxPrice) params.set('maxPrice', merged.maxPrice)
+    if (merged.duration) params.set('duration', merged.duration)
+    if (merged.lang) params.set('lang', merged.lang)
     const qs = params.toString()
     router.push(qs ? `/activities?${qs}` : '/activities')
   }
@@ -55,7 +63,7 @@ export function ActivitiesResults({ activities, categories, filters }: Activitie
             >
               {CITIES.map((c) => (
                 <option key={c.slug} value={c.slug} disabled={!c.enabled}>
-                  {c.name}{!c.enabled ? ' (próximamente)' : ''}
+                  {c.name}{!c.enabled ? ` (${tc('coming_soon')})` : ''}
                 </option>
               ))}
             </select>
@@ -69,7 +77,7 @@ export function ActivitiesResults({ activities, categories, filters }: Activitie
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buceo, kayak, catamarán, tours..."
+              placeholder={tp('search_placeholder')}
               className="flex-1 text-sm text-slate-800 placeholder:text-slate-400 outline-none bg-transparent"
             />
             {search && (
@@ -78,61 +86,37 @@ export function ActivitiesResults({ activities, categories, filters }: Activitie
               </button>
             )}
             <button type="submit" className="bg-primary hover:bg-primary-dark text-white font-semibold px-4 py-1.5 rounded-lg text-sm shrink-0 transition-colors">
-              Buscar
+              {tc('search')}
             </button>
           </form>
-        </div>
-
-        {/* Category pills */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-2 py-3 overflow-x-auto scrollbar-hide">
-            <button
-              onClick={() => pushFilters({ category: '' })}
-              className={`shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-all ${
-                !activeCategory ? 'bg-primary text-white shadow-md shadow-primary/25' : 'bg-white text-slate-600 border border-slate-200 hover:border-primary hover:text-primary'
-              }`}
-            >
-              Todas
-            </button>
-            {categories.map((cat) => (
-              <button
-                key={cat.slug}
-                onClick={() => pushFilters({ category: activeCategory === cat.slug ? '' : cat.slug })}
-                className={`shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-all ${
-                  activeCategory === cat.slug ? 'bg-primary text-white shadow-md shadow-primary/25' : 'bg-white text-slate-600 border border-slate-200 hover:border-primary hover:text-primary'
-                }`}
-              >
-                {cat.name}
-              </button>
-            ))}
-          </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex gap-7">
-          <aside className="hidden lg:block w-60 shrink-0">
-            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 sticky top-[184px]">
-              <ActivityFilters />
+          <aside className="hidden md:block w-60 lg:w-72 shrink-0">
+            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 lg:p-6 sticky top-[184px]">
+              <ActivityFilters categories={categories} values={filters} onChange={pushFilters} />
             </div>
           </aside>
 
           <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between mb-6 gap-3 flex-wrap">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-3">
               <p className="text-sm font-semibold text-slate-900">
-                {activities.length}
-                <span className="text-slate-400 font-normal ml-1">
-                  {activities.length === 1 ? 'actividad' : 'actividades'}
-                  {activeCategory && ` · ${categories.find((c) => c.slug === activeCategory)?.name}`}
-                </span>
+                {tp('results_count', { count: activities.length })}
+                {activeCategory && (
+                  <span className="text-slate-400 font-normal ml-1">
+                    · {categories.find((c) => c.slug === activeCategory)?.name}
+                  </span>
+                )}
               </p>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <button
                   onClick={() => setShowFilters(true)}
-                  className="lg:hidden flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-sm font-medium text-slate-600 hover:border-primary hover:text-primary transition-colors shadow-sm"
+                  className="md:hidden flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-sm font-medium text-slate-600 hover:border-primary hover:text-primary transition-colors shadow-sm"
                 >
                   <SlidersHorizontal className="w-4 h-4" />
-                  Filtros
+                  {tp('filters_button')}
                 </button>
                 <div className="relative">
                   <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-sm font-medium text-slate-600 shadow-sm cursor-pointer hover:border-slate-300 transition-colors">
@@ -160,30 +144,30 @@ export function ActivitiesResults({ activities, categories, filters }: Activitie
             {activities.length === 0 ? (
               <div className="text-center py-20">
                 <div className="text-5xl mb-4">🔍</div>
-                <h3 className="text-lg font-bold text-slate-900 mb-2">No encontramos actividades</h3>
-                <p className="text-slate-500 text-sm mb-6">Prueba con otros términos o elimina los filtros.</p>
+                <h3 className="text-lg font-bold text-slate-900 mb-2">{tp('no_results_title')}</h3>
+                <p className="text-slate-500 text-sm mb-6">{tp('no_results_desc')}</p>
                 <button onClick={() => router.push('/activities')} className="text-sm font-semibold text-primary hover:underline">
-                  Ver todas las actividades
+                  {tp('no_results_cta')}
                 </button>
               </div>
             ) : view === 'list' ? (
-              <div className="space-y-4">
+              <Reveal className="space-y-4">
                 {activities.map((activity) => <ActivityCard key={activity.id} activity={activity} compact />)}
-              </div>
+              </Reveal>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+              <Reveal className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 {activities.map((activity) => <ActivityCard key={activity.id} activity={activity} />)}
-              </div>
+              </Reveal>
             )}
           </div>
         </div>
       </div>
 
       {showFilters && (
-        <div className="fixed inset-0 z-50 lg:hidden">
+        <div className="fixed inset-0 z-50 md:hidden">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowFilters(false)} />
-          <div className="absolute right-0 top-0 bottom-0 w-80 bg-white shadow-2xl overflow-y-auto p-6">
-            <ActivityFilters onClose={() => setShowFilters(false)} />
+          <div className="absolute right-0 top-0 bottom-0 w-[min(85vw,320px)] bg-white shadow-2xl overflow-y-auto p-5 sm:p-6">
+            <ActivityFilters categories={categories} values={filters} onChange={pushFilters} onClose={() => setShowFilters(false)} />
           </div>
         </div>
       )}

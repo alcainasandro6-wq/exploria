@@ -101,7 +101,7 @@ BEGIN
 
   INSERT INTO public.activity_images (activity_id, url, alt, is_cover, sort_order) VALUES
     (v_activity_id, 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1200&q=80', 'Catamarán en la Costa Blanca', true, 0),
-    (v_activity_id, 'https://images.unsplash.com/photo-1500036064239-3c6ba8153123?w=1200&q=80', 'Vista al mar Mediterráneo', false, 1),
+    (v_activity_id, 'https://images.unsplash.com/photo-1439405326854-014607f694d7?w=1200&q=80', 'Vista al mar Mediterráneo', false, 1),
     (v_activity_id, 'https://images.unsplash.com/photo-1519046904884-53103b34b206?w=1200&q=80', 'Baño en cala de aguas cristalinas', false, 2);
 
   -- ── 2. Kayak por las Salinas de Torrevieja ──

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import Image from 'next/image'
 import useEmblaCarousel from 'embla-carousel-react'
-import { X, ChevronLeft, ChevronRight, Images, PlayCircle } from 'lucide-react'
+import { X, ChevronLeft, ChevronRight, Images, PlayCircle, ImageOff } from 'lucide-react'
 import type { ActivityImage } from '@/types/database'
 
 interface ActivityGalleryProps {
@@ -16,6 +16,10 @@ export function ActivityGallery({ images, title, videoUrl }: ActivityGalleryProp
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [startIndex, setStartIndex] = useState(0)
   const [emblaRef, emblaApi] = useEmblaCarousel({ startIndex, loop: true })
+  // A dead image URL (deleted file, broken hotlink) shouldn't leave a blank
+  // hole in the grid — swap it for a neutral placeholder instead.
+  const [brokenIds, setBrokenIds] = useState<Set<string>>(new Set())
+  const markBroken = (id: string) => setBrokenIds((prev) => new Set(prev).add(id))
 
   const sorted = [...images].sort((a, b) => (b.is_cover ? 1 : 0) - (a.is_cover ? 1 : 0) || a.sort_order - b.sort_order)
   const cover = sorted[0]
@@ -50,17 +54,44 @@ export function ActivityGallery({ images, title, videoUrl }: ActivityGalleryProp
 
   return (
     <>
-      <div className="grid grid-cols-2 sm:grid-cols-4 grid-rows-2 gap-1.5 sm:gap-2 rounded-2xl overflow-hidden mb-8 h-72 sm:h-80 md:h-96">
+      <div className="relative grid grid-cols-2 sm:grid-cols-4 grid-rows-2 gap-1.5 sm:gap-2 rounded-2xl overflow-hidden mb-8 h-72 sm:h-80 md:h-96">
         <button
           onClick={() => openAt(0)}
-          className="col-span-2 row-span-2 relative group"
+          className="col-span-2 row-span-2 relative group bg-slate-100"
         >
-          <Image src={cover.url} alt={cover.alt || title} fill sizes="(max-width: 640px) 100vw, 50vw" className="object-cover" priority />
+          {brokenIds.has(cover.id) ? (
+            <div className="absolute inset-0 flex items-center justify-center text-slate-300">
+              <ImageOff className="w-10 h-10" />
+            </div>
+          ) : (
+            <Image
+              src={cover.url}
+              alt={cover.alt || title}
+              fill
+              sizes="(max-width: 640px) 100vw, 50vw"
+              className="object-cover"
+              priority
+              onError={() => markBroken(cover.id)}
+            />
+          )}
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
         </button>
         {rest.map((image, idx) => (
-          <button key={image.id} onClick={() => openAt(idx + 1)} className="relative hidden sm:block group">
-            <Image src={image.url} alt={image.alt || title} fill sizes="25vw" className="object-cover" />
+          <button key={image.id} onClick={() => openAt(idx + 1)} className="relative hidden sm:block group bg-slate-100">
+            {brokenIds.has(image.id) ? (
+              <div className="absolute inset-0 flex items-center justify-center text-slate-300">
+                <ImageOff className="w-6 h-6" />
+              </div>
+            ) : (
+              <Image
+                src={image.url}
+                alt={image.alt || title}
+                fill
+                sizes="25vw"
+                className="object-cover"
+                onError={() => markBroken(image.id)}
+              />
+            )}
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
             {idx === rest.length - 1 && sorted.length > 5 && (
               <div className="absolute inset-0 bg-black/45 flex items-center justify-center">
@@ -100,7 +131,13 @@ export function ActivityGallery({ images, title, videoUrl }: ActivityGalleryProp
             <div className="flex h-full">
               {sorted.map((image) => (
                 <div key={image.id} className="relative shrink-0 grow-0 basis-full h-full">
-                  <Image src={image.url} alt={image.alt || title} fill sizes="100vw" className="object-contain" />
+                  {brokenIds.has(image.id) ? (
+                    <div className="absolute inset-0 flex items-center justify-center text-slate-600">
+                      <ImageOff className="w-12 h-12" />
+                    </div>
+                  ) : (
+                    <Image src={image.url} alt={image.alt || title} fill sizes="100vw" className="object-contain" onError={() => markBroken(image.id)} />
+                  )}
                 </div>
               ))}
             </div>

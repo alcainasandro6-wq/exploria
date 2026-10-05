@@ -1,6 +1,6 @@
 export type UserRole = 'customer' | 'hotel' | 'provider' | 'admin'
 export type SubscriptionStatus = 'active' | 'suspended' | 'expired' | 'cancelled' | 'trialing'
-export type SubscriptionPlan = 'basic' | 'pro' | 'premium'
+export type SubscriptionPlan = 'free' | 'basic' | 'pro' | 'premium'
 
 // Expanded reservation status — matches state machine
 export type ReservationStatus =
@@ -24,7 +24,14 @@ export const VALID_TRANSITIONS: Record<ReservationStatus, ReservationStatus[]> =
   no_show:   [],
 }
 
-export type ReservationSource = 'qr' | 'web' | 'direct'
+export type ReservationSource = 'qr' | 'web' | 'direct' | 'concierge'
+export type ProviderTier = 'registered' | 'verified' | 'premium'
+export type TuriTopConnectionStatus = 'unverified' | 'ok' | 'error'
+export type IncidentType =
+  | 'provider_cancelled' | 'customer_no_show' | 'different_activity' | 'weather'
+  | 'overbooking' | 'refund_requested' | 'reschedule' | 'poor_experience' | 'other'
+export type IncidentStatus = 'open' | 'investigating' | 'resolved' | 'dismissed'
+export type ReservationPaymentStatus = 'unpaid' | 'paid' | 'refunded' | 'partially_refunded'
 export type ActivityStatus = 'draft' | 'pending_review' | 'published' | 'suspended' | 'archived'
 export type ExternalBookingPlatform = 'bokun' | 'turitop' | 'civitatis' | 'getyourguide' | 'clickandboat' | 'other'
 export type CouponDiscountType = 'percent' | 'fixed'
@@ -90,8 +97,19 @@ export interface Provider {
   logo_url: string | null
   website: string | null
   commission_rate: number
+  turitop_company_code: string | null
   is_verified: boolean
   is_active: boolean
+  tier: ProviderTier
+  internal_notes: string | null
+  stripe_connect_account_id: string | null
+  stripe_connect_onboarded: boolean
+  referral_code: string | null
+  referred_by_provider_id: string | null
+  turitop_has_key: boolean
+  turitop_connection_status: TuriTopConnectionStatus
+  turitop_connection_error: string | null
+  turitop_connected_at: string | null
   created_at: string
   updated_at: string
   subscription?: ProviderSubscription
@@ -168,6 +186,8 @@ export interface Activity {
   extra_info: { title: string; content: string }[]
   booking_widget_embed_code: string | null
   external_booking_platform: ExternalBookingPlatform | null
+  turitop_service_code: string | null
+  turitop_product_id: string | null
   admin_feedback: string | null
   translations: Record<string, { title: string; short_description: string; description: string }>
   status: ActivityStatus
@@ -205,6 +225,8 @@ export interface Reservation {
   total_price: number
   status: ReservationStatus
   source: ReservationSource
+  payment_status: ReservationPaymentStatus
+  stripe_payment_intent_id: string | null
   notes: string | null
   provider_notes: string | null
   hotel_commission: number
@@ -224,6 +246,8 @@ export interface Reservation {
   provider?: Provider
 }
 
+export type CommissionStatus = 'pending' | 'liquidable' | 'held' | 'paid' | 'cancelled'
+
 export interface Commission {
   id: string
   reservation_id: string
@@ -232,9 +256,63 @@ export interface Commission {
   hotel_commission_amount: number
   platform_commission_amount: number
   total_amount: number
-  status: 'pending' | 'paid' | 'cancelled'
+  status: CommissionStatus
   paid_at: string | null
+  liquidable_at: string | null
+  held_for_incident_id: string | null
   created_at: string
+}
+
+export interface Incident {
+  id: string
+  reservation_id: string
+  type: IncidentType
+  status: IncidentStatus
+  description: string
+  resolution: string | null
+  refund_amount: number | null
+  reported_by: string | null
+  created_at: string
+  resolved_at: string | null
+  // Joins
+  reservation?: Reservation
+}
+
+export type ProviderApplicationStatus = 'new' | 'contacted' | 'approved' | 'rejected'
+
+export interface ProviderApplication {
+  id: string
+  company_name: string
+  contact_name: string
+  email: string
+  phone: string | null
+  activities_description: string | null
+  website: string | null
+  referral_code: string | null
+  status: ProviderApplicationStatus
+  admin_notes: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface Pack {
+  id: string
+  slug: string
+  title: string
+  subtitle: string | null
+  image_url: string | null
+  badge: string | null
+  sort_order: number
+  is_active: boolean
+  created_at: string
+  updated_at: string
+  activities?: Activity[]
+}
+
+export interface PackActivity {
+  pack_id: string
+  activity_id: string
+  sort_order: number
 }
 
 export interface Review {
@@ -398,6 +476,31 @@ export interface PlatformStats {
   mrr_eur: number
 }
 
+export interface AdminFinancialStats {
+  sales_today: number
+  sales_this_month: number
+  avg_ticket: number
+  platform_commission_earned: number
+  pending_to_providers: number
+  pending_to_hotels: number
+  cancellations_count: number
+  refunds_count: number
+}
+
+export interface AdminTopActivity {
+  activity_id: string
+  title: string
+  city: string
+  reservations_count: number
+  revenue: number
+}
+
+export interface AdminTopDestination {
+  city: string
+  reservations_count: number
+  revenue: number
+}
+
 // =====================================================
 // DATABASE TYPE MAP
 // Supabase requires Row + Insert + Update per table.
@@ -438,6 +541,10 @@ export interface Database {
       blog_posts:             TableOf<BlogPost>
       coupons:                TableOf<Coupon>
       payments:               TableOf<Payment>
+      packs:                  TableOf<Pack>
+      pack_activities:        TableOf<PackActivity>
+      incidents:              TableOf<Incident>
+      provider_applications:  TableOf<ProviderApplication>
     }
     Views: {
       public_review_authors: {
@@ -477,6 +584,18 @@ export interface Database {
       get_platform_stats: {
         Args: Record<string, never>
         Returns: PlatformStats[]
+      }
+      get_admin_financial_stats: {
+        Args: { p_from?: string | null; p_to?: string | null; p_city?: string | null; p_provider_id?: string | null }
+        Returns: AdminFinancialStats[]
+      }
+      get_admin_top_activities: {
+        Args: { p_from?: string | null; p_to?: string | null; p_city?: string | null; p_limit?: number }
+        Returns: AdminTopActivity[]
+      }
+      get_admin_top_destinations: {
+        Args: { p_from?: string | null; p_to?: string | null; p_limit?: number }
+        Returns: AdminTopDestination[]
       }
       provider_has_active_subscription: {
         Args: { p_provider_id: string }

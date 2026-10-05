@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { getTranslations } from 'next-intl/server'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader'
 import { StatCard } from '@/components/dashboard/StatCard'
@@ -22,6 +23,8 @@ export default async function AdminCommissionsPage() {
   if (!user) redirect('/auth/login')
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   if (profile?.role !== 'admin') redirect('/dashboard')
+
+  const t = await getTranslations('admin_commissions_page')
 
   const [{ data }, { data: payments }] = await Promise.all([
     supabase
@@ -51,29 +54,29 @@ export default async function AdminCommissionsPage() {
   return (
     <DashboardLayout role="admin">
       <DashboardHeader
-        title="Comisiones y facturación"
-        subtitle="Liquidaciones a proveedores y hoteles + facturas de suscripción"
-        action={<ExportButtons data={exportData} filename="comisiones" title="Comisiones — BookActivities" />}
+        title={t('title')}
+        subtitle={t('subtitle')}
+        action={<ExportButtons data={exportData} filename="comisiones" title={`${t('export_title')} — BookActivities`} />}
       />
 
       <div className="grid grid-cols-3 gap-5 mb-6">
-        <StatCard icon={DollarSign} label="Pendiente de liquidar" value={formatPrice(pendingTotal)} color="amber" />
-        <StatCard icon={DollarSign} label="Liquidado" value={formatPrice(paidTotal)} color="emerald" />
-        <StatCard icon={DollarSign} label="Ingresos por suscripciones" value={formatPrice(mrr)} color="blue" />
+        <StatCard icon={DollarSign} label={t('stat_pending')} value={formatPrice(pendingTotal)} color="amber" />
+        <StatCard icon={DollarSign} label={t('stat_paid')} value={formatPrice(paidTotal)} color="emerald" />
+        <StatCard icon={DollarSign} label={t('stat_subscription_revenue')} value={formatPrice(mrr)} color="blue" />
       </div>
 
       <Card className="mb-6">
-        <CardHeader><CardTitle>Comisiones por reserva</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t('commissions_by_reservation_title')}</CardTitle></CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-100">
-                  <th className="text-left py-2 px-4 text-xs font-semibold text-slate-500 uppercase">Reserva</th>
-                  <th className="text-left py-2 px-4 text-xs font-semibold text-slate-500 uppercase">Proveedor</th>
-                  <th className="text-left py-2 px-4 text-xs font-semibold text-slate-500 uppercase">Hotel</th>
-                  <th className="text-left py-2 px-4 text-xs font-semibold text-slate-500 uppercase">Total comisión</th>
-                  <th className="text-left py-2 px-4 text-xs font-semibold text-slate-500 uppercase">Estado</th>
+                  <th className="text-left py-2 px-4 text-xs font-semibold text-slate-500 uppercase">{t('column_reservation')}</th>
+                  <th className="text-left py-2 px-4 text-xs font-semibold text-slate-500 uppercase">{t('column_provider')}</th>
+                  <th className="text-left py-2 px-4 text-xs font-semibold text-slate-500 uppercase">{t('column_hotel')}</th>
+                  <th className="text-left py-2 px-4 text-xs font-semibold text-slate-500 uppercase">{t('column_total_commission')}</th>
+                  <th className="text-left py-2 px-4 text-xs font-semibold text-slate-500 uppercase">{t('column_status')}</th>
                   <th className="text-left py-2 px-4 text-xs font-semibold text-slate-500 uppercase"></th>
                 </tr>
               </thead>
@@ -86,16 +89,16 @@ export default async function AdminCommissionsPage() {
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>Facturas de suscripción</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t('subscription_invoices_title')}</CardTitle></CardHeader>
         <CardContent>
           {(payments ?? []).length === 0 ? (
-            <p className="text-sm text-slate-400 py-6 text-center">Todavía no hay facturas.</p>
+            <p className="text-sm text-slate-400 py-6 text-center">{t('empty_invoices')}</p>
           ) : (
             <div className="space-y-2">
               {(payments ?? []).map((p) => (
                 <div key={p.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
                   <div>
-                    <p className="text-sm font-medium text-slate-900">{p.provider?.company_name} — {p.description || 'Suscripción'}</p>
+                    <p className="text-sm font-medium text-slate-900">{p.provider?.company_name} — {p.description || t('subscription_fallback')}</p>
                     <p className="text-xs text-slate-400">{formatDate(p.created_at)}</p>
                   </div>
                   <span className="text-sm font-bold text-slate-900">{formatPrice(Number(p.amount))}</span>

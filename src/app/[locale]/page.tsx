@@ -1,11 +1,11 @@
 import { Hero } from '@/components/home/Hero'
-import { WhyChooseUs } from '@/components/home/WhyChooseUs'
 import { FeaturedActivities } from '@/components/home/FeaturedActivities'
+import { PacksSection } from '@/components/home/PacksSection'
 import { BlogSection } from '@/components/home/BlogSection'
-import { StatsSection } from '@/components/home/StatsSection'
 import { ProviderCTA } from '@/components/home/ProviderCTA'
+import { getActivePacks } from '@/lib/services/packs'
 import type { Metadata } from 'next'
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 export async function generateMetadata({
   params,
@@ -16,18 +16,26 @@ export async function generateMetadata({
   const t = await getTranslations({ locale, namespace: 'home' })
   return {
     title: 'BookActivities - Actividades turísticas en Torrevieja',
-    description: t('hero_subtitle'),
+    description: t.markup('hero_subtitle', { bold: (chunks) => chunks }),
   }
 }
 
-export default function HomePage() {
+export default async function HomePage({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}) {
+  const { locale } = await params
+  setRequestLocale(locale)
+
+  const packs = await getActivePacks()
+
   return (
     <>
       <Hero />
-      <WhyChooseUs />
       <FeaturedActivities />
+      <PacksSection packs={packs} />
       <BlogSection />
-      <StatsSection />
       <ProviderCTA />
     </>
   )

@@ -2,8 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { ShieldCheck, Clock, Headset } from 'lucide-react'
-import { buttonVariants } from '@/components/ui/button'
-import { Link } from '@/i18n/navigation'
 import { cn } from '@/lib/utils'
 
 const REASONS = [
@@ -17,7 +15,7 @@ const REASONS = [
     num: '02',
     icon: Clock,
     title: 'Cancelación flexible',
-    desc: 'La mayoría de actividades admiten cancelación gratuita hasta 24-48h antes. Reserva sin miedo a imprevistos.',
+    desc: 'La mayoría de actividades admiten cancelación gratuita hasta 24–48 h antes. Reserva sin miedo a imprevistos.',
   },
   {
     num: '03',
@@ -41,60 +39,52 @@ export function WhyChooseUs() {
           observer.disconnect()
         }
       },
-      { threshold: 0.15 }
+      { threshold: 0.1 }
     )
     observer.observe(el)
     return () => observer.disconnect()
   }, [])
 
   return (
-    <section ref={sectionRef} className="py-24 bg-white overflow-hidden">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div
-          className={cn(
-            'text-center mb-16 transition-all duration-700 ease-out',
-            visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-          )}
-        >
-          <h2 className="text-3xl md:text-4xl font-semibold text-black tracking-tight">¿Por qué elegirnos?</h2>
-          <div className="h-px w-16 bg-black/20 mx-auto mt-5" />
+    <section ref={sectionRef} className="why-section">
+      {/* Top strip — off-white */}
+      <div className="why-top">
+        <div className="why-container">
+          <div className="why-header">
+            <p className="why-label">Por qué elegirnos</p>
+            <h2 className="why-title">
+              Una forma más<br />sencilla de reservar
+            </h2>
+          </div>
+          <p className="why-intro">
+            Trabajamos solo con proveedores verificados y sin intermediarios en el pago,
+            para que cada reserva se sienta tan segura como reservar directamente.
+          </p>
         </div>
+      </div>
 
-        <div className="grid sm:grid-cols-3 gap-7">
-          {REASONS.map(({ num, icon: Icon, title, desc }, i) => (
-            <div
-              key={num}
-              style={{ transitionDelay: visible ? `${i * 140}ms` : '0ms' }}
-              className={cn(
-                'group relative bg-white rounded-2xl border border-slate-200 p-8 pt-10',
-                'transition-all duration-500 ease-out will-change-transform',
-                'hover:-translate-y-1.5 hover:border-black hover:shadow-[0_16px_40px_rgba(0,0,0,0.08)]',
-                visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-              )}
-            >
-              <span className="absolute top-4 right-5 text-xs font-semibold text-slate-300 tracking-wide">
-                {num}
-              </span>
+      {/* Cards strip — dark */}
+      <div className="why-dark">
+        <div className="why-container">
+          <div className="why-grid">
+            {REASONS.map(({ num, icon: Icon, title, desc }, i) => (
               <div
+                key={num}
+                style={{ transitionDelay: visible ? `${i * 130}ms` : '0ms' }}
                 className={cn(
-                  'w-14 h-14 rounded-full border border-slate-200 flex items-center justify-center mb-6',
-                  'transition-colors duration-300 ease-out group-hover:bg-black group-hover:border-black'
+                  'why-card',
+                  visible ? 'why-card--visible' : 'why-card--hidden'
                 )}
               >
-                <Icon className="w-6 h-6 text-black transition-colors duration-300 group-hover:text-white" />
+                <span className="why-num" aria-hidden="true">{num}</span>
+                <div className="why-icon-wrap">
+                  <Icon className="why-icon" />
+                </div>
+                <h3 className="why-card-title">{title}</h3>
+                <p className="why-card-desc">{desc}</p>
               </div>
-              <h3 className="font-semibold text-lg text-black mb-2.5">{title}</h3>
-              <p className="text-[15px] text-slate-500 leading-relaxed">{desc}</p>
-
-              <div className="absolute inset-x-0 bottom-0 h-px bg-black scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-500 ease-out" />
-            </div>
-          ))}
-        </div>
-
-        <div className="text-center mt-12">
-          <Link href="/activities" className={cn(buttonVariants({ variant: 'outline' }), 'rounded-full text-sm font-semibold px-6 py-3')}>
-            Nuestros servicios →
-          </Link>
+            ))}
+          </div>
         </div>
       </div>
     </section>

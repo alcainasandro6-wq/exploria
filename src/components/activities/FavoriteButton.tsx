@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from 'react'
 import { Heart } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import { useRouter } from '@/i18n/navigation'
 import { cn } from '@/lib/utils'
 import { toggleFavoriteAction } from '@/app/actions/customer'
 import { toast } from 'sonner'
@@ -13,6 +15,8 @@ interface FavoriteButtonProps {
 }
 
 export function FavoriteButton({ activityId, className, initialFavorited = false }: FavoriteButtonProps) {
+  const t = useTranslations('a11y')
+  const router = useRouter()
   const [favorited, setFavorited] = useState(initialFavorited)
   const [pending, startTransition] = useTransition()
 
@@ -23,7 +27,7 @@ export function FavoriteButton({ activityId, className, initialFavorited = false
       const res = await toggleFavoriteAction(activityId)
       if (!res.success) {
         if (res.error === 'Not authenticated') {
-          window.location.href = '/auth/login'
+          router.push('/auth/login')
           return
         }
         toast.error(res.error)
@@ -38,7 +42,7 @@ export function FavoriteButton({ activityId, className, initialFavorited = false
       onClick={handleClick}
       disabled={pending}
       className={cn('w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white hover:scale-110 transition-all shadow', className)}
-      aria-label="Guardar en favoritos"
+      aria-label={t('favorite_save')}
     >
       <Heart className={cn('w-3.5 h-3.5 transition-colors', favorited ? 'text-rose-500 fill-rose-500' : 'text-slate-400 hover:text-rose-500')} />
     </button>

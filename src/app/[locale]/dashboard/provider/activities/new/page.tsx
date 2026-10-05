@@ -13,7 +13,7 @@ export default async function NewActivityPage() {
 
   const { data: provider } = await supabase
     .from('providers')
-    .select('id')
+    .select('id, turitop_company_code')
     .eq('profile_id', user.id)
     .single()
   if (!provider) redirect('/dashboard/provider')
@@ -35,7 +35,7 @@ export default async function NewActivityPage() {
           }}
         />
       )}
-      <ActivityEditorForm providerId={provider.id} categories={categories} activity={null} />
+      <ActivityEditorForm providerId={provider.id} categories={categories} activity={null} providerTuritopCode={provider.turitop_company_code} />
     </DashboardLayout>
   )
 }

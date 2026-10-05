@@ -1,10 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { Copy, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export function CopyableCode({ value, truncate = false }: { value: string; truncate?: boolean }) {
+  const t = useTranslations('hotel_copyable_code')
   const [copied, setCopied] = useState(false)
 
   const handleCopy = () => {
@@ -14,7 +16,7 @@ export function CopyableCode({ value, truncate = false }: { value: string; trunc
   }
 
   return (
-    <button onClick={handleCopy} className="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 rounded-xl px-4 py-3 w-full transition-colors">
+    <button onClick={handleCopy} aria-label={t('copy_label')} className="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 rounded-xl px-4 py-3 w-full transition-colors">
       <code className={cn('flex-1 text-left text-sm font-mono font-bold text-primary', truncate && 'text-xs font-normal text-slate-600 truncate')}>
         {value}
       </code>
