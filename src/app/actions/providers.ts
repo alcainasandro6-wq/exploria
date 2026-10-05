@@ -265,6 +265,34 @@ export async function deleteActivityAction(activityId: string) {
   return { success: true }
 }
 
+// Hard delete — only allowed when the activity has no reservations at all
+// (reservation history must be preserved; archive instead in that case).
+export async function permanentlyDeleteActivityAction(activityId: string): Promise<{ success: boolean; error?: string; code?: string }> {
+  const { providerId } = await requireProviderAuth()
+  const supabase = await createClient()
+
+  const { data: activity } = await supabase
+    .from('activities')
+    .select('id, provider_id')
+    .eq('id', activityId)
+    .single()
+  if (!activity) return { success: false, error: 'Activity not found' }
+  if (activity.provider_id !== providerId) return { success: false, error: 'Not your activity' }
+
+  const { count } = await supabase
+    .from('reservations')
+    .select('id', { count: 'exact', head: true })
+    .eq('activity_id', activityId)
+  if ((count ?? 0) > 0) return { success: false, error: 'Has reservations', code: 'has_reservations' }
+
+  const { error } = await supabase.from('activities').delete().eq('id', activityId).eq('provider_id', providerId)
+  if (error) return { success: false, error: error.message }
+
+  revalidatePath('/dashboard/provider/activities')
+  revalidatePath('/activities')
+  return { success: true }
+}
+
 // Get provider's own activities
 export interface ProviderActivitySummary {
   id: string
@@ -280,11 +308,11 @@ export interface ProviderActivitySummary {
   images: { url: string; is_cover: boolean }[]
 }
 
-export async function getProviderActivitiesAction() {
+export async function getProviderActivitiesAction(opts: { archived?: boolean } = {}) {
   const { providerId } = await requireProviderAuth()
   const supabase = await createClient()
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('activities')
     .select(`
       id, title, slug, status, price_from, duration_minutes, booking_count, rating,
@@ -292,8 +320,9 @@ export async function getProviderActivitiesAction() {
       images:activity_images(url, is_cover)
     `)
     .eq('provider_id', providerId)
-    .neq('status', 'archived')
     .order('created_at', { ascending: false })
+  query = opts.archived ? query.eq('status', 'archived') : query.neq('status', 'archived')
+  const { data, error } = await query
 
   if (error) return { success: false, error: error.message, activities: [] as ProviderActivitySummary[] }
   return { success: true, activities: (data ?? []) as unknown as ProviderActivitySummary[] }

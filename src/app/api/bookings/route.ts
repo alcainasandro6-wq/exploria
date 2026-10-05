@@ -26,10 +26,25 @@ export async function POST(request: NextRequest) {
   if (!activity_id || !activity_date || !activity_time || !participants) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
   }
+  if (typeof activity_id !== 'string' || typeof activity_time !== 'string' || !/^\d{2}:\d{2}$/.test(activity_time)) {
+    return NextResponse.json({ error: 'Invalid time' }, { status: 400 })
+  }
+  if (typeof activity_date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(activity_date) || Number.isNaN(Date.parse(activity_date))) {
+    return NextResponse.json({ error: 'Invalid date' }, { status: 400 })
+  }
+  if (activity_date < new Date().toISOString().split('T')[0]) {
+    return NextResponse.json({ error: 'The date is in the past' }, { status: 400 })
+  }
+  if (!Number.isInteger(participants) || participants < 1 || participants > 200) {
+    return NextResponse.json({ error: 'Invalid number of participants' }, { status: 400 })
+  }
+  if (notes != null && (typeof notes !== 'string' || notes.length > 2000)) {
+    return NextResponse.json({ error: 'Invalid notes' }, { status: 400 })
+  }
 
   const { data: activity, error: activityError } = await supabase
     .from('activities')
-    .select('id, title, provider_id, price_from, status')
+    .select('id, title, provider_id, price_from, status, min_participants, max_participants')
     .eq('id', activity_id)
     .eq('status', 'published')
     .single()
@@ -48,6 +63,10 @@ export async function POST(request: NextRequest) {
 
   if (!subscription) {
     return NextResponse.json({ error: 'Provider subscription is not active' }, { status: 400 })
+  }
+
+  if (participants < activity.min_participants || participants > activity.max_participants) {
+    return NextResponse.json({ error: 'Invalid number of participants' }, { status: 400 })
   }
 
   let hotel_id = null

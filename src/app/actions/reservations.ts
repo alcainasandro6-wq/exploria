@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import Stripe from 'stripe'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import {
   createReservation,
   transitionReservation,
@@ -29,7 +30,8 @@ async function refundReservationIfPaid(reservationId: string) {
 
   try {
     await stripe.refunds.create({ payment_intent: res.stripe_payment_intent_id })
-    await supabase
+    // payment_status is locked for ordinary users at DB level; use the service role.
+    await createAdminClient()
       .from('reservations')
       .update({ payment_status: 'refunded' })
       .eq('id', reservationId)

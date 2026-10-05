@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader'
+import { ActivityManageButtons } from '@/components/dashboard/provider/ActivityManageButtons'
 import { SubscriptionBanner } from '@/components/dashboard/provider/SubscriptionBanner'
 import { Eye, Star, Calendar, PlusCircle, Edit2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
@@ -21,7 +22,12 @@ const STATUS_STYLES: Record<string, string> = {
   archived: 'bg-slate-100 text-slate-500',
 }
 
-export default async function ProviderActivitiesPage() {
+export default async function ProviderActivitiesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ archived?: string }>
+}) {
+  const showArchived = (await searchParams).archived === '1'
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
@@ -40,7 +46,7 @@ export default async function ProviderActivitiesPage() {
   }
 
   const [{ activities }, subscription, usage] = await Promise.all([
-    getProviderActivitiesAction(),
+    getProviderActivitiesAction({ archived: showArchived }),
     getProviderSubscription(provider.id),
     getSubscriptionUsage(provider.id),
   ])
@@ -73,8 +79,13 @@ export default async function ProviderActivitiesPage() {
         }
       />
 
+      <div className="flex gap-1 mb-5 bg-slate-100 rounded-xl p-1 w-fit">
+        <Link href="/dashboard/provider/activities" className={cn('px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors', !showArchived ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700')}>{t('tab_active')}</Link>
+        <Link href="/dashboard/provider/activities?archived=1" className={cn('px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors', showArchived ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700')}>{t('tab_archived')}</Link>
+      </div>
+
       {activities.length === 0 ? (
-        <Card><CardContent className="p-10 text-center text-slate-400">{t('empty_state')}</CardContent></Card>
+        <Card><CardContent className="p-10 text-center text-slate-400">{showArchived ? t('empty_archived') : t('empty_state')}</CardContent></Card>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
           {activities.map((activity) => {
@@ -109,6 +120,7 @@ export default async function ProviderActivitiesPage() {
                       <Edit2 className="w-3.5 h-3.5" />
                       {t('edit_button')}
                     </Link>
+                    <ActivityManageButtons activityId={activity.id} status={activity.status} />
                     {activity.status === 'published' && (
                       <Link href={`/activities/${activity.slug}`} target="_blank" className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'gap-1.5')}>
                         <Eye className="w-3.5 h-3.5" />

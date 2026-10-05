@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import {
-  Save, Send, Plus, X, Upload, Languages,
+  Save, Send, Plus, X, Upload,
   MapPin, Clock, Users, DollarSign, Globe, Shield, Image as ImageIcon,
   Loader2, CheckCircle2, AlertCircle, Map, Video, HelpCircle, PlugZap, Trash2, Star, Building2
 } from 'lucide-react'
@@ -29,7 +29,7 @@ import { uploadActivityPhoto, uploadActivityVideo } from '@/lib/services/upload'
 import type { Category, ExternalBookingPlatform, Provider } from '@/types/database'
 import type { ActivityDetail } from '@/lib/services/activities'
 
-type Section = 'basic' | 'details' | 'location' | 'template' | 'media' | 'translations'
+type Section = 'basic' | 'details' | 'location' | 'template' | 'media'
 
 // Third-party platform brand names — not UI copy, left untranslated.
 const PLATFORM_BRAND_OPTIONS: { value: ExternalBookingPlatform; label: string }[] = [
@@ -306,7 +306,6 @@ export function ActivityEditorForm({ providerId, categories, activity, mode = 'p
     { key: 'location', label: t('section_location'), icon: MapPin },
     { key: 'template', label: t('section_template'), icon: PlugZap },
     { key: 'media', label: t('section_media'), icon: ImageIcon },
-    { key: 'translations', label: t('section_translations'), icon: Languages },
   ]
 
   const status = activity?.status ?? 'draft'
@@ -621,16 +620,6 @@ export function ActivityEditorForm({ providerId, categories, activity, mode = 'p
                   </div>
                 </>
               )}
-            </div>
-          )}
-
-          {activeSection === 'translations' && (
-            <div className="space-y-6">
-              <SectionHeader title={t('translations_section_title')} desc={t('translations_section_desc')} />
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
-                <Languages className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-                <p className="text-sm text-slate-600">{t('translations_info_text')}</p>
-              </div>
             </div>
           )}
 

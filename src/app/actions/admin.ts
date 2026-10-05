@@ -55,7 +55,8 @@ export async function adminCreateUserAction(input: AdminCreateUserInput) {
       email: input.email,
       password: input.password,
       email_confirm: true,
-      user_metadata: { full_name: input.fullName, role: input.role },
+      user_metadata: { full_name: input.fullName },
+      app_metadata: { role: input.role },
     })
     if (error) return { success: false, error: error.message }
 
