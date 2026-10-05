@@ -13,7 +13,7 @@ import type { Provider, TuriTopConnectionStatus } from '@/types/database'
 export function TuriTopConnectionCard({ provider }: { provider: Provider }) {
   const t = useTranslations('provider_turitop_card')
   const [apiKey, setApiKey] = useState('')
-  const [status, setStatus] = useState<TuriTopConnectionStatus>(provider.turitop_connection_status)
+  const [status, setStatus] = useState<TuriTopConnectionStatus>(provider.turitop_connection_status ?? 'unverified')
   const [error, setError] = useState(provider.turitop_connection_error)
   const [saving, setSaving] = useState(false)
 

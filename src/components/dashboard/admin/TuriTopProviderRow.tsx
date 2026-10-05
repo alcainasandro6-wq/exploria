@@ -26,9 +26,9 @@ const STATUS_META = {
 /** One provider row: connection status + paste-a-key-and-connect, no dialogs. */
 export function TuriTopProviderRow({ providerId, companyName, hasKey, status: initialStatus, error: initialError }: TuriTopProviderRowProps) {
   const t = useTranslations('admin_settings_page')
-  const [status, setStatus] = useState(initialStatus)
-  const [error, setError] = useState(initialError)
-  const [configured, setConfigured] = useState(hasKey)
+  const [status, setStatus] = useState<TuriTopConnectionStatus>(initialStatus ?? 'unverified')
+  const [error, setError] = useState(initialError ?? null)
+  const [configured, setConfigured] = useState(!!hasKey)
   const [apiKey, setApiKey] = useState('')
   const [saving, setSaving] = useState(false)
 

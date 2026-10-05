@@ -5,6 +5,18 @@
 -- readable by ANY visitor through the public REST API. The API key now lives
 -- in its own table that only the owning provider and admins can read.
 
+-- Ensure the connection-status columns from 023 exist (safe to re-run).
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'turitop_connection_status') THEN
+    CREATE TYPE turitop_connection_status AS ENUM ('unverified', 'ok', 'error');
+  END IF;
+END $$;
+
+ALTER TABLE providers ADD COLUMN IF NOT EXISTS turitop_connection_status turitop_connection_status NOT NULL DEFAULT 'unverified';
+ALTER TABLE providers ADD COLUMN IF NOT EXISTS turitop_connection_error TEXT;
+ALTER TABLE providers ADD COLUMN IF NOT EXISTS turitop_connected_at TIMESTAMPTZ;
+
 CREATE TABLE IF NOT EXISTS provider_turitop_credentials (
   provider_id UUID PRIMARY KEY REFERENCES providers(id) ON DELETE CASCADE,
   api_key     TEXT NOT NULL,

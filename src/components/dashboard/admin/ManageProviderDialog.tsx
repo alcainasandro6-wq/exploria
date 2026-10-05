@@ -26,7 +26,7 @@ export function ManageProviderDialog({ open, onOpenChange, provider }: ManagePro
   const [internalNotes, setInternalNotes] = useState(provider.internal_notes ?? '')
   const [saving, setSaving] = useState(false)
   const [turitopKey, setTuritopKey] = useState('')
-  const [turitopStatus, setTuritopStatus] = useState<TuriTopConnectionStatus>(provider.turitop_connection_status)
+  const [turitopStatus, setTuritopStatus] = useState<TuriTopConnectionStatus>(provider.turitop_connection_status ?? 'unverified')
   const [turitopError, setTuritopError] = useState(provider.turitop_connection_error)
   const [turitopSaving, setTuritopSaving] = useState(false)
 
