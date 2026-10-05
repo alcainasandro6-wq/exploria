@@ -76,25 +76,25 @@ export default async function ProviderActivitiesPage() {
       {activities.length === 0 ? (
         <Card><CardContent className="p-10 text-center text-slate-400">{t('empty_state')}</CardContent></Card>
       ) : (
-        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
           {activities.map((activity) => {
             const cover = activity.images?.find((i) => i.is_cover)?.url ?? activity.images?.[0]?.url
             return (
               <Card key={activity.id} className="overflow-hidden flex flex-col hover:shadow-md transition-shadow">
-                <div className="relative aspect-[16/10] bg-slate-100">
+                <div className="relative h-36 shrink-0 bg-slate-100 overflow-hidden">
                   {cover ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={cover} alt={activity.title} className="w-full h-full object-cover" />
+                    <img src={cover} alt={activity.title} className="absolute inset-0 w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-slate-300 text-4xl">🏝️</div>
                   )}
-                  <span className={cn('absolute top-3 left-3 text-xs font-semibold px-2.5 py-1 rounded-full', STATUS_STYLES[activity.status])}>
+                  <span className={cn('absolute top-2.5 left-2.5 text-[11px] font-semibold px-2 py-0.5 rounded-full', STATUS_STYLES[activity.status])}>
                     {STATUS_LABELS[activity.status] ?? activity.status}
                   </span>
                 </div>
-                <CardContent className="p-5 flex flex-col gap-3 flex-1">
+                <CardContent className="p-4 flex flex-col gap-3 flex-1">
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-slate-900 line-clamp-2">{activity.title}</h3>
+                    <h3 className="font-semibold text-sm text-slate-900 line-clamp-2 min-h-[2.5rem]">{activity.title}</h3>
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-xs text-slate-500">
                       <span className="font-semibold text-slate-700">{t('price_per_person', { price: activity.price_from })}</span>
                       {activity.duration_minutes && <span>{formatDuration(activity.duration_minutes)}</span>}
