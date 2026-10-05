@@ -36,7 +36,7 @@ export function PendingBookingRow({ booking }: { booking: Reservation }) {
   }
 
   return (
-    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
+    <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 bg-slate-50 rounded-xl">
       <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center shrink-0">
         <span className="text-purple-600 font-bold text-sm">{getInitials(booking.customer?.full_name || t('default_customer_name'))}</span>
       </div>

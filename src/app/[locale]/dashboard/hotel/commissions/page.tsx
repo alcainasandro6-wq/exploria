@@ -38,7 +38,7 @@ export default async function HotelCommissionsPage() {
     <DashboardLayout role="hotel">
       <DashboardHeader title={t('title')} subtitle={t('subtitle')} />
 
-      <div className="grid grid-cols-2 gap-5 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">
         <StatCard icon={DollarSign} label={t('stat_pending')} value={formatPrice(pendingTotal)} color="amber" />
         <StatCard icon={DollarSign} label={t('stat_paid')} value={formatPrice(paidTotal)} color="emerald" />
       </div>

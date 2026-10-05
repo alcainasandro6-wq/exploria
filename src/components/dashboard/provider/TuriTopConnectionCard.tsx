@@ -41,7 +41,7 @@ export function TuriTopConnectionCard({ provider }: { provider: Provider }) {
   }
 
   return (
-    <Card className="max-w-2xl">
+    <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
@@ -59,6 +59,8 @@ export function TuriTopConnectionCard({ provider }: { provider: Provider }) {
           <label className="text-sm font-medium text-slate-700">{t('field_api_key_label')}</label>
           <input
             type="password"
+            autoComplete="new-password"
+            name="turitop-api-key"
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
             placeholder={provider.turitop_has_key ? t('field_api_key_configured_placeholder') : t('field_api_key_placeholder')}

@@ -387,7 +387,7 @@ export function ActivityEditorForm({ providerId, categories, activity, mode = 'p
           {activeSection === 'details' && (
             <div className="space-y-6">
               <SectionHeader title={t('details_section_title')} desc={t('details_section_desc')} />
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Field label={t('field_price_label')} icon={<DollarSign className="w-4 h-4" />}><Input type="number" min="1" value={form.price_from} onChange={(e) => setForm((f) => ({ ...f, price_from: e.target.value }))} /></Field>
                 <Field label={t('field_duration_label')} icon={<Clock className="w-4 h-4" />}><Input type="number" min="30" step="30" value={form.duration_minutes} onChange={(e) => setForm((f) => ({ ...f, duration_minutes: e.target.value }))} /></Field>
                 <Field label={t('field_min_participants_label')} icon={<Users className="w-4 h-4" />}><Input type="number" min="1" value={form.min_participants} onChange={(e) => setForm((f) => ({ ...f, min_participants: e.target.value }))} /></Field>
@@ -460,14 +460,14 @@ export function ActivityEditorForm({ providerId, categories, activity, mode = 'p
           {activeSection === 'location' && (
             <div className="space-y-6">
               <SectionHeader title={t('location_section_title')} desc={t('location_section_desc')} />
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Field label={t('field_city_label')}><Input value={form.city} onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))} /></Field>
                 <Field label={t('field_country_label')}><Input value={form.country} onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))} /></Field>
               </div>
               <Field label={t('field_meeting_point_label')} icon={<MapPin className="w-4 h-4" />}>
                 <Input value={form.meeting_point} onChange={(e) => setForm((f) => ({ ...f, meeting_point: e.target.value }))} placeholder={t('field_meeting_point_placeholder')} />
               </Field>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Field label={t('field_latitude_label')}><Input value={form.latitude} onChange={(e) => setForm((f) => ({ ...f, latitude: e.target.value }))} placeholder="37.9781" /></Field>
                 <Field label={t('field_longitude_label')}><Input value={form.longitude} onChange={(e) => setForm((f) => ({ ...f, longitude: e.target.value }))} placeholder="-0.6782" /></Field>
               </div>

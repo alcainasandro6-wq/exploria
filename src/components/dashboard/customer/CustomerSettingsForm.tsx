@@ -27,9 +27,9 @@ export function CustomerSettingsForm({ profile }: { profile: Profile }) {
   }
 
   return (
-    <Card className="max-w-xl">
+    <Card>
       <CardHeader><CardTitle>{t('title')}</CardTitle></CardHeader>
-      <CardContent className="space-y-5">
+      <CardContent className="grid sm:grid-cols-2 gap-5">
         <div className="space-y-1.5">
           <label className="text-sm font-medium text-slate-700 flex items-center gap-1.5"><User className="w-4 h-4 text-slate-400" />{t('field_name_label')}</label>
           <Input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder={t('field_name_placeholder')} />
@@ -49,7 +49,7 @@ export function CustomerSettingsForm({ profile }: { profile: Profile }) {
             {LOCALES.map((loc) => <option key={loc} value={loc}>{LOCALE_NAMES[loc]}</option>)}
           </select>
         </div>
-        <Button onClick={handleSave} disabled={saving} className="gap-1.5">
+        <Button onClick={handleSave} disabled={saving} className="gap-1.5 sm:col-span-2 sm:justify-self-start">
           {saving && <Loader2 className="w-4 h-4 animate-spin" />}
           {t('save_button')}
         </Button>

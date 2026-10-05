@@ -22,10 +22,12 @@ export default async function ProviderSettingsPage() {
   return (
     <DashboardLayout role="provider">
       <DashboardHeader title={t('title')} subtitle={t('subtitle')} />
-      <div className="space-y-6">
+      <div className="grid gap-6 xl:grid-cols-2 items-start">
         <ProviderCompanyForm provider={provider} />
-        <TuriTopConnectionCard provider={provider} />
-        <ProviderReferralPanel stats={referralStats} />
+        <div className="space-y-6">
+          <TuriTopConnectionCard provider={provider} />
+          <ProviderReferralPanel stats={referralStats} />
+        </div>
       </div>
     </DashboardLayout>
   )

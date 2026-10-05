@@ -76,40 +76,36 @@ export default async function ProviderActivitiesPage() {
       {activities.length === 0 ? (
         <Card><CardContent className="p-10 text-center text-slate-400">{t('empty_state')}</CardContent></Card>
       ) : (
-        <div className="space-y-4">
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
           {activities.map((activity) => {
             const cover = activity.images?.find((i) => i.is_cover)?.url ?? activity.images?.[0]?.url
             return (
-              <Card key={activity.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-5 flex flex-col sm:flex-row sm:items-center gap-5">
-                  <div className="w-full sm:w-20 h-32 sm:h-16 rounded-xl overflow-hidden bg-slate-100 shrink-0">
-                    {cover ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={cover} alt={activity.title} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-slate-300 text-2xl">🏝️</div>
-                    )}
-                  </div>
-
+              <Card key={activity.id} className="overflow-hidden flex flex-col hover:shadow-md transition-shadow">
+                <div className="relative aspect-[16/10] bg-slate-100">
+                  {cover ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={cover} alt={activity.title} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-slate-300 text-4xl">🏝️</div>
+                  )}
+                  <span className={cn('absolute top-3 left-3 text-xs font-semibold px-2.5 py-1 rounded-full', STATUS_STYLES[activity.status])}>
+                    {STATUS_LABELS[activity.status] ?? activity.status}
+                  </span>
+                </div>
+                <CardContent className="p-5 flex flex-col gap-3 flex-1">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={cn('text-xs font-semibold px-2 py-0.5 rounded-full', STATUS_STYLES[activity.status])}>
-                        {STATUS_LABELS[activity.status] ?? activity.status}
-                      </span>
-                      {activity.duration_minutes && <span className="text-xs text-slate-400">{formatDuration(activity.duration_minutes)}</span>}
-                    </div>
-                    <h3 className="font-semibold text-slate-900 truncate">{activity.title}</h3>
-                    <div className="flex items-center gap-4 mt-1.5 text-xs text-slate-500">
+                    <h3 className="font-semibold text-slate-900 line-clamp-2">{activity.title}</h3>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-xs text-slate-500">
                       <span className="font-semibold text-slate-700">{t('price_per_person', { price: activity.price_from })}</span>
+                      {activity.duration_minutes && <span>{formatDuration(activity.duration_minutes)}</span>}
                       <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{t('bookings_count', { count: activity.booking_count ?? 0 })}</span>
                       {activity.rating > 0 && (
                         <span className="flex items-center gap-1"><Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />{activity.rating}</span>
                       )}
                     </div>
                   </div>
-
-                  <div className="flex items-center gap-2 shrink-0">
-                    <Link href={`/dashboard/provider/activities/${activity.id}`} className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'gap-1.5')}>
+                  <div className="flex items-center gap-2">
+                    <Link href={`/dashboard/provider/activities/${activity.id}`} className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'gap-1.5 flex-1')}>
                       <Edit2 className="w-3.5 h-3.5" />
                       {t('edit_button')}
                     </Link>

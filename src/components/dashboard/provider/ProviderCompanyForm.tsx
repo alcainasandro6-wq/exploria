@@ -48,10 +48,10 @@ export function ProviderCompanyForm({ provider }: { provider: Provider }) {
   }
 
   return (
-    <Card className="max-w-2xl">
+    <Card>
       <CardHeader><CardTitle>{t('title')}</CardTitle></CardHeader>
-      <CardContent className="space-y-5">
-        <div className="flex items-center gap-4">
+      <CardContent className="grid sm:grid-cols-2 gap-5">
+        <div className="flex items-center gap-4 sm:col-span-2">
           <div className="w-16 h-16 rounded-2xl bg-slate-100 overflow-hidden flex items-center justify-center shrink-0">
             {logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -67,15 +67,15 @@ export function ProviderCompanyForm({ provider }: { provider: Provider }) {
           </label>
         </div>
 
-        <div className="space-y-1.5">
+        <div className="space-y-1.5 sm:col-span-2">
           <label className="text-sm font-medium text-slate-700">{t('field_company_name_label')}</label>
           <Input value={form.companyName} onChange={(e) => setForm((f) => ({ ...f, companyName: e.target.value }))} />
         </div>
-        <div className="space-y-1.5">
+        <div className="space-y-1.5 sm:col-span-2">
           <label className="text-sm font-medium text-slate-700">{t('field_description_label')}</label>
           <textarea value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} rows={3} className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary resize-none" />
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:col-span-2">
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-slate-700">{t('field_address_label')}</label>
             <Input value={form.address} onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))} />
@@ -95,14 +95,14 @@ export function ProviderCompanyForm({ provider }: { provider: Provider }) {
         </div>
         <div className="space-y-1.5">
           <label className="text-sm font-medium text-slate-700">{t('field_tax_id_label')}</label>
-          <Input value={form.taxId} onChange={(e) => setForm((f) => ({ ...f, taxId: e.target.value }))} />
+          <Input autoComplete="off" value={form.taxId} onChange={(e) => setForm((f) => ({ ...f, taxId: e.target.value }))} />
         </div>
         <div className="space-y-1.5">
           <label className="text-sm font-medium text-slate-700">{t('field_turitop_code_label')}</label>
-          <Input value={form.turitopCompanyCode} onChange={(e) => setForm((f) => ({ ...f, turitopCompanyCode: e.target.value }))} placeholder={t('field_turitop_code_placeholder')} />
+          <Input autoComplete="off" name="turitop-company-code" value={form.turitopCompanyCode} onChange={(e) => setForm((f) => ({ ...f, turitopCompanyCode: e.target.value }))} placeholder={t('field_turitop_code_placeholder')} />
           <p className="text-xs text-slate-400">{t('field_turitop_code_hint')}</p>
         </div>
-        <Button onClick={handleSave} disabled={saving} className="gap-1.5">
+        <Button onClick={handleSave} disabled={saving} className="gap-1.5 sm:col-span-2 sm:justify-self-start">
           {saving && <Loader2 className="w-4 h-4 animate-spin" />}
           {t('save_button')}
         </Button>

@@ -59,7 +59,7 @@ export default async function AdminCommissionsPage() {
         action={<ExportButtons data={exportData} filename="comisiones" title={`${t('export_title')} — BookActivities`} />}
       />
 
-      <div className="grid grid-cols-3 gap-5 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-6">
         <StatCard icon={DollarSign} label={t('stat_pending')} value={formatPrice(pendingTotal)} color="amber" />
         <StatCard icon={DollarSign} label={t('stat_paid')} value={formatPrice(paidTotal)} color="emerald" />
         <StatCard icon={DollarSign} label={t('stat_subscription_revenue')} value={formatPrice(mrr)} color="blue" />

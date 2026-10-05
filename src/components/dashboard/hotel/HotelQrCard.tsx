@@ -26,7 +26,7 @@ export function HotelQrCard({ url, hotelName }: { url: string; hotelName: string
   }
 
   return (
-    <Card className="max-w-md">
+    <Card className="max-w-md mx-auto">
       <CardContent className="p-6 space-y-4">
         <div className="bg-slate-50 rounded-2xl p-6 flex items-center justify-center">
           {dataUrl ? (

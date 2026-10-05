@@ -30,18 +30,18 @@ export function HotelSettingsForm({ hotel }: { hotel: Hotel }) {
   }
 
   return (
-    <Card className="max-w-xl">
+    <Card>
       <CardHeader><CardTitle>{t('card_title')}</CardTitle></CardHeader>
-      <CardContent className="space-y-5">
-        <div className="space-y-1.5">
+      <CardContent className="grid sm:grid-cols-2 gap-5">
+        <div className="space-y-1.5 sm:col-span-2">
           <label className="text-sm font-medium text-slate-700">{t('name_label')}</label>
           <Input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
         </div>
-        <div className="space-y-1.5">
+        <div className="space-y-1.5 sm:col-span-2">
           <label className="text-sm font-medium text-slate-700">{t('description_label')}</label>
           <textarea value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} rows={3} className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary resize-none" />
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:col-span-2">
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-slate-700">{t('phone_label')}</label>
             <Input value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} />
@@ -57,7 +57,7 @@ export function HotelSettingsForm({ hotel }: { hotel: Hotel }) {
           <label className="text-sm font-medium text-slate-700">{t('website_label')}</label>
           <Input value={form.website} onChange={(e) => setForm((f) => ({ ...f, website: e.target.value }))} placeholder="https://..." />
         </div>
-        <Button onClick={handleSave} disabled={saving} className="gap-1.5">
+        <Button onClick={handleSave} disabled={saving} className="gap-1.5 sm:col-span-2 sm:justify-self-start">
           {saving && <Loader2 className="w-4 h-4 animate-spin" />}
           {t('save_button')}
         </Button>

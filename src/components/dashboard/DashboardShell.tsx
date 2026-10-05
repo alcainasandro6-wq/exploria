@@ -49,7 +49,7 @@ export function DashboardShell({ role, userName, userEmail, avatarUrl, children 
           </Link>
         </div>
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 min-w-0">{children}</main>
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 min-w-0 w-full max-w-[1600px] mx-auto">{children}</main>
       </div>
     </div>
   )

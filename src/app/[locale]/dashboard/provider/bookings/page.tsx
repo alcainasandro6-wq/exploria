@@ -6,8 +6,6 @@ import { Card, CardContent } from '@/components/ui/card'
 import { createClient } from '@/lib/supabase/server'
 import { getProviderByProfileId } from '@/lib/services/providers'
 import { getProviderReservations } from '@/lib/services/reservations'
-import { ActivityCalendar } from '@/components/booking/ActivityCalendar'
-import { reservationsToEvents } from '@/lib/calendar-utils'
 import { ProviderBookingRow } from '@/components/dashboard/provider/ProviderBookingRow'
 
 export default async function ProviderBookingsPage() {
@@ -25,8 +23,6 @@ export default async function ProviderBookingsPage() {
   return (
     <DashboardLayout role="provider">
       <DashboardHeader title={t('title')} subtitle={t('subtitle', { count: bookings.length })} />
-
-      <ActivityCalendar className="mb-6" events={reservationsToEvents(bookings, (r) => r.customer?.full_name ?? undefined)} />
 
       {bookings.length === 0 ? (
         <Card><CardContent className="p-10 text-center text-slate-400">{t('empty_state')}</CardContent></Card>
