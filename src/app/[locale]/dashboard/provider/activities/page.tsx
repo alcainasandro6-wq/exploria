@@ -115,18 +115,17 @@ export default async function ProviderActivitiesPage({
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Link href={`/dashboard/provider/activities/${activity.id}`} className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'gap-1.5 flex-1')}>
+                  <div className="flex items-center gap-1.5">
+                    <Link href={`/dashboard/provider/activities/${activity.id}`} className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'h-9 gap-1.5 flex-1 rounded-xl')}>
                       <Edit2 className="w-3.5 h-3.5" />
                       {t('edit_button')}
                     </Link>
-                    <ActivityManageButtons activityId={activity.id} status={activity.status} />
                     {activity.status === 'published' && (
-                      <Link href={`/activities/${activity.slug}`} target="_blank" className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'gap-1.5')}>
-                        <Eye className="w-3.5 h-3.5" />
-                        {t('view_button')}
+                      <Link href={`/activities/${activity.slug}`} target="_blank" title={t('view_button')} aria-label={t('view_button')} className={cn(buttonVariants({ variant: 'outline', size: 'icon' }), 'h-9 w-9 shrink-0 rounded-xl')}>
+                        <Eye className="w-4 h-4" />
                       </Link>
                     )}
+                    <ActivityManageButtons activityId={activity.id} status={activity.status} />
                   </div>
                 </CardContent>
               </Card>

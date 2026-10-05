@@ -16,6 +16,8 @@ interface ActivityManageButtonsProps {
   status: string
 }
 
+const ICON_BTN = 'h-9 w-9 shrink-0 rounded-xl'
+
 /** Archive / restore / delete controls for a provider's own activity. */
 export function ActivityManageButtons({ activityId, status }: ActivityManageButtonsProps) {
   const t = useTranslations('provider_activities_page')
@@ -56,20 +58,18 @@ export function ActivityManageButtons({ activityId, status }: ActivityManageButt
   }
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1.5">
       {isArchived ? (
-        <Button variant="ghost" size="sm" className="gap-1.5" onClick={restore} disabled={busy !== null} title={t('restore_button')}>
-          {busy === 'restore' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ArchiveRestore className="w-3.5 h-3.5" />}
-          <span className="hidden sm:inline">{t('restore_button')}</span>
+        <Button variant="outline" size="icon" className={ICON_BTN} onClick={restore} disabled={busy !== null} title={t('restore_button')} aria-label={t('restore_button')}>
+          {busy === 'restore' ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArchiveRestore className="w-4 h-4" />}
         </Button>
       ) : (
-        <Button variant="ghost" size="sm" className="gap-1.5" onClick={archive} disabled={busy !== null} title={t('archive_button')}>
-          {busy === 'archive' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Archive className="w-3.5 h-3.5" />}
-          <span className="hidden sm:inline">{t('archive_button')}</span>
+        <Button variant="outline" size="icon" className={ICON_BTN} onClick={archive} disabled={busy !== null} title={t('archive_button')} aria-label={t('archive_button')}>
+          {busy === 'archive' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Archive className="w-4 h-4" />}
         </Button>
       )}
-      <Button variant="ghost" size="sm" className="gap-1.5 text-red-600 hover:text-red-700 hover:bg-red-50" onClick={remove} disabled={busy !== null} title={t('delete_button')}>
-        {busy === 'delete' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+      <Button variant="outline" size="icon" className={`${ICON_BTN} text-red-600 hover:text-red-700 hover:bg-red-50 hover:border-red-200`} onClick={remove} disabled={busy !== null} title={t('delete_button')} aria-label={t('delete_button')}>
+        {busy === 'delete' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
       </Button>
     </div>
   )
