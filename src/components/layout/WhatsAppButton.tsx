@@ -12,7 +12,7 @@ export function WhatsAppButton() {
   // Auth forms are short enough on mobile that this fixed button can sit
   // right on top of the submit button — and a chat bubble isn't useful
   // mid-login/signup anyway, so just skip it there.
-  if (pathname.startsWith('/auth')) return null
+  if (pathname.startsWith('/auth') || pathname.startsWith('/dashboard')) return null
 
   return (
     <a
