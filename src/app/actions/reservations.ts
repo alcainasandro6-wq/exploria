@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import Stripe from 'stripe'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { cancelTuriTopBooking } from '@/lib/services/turitop-sync'
 import {
   createReservation,
   transitionReservation,
@@ -120,6 +121,7 @@ export async function cancelReservationAction(reservationId: string) {
   try {
     await transitionReservation(reservationId, 'cancelled')
     await refundReservationIfPaid(reservationId)
+    await cancelTuriTopBooking(reservationId)
     revalidatePath('/dashboard/customer/reservations')
     return { success: true }
   } catch (err) {
@@ -176,6 +178,7 @@ export async function rejectReservationAction(reservationId: string, reason: str
   try {
     await transitionReservation(reservationId, 'rejected', reason)
     await refundReservationIfPaid(reservationId)
+    await cancelTuriTopBooking(reservationId)
     revalidatePath('/dashboard/provider/reservations')
     return { success: true }
   } catch (err) {
@@ -246,6 +249,7 @@ export async function adminTransitionReservationAction(
     const updated = await transitionReservation(reservationId, newStatus, notes)
     if (newStatus === 'rejected' || newStatus === 'cancelled') {
       await refundReservationIfPaid(reservationId)
+      await cancelTuriTopBooking(reservationId)
     }
     revalidatePath('/dashboard/admin/reservations')
     return { success: true, reservation: updated }

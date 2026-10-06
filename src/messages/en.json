@@ -505,7 +505,9 @@
     "connect_button": "Connect",
     "disconnect_button": "Disconnect",
     "connected_toast": "TuriTop connected successfully",
-    "failed_toast": "Could not connect to TuriTop"
+    "failed_toast": "Could not connect to TuriTop",
+    "import_show": "Import TuriTop products as activities",
+    "import_hide": "Hide import"
   },
   "admin_subscriptions_page": {
     "title": "Subscriptions",
@@ -1533,5 +1535,25 @@
     "load_error": "Could not load your TuriTop products.",
     "import_error": "Import failed.",
     "import_ok": "{count, plural, one {# activity imported} other {# activities imported}}"
+  },
+  "booking_widget": {
+    "from": "From",
+    "per_person": "/ person",
+    "reviews_count": "{count, plural, one {# review} other {# reviews}}",
+    "time": "Time",
+    "loading_slots": "Checking live availability…",
+    "slots_error": "Availability could not be checked. Please try again.",
+    "no_slots": "No departures with free seats that day. Try another date.",
+    "seats_left": "{count, plural, one {# seat left} other {# seats left}} on this departure",
+    "people": "{count, plural, one {# person} other {# people}}",
+    "min_max": "Min. {min} — Max. {max} people",
+    "login_to_book": "Log in to book",
+    "login_hint": "Create a free account or log in to request your booking.",
+    "secure_payment": "Secure payment",
+    "success_title": "Request sent!",
+    "success_desc": "The provider will confirm your booking shortly. Confirmation code:",
+    "success_hint": "You can follow the status in your bookings panel.",
+    "error_generic": "The booking request could not be completed",
+    "error_network": "Could not reach the server. Please try again."
   }
 }

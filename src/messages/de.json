@@ -517,7 +517,9 @@
     "connect_button": "Verbinden",
     "disconnect_button": "Trennen",
     "connected_toast": "TuriTop erfolgreich verbunden",
-    "failed_toast": "Verbindung zu TuriTop fehlgeschlagen"
+    "failed_toast": "Verbindung zu TuriTop fehlgeschlagen",
+    "import_show": "TuriTop-Produkte als Aktivitäten importieren",
+    "import_hide": "Import ausblenden"
   },
   "admin_subscriptions_page": {
     "title": "Abonnements",
@@ -1533,5 +1535,25 @@
     "load_error": "Ihre TuriTop-Produkte konnten nicht geladen werden.",
     "import_error": "Import fehlgeschlagen.",
     "import_ok": "{count, plural, one {# Aktivität importiert} other {# Aktivitäten importiert}}"
+  },
+  "booking_widget": {
+    "from": "Ab",
+    "per_person": "/ Person",
+    "reviews_count": "{count, plural, one {# Bewertung} other {# Bewertungen}}",
+    "time": "Uhrzeit",
+    "loading_slots": "Echtzeit-Verfügbarkeit wird geprüft…",
+    "slots_error": "Die Verfügbarkeit konnte nicht geprüft werden. Bitte erneut versuchen.",
+    "no_slots": "An diesem Tag gibt es keine Abfahrten mit freien Plätzen. Wählen Sie ein anderes Datum.",
+    "seats_left": "{count, plural, one {# Platz frei} other {# Plätze frei}} bei dieser Abfahrt",
+    "people": "{count, plural, one {# Person} other {# Personen}}",
+    "min_max": "Min. {min} — Max. {max} Personen",
+    "login_to_book": "Zum Buchen anmelden",
+    "login_hint": "Erstellen Sie ein kostenloses Konto oder melden Sie sich an, um Ihre Buchung anzufragen.",
+    "secure_payment": "Sichere Zahlung",
+    "success_title": "Anfrage gesendet!",
+    "success_desc": "Der Anbieter bestätigt Ihre Buchung in Kürze. Bestätigungscode:",
+    "success_hint": "Den Status sehen Sie in Ihrem Buchungsbereich.",
+    "error_generic": "Die Buchungsanfrage konnte nicht abgeschlossen werden",
+    "error_network": "Server nicht erreichbar. Bitte erneut versuchen."
   }
 }

@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { adminUpdateProviderTuriTopAction } from '@/app/actions/admin'
+import { TuriTopImportCard } from '@/components/dashboard/provider/TuriTopImportCard'
 import type { TuriTopConnectionStatus } from '@/types/database'
 
 interface TuriTopProviderRowProps {
@@ -31,6 +32,7 @@ export function TuriTopProviderRow({ providerId, companyName, hasKey, status: in
   const [configured, setConfigured] = useState(!!hasKey)
   const [apiKey, setApiKey] = useState('')
   const [saving, setSaving] = useState(false)
+  const [showImport, setShowImport] = useState(false)
 
   const meta = STATUS_META[status]
   const Icon = meta.icon
@@ -79,6 +81,14 @@ export function TuriTopProviderRow({ providerId, companyName, hasKey, status: in
         </div>
       </div>
       {status === 'error' && error && <p className="text-xs text-red-500">{error}</p>}
+      {status === 'ok' && (
+        <div>
+          <button type="button" onClick={() => setShowImport((v) => !v)} className="text-xs font-semibold text-primary hover:underline">
+            {showImport ? t('import_hide') : t('import_show')}
+          </button>
+          {showImport && <div className="mt-2"><TuriTopImportCard providerId={providerId} embedded /></div>}
+        </div>
+      )}
     </div>
   )
 }

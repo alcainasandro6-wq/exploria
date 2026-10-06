@@ -321,3 +321,120 @@ export async function getTuriTopImportData(apiKey: string, productId: string): P
     maxParticipants: maxP.length ? Math.max(...maxP) : 10,
   }
 }
+
+// ---------------------------------------------------------------------------
+// Real departures (slots) of a product on a given day
+// ---------------------------------------------------------------------------
+
+export interface TuriTopSlot {
+  /** Local time HH:MM. */
+  time: string
+  /** Unix timestamp of the departure (what booking/insert needs). */
+  timestamp: number
+  /** Seats still available. */
+  left: number
+  /** Ticket used for bookings made from Exploria (1 seat per ticket). */
+  ticketId: number | null
+  ticketName: string
+  price: number
+}
+
+interface TTSlotEvent extends TTCalendarEvent {
+  products: (TTCalendarEvent['products'][number] & {
+    tickets?: { id: number; name: string; seats: number; left: number; addon?: boolean }[]
+  })[]
+}
+
+/** Open departures with seats left for one product on one local date. */
+export async function getTuriTopSlots(apiKey: string, productId: string, date: string): Promise<TuriTopSlot[]> {
+  const start = Math.floor(new Date(`${date}T00:00:00Z`).getTime() / 1000) - 12 * 3600
+  const end = Math.floor(new Date(`${date}T23:59:59Z`).getTime() / 1000) + 12 * 3600
+  const [cal, tick] = await Promise.all([
+    ttPost<{ events?: TTSlotEvent[] }>(apiKey, '/product/getcalendardata', { product_short_ids: [productId], start_date: start, end_date: end }),
+    ttPost<{ tickets?: Record<string, { price?: string; is_addon?: string; seats?: string; visibility?: string }> }>(apiKey, '/tickets/get', { product_short_id: productId }),
+  ])
+  const prices = tick.data?.tickets ?? {}
+
+  const slots: TuriTopSlot[] = []
+  for (const ev of cal.data?.events ?? []) {
+    const p = ev.products?.find((x) => x.short_id === productId)
+    if (!p || p.status?.status === 'closed') continue
+    if ((ev.time_iso8601 ?? '').slice(0, 10) !== date) continue
+    const left = p.seats?.left ?? 0
+    if (left <= 0) continue
+
+    // Cheapest bookable single-seat ticket with seats left.
+    const candidates = (p.tickets ?? [])
+      .filter((t) => !t.addon && t.seats === 1 && t.left > 0 && prices[String(t.id)] && prices[String(t.id)].visibility !== 'none')
+      .map((t) => ({ t, price: Number(prices[String(t.id)].price ?? 0) }))
+      .sort((a, b) => a.price - b.price)
+    const best = candidates[0]
+    slots.push({
+      time: (ev.time_iso8601 ?? '').slice(11, 16),
+      timestamp: ev.time,
+      left: best ? Math.min(left, best.t.left) : left,
+      ticketId: best?.t.id ?? null,
+      ticketName: best ? decodeHtmlEntities(best.t.name) : '',
+      price: best?.price ?? 0,
+    })
+  }
+  return slots.sort((a, b) => a.time.localeCompare(b.time))
+}
+
+// ---------------------------------------------------------------------------
+// Writing bookings (mirror Exploria reservations into the provider's TuriTop)
+// ---------------------------------------------------------------------------
+
+export interface CreateTuriTopBookingInput {
+  productId: string
+  eventStart: number
+  ticketId: number
+  quantity: number
+  status: 'pending' | 'paid'
+  totalPrice: number
+  customerName: string
+  customerEmail: string
+  customerPhone?: string
+  language?: string
+  notes?: string
+}
+
+/** Creates the booking in TuriTop (holds the seats). Returns its short_id. */
+export async function createTuriTopBooking(apiKey: string, b: CreateTuriTopBookingInput): Promise<string> {
+  const res = await ttPost<{ booking?: { short_id?: string } }>(apiKey, '/booking/tour/insert', {
+    product_short_id: b.productId,
+    override_client_data: true,
+    booking: {
+      event_start: b.eventStart,
+      ticket_type_count: { [String(b.ticketId)]: b.quantity },
+      status: b.status,
+      payment_gateway: 'stripe',
+      total_price: b.totalPrice,
+      payment_partial: b.status === 'paid' ? b.totalPrice : 0,
+      language_code: b.language || 'es',
+      client_data: {
+        name: b.customerName || 'Exploria customer',
+        email: b.customerEmail,
+        ...(b.customerPhone ? { phone: b.customerPhone } : {}),
+      },
+      notes: b.notes ?? 'Exploria',
+      send_booking_email: false,
+    },
+  })
+  const id = res.data?.booking?.short_id
+  if (!id) throw new Error('TuriTop did not return a booking id')
+  return id
+}
+
+export async function setTuriTopBookingStatus(apiKey: string, shortId: string, status: 'pending' | 'paid'): Promise<void> {
+  await ttPost(apiKey, '/booking/tour/edit', {
+    short_id: shortId,
+    override_client_data: true,
+    booking: { status },
+  })
+}
+
+/** Soft-deletes the booking (frees the seats). Reversible from TuriTop's panel. */
+export async function deleteTuriTopBooking(apiKey: string, shortId: string): Promise<void> {
+  await ttPost(apiKey, '/booking/delete', { short_id: shortId })
+}

@@ -517,7 +517,9 @@
     "connect_button": "Połącz",
     "disconnect_button": "Rozłącz",
     "connected_toast": "TuriTop połączony pomyślnie",
-    "failed_toast": "Nie udało się połączyć z TuriTop"
+    "failed_toast": "Nie udało się połączyć z TuriTop",
+    "import_show": "Importuj produkty TuriTop jako aktywności",
+    "import_hide": "Ukryj import"
   },
   "admin_subscriptions_page": {
     "title": "Subskrypcje",
@@ -1533,5 +1535,25 @@
     "load_error": "Nie udało się załadować produktów TuriTop.",
     "import_error": "Import nie powiódł się.",
     "import_ok": "{count, plural, one {Zaimportowano # aktywność} few {Zaimportowano # aktywności} many {Zaimportowano # aktywności} other {Zaimportowano # aktywności}}"
+  },
+  "booking_widget": {
+    "from": "Od",
+    "per_person": "/ osoba",
+    "reviews_count": "{count, plural, one {# opinia} few {# opinie} many {# opinii} other {# opinii}}",
+    "time": "Godzina",
+    "loading_slots": "Sprawdzanie dostępności na żywo…",
+    "slots_error": "Nie udało się sprawdzić dostępności. Spróbuj ponownie.",
+    "no_slots": "Brak wypłynięć z wolnymi miejscami tego dnia. Wybierz inną datę.",
+    "seats_left": "{count, plural, one {Zostało # miejsce} few {Zostały # miejsca} many {Zostało # miejsc} other {Zostało # miejsc}} na tym wypłynięciu",
+    "people": "{count, plural, one {# osoba} few {# osoby} many {# osób} other {# osób}}",
+    "min_max": "Min. {min} — Maks. {max} osób",
+    "login_to_book": "Zaloguj się, aby zarezerwować",
+    "login_hint": "Załóż darmowe konto lub zaloguj się, aby poprosić o rezerwację.",
+    "secure_payment": "Bezpieczna płatność",
+    "success_title": "Prośba wysłana!",
+    "success_desc": "Dostawca wkrótce potwierdzi Twoją rezerwację. Kod potwierdzenia:",
+    "success_hint": "Status zobaczysz w panelu rezerwacji.",
+    "error_generic": "Nie udało się zrealizować prośby o rezerwację",
+    "error_network": "Nie można połączyć się z serwerem. Spróbuj ponownie."
   }
 }

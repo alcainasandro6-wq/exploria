@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@/lib/supabase/server'
 import { generateConfirmationCode } from '@/lib/utils'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { getTuriTopKey, getTuriTopSlots, createTuriTopBooking, type TuriTopSlot } from '@/lib/services/turitop'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnySupabase = any
@@ -44,7 +46,7 @@ export async function POST(request: NextRequest) {
 
   const { data: activity, error: activityError } = await supabase
     .from('activities')
-    .select('id, title, provider_id, price_from, status, min_participants, max_participants')
+    .select('id, title, provider_id, price_from, status, min_participants, max_participants, turitop_product_id')
     .eq('id', activity_id)
     .eq('status', 'published')
     .single()
@@ -77,6 +79,30 @@ export async function POST(request: NextRequest) {
       .eq('affiliate_code', hotel_code)
       .single()
     hotel_id = hotel?.id || null
+  }
+
+  // Activities linked to a TuriTop product sell REAL departures: re-check the
+  // seats in TuriTop right now so the same seat is never sold twice.
+  let turitop: { key: string; slot: TuriTopSlot } | null = null
+  if (activity.turitop_product_id) {
+    const key = await getTuriTopKey(activity.provider_id)
+    if (key) {
+      let slots: TuriTopSlot[]
+      try {
+        slots = await getTuriTopSlots(key, activity.turitop_product_id, activity_date)
+      } catch (err) {
+        console.error('TuriTop availability check failed:', err)
+        return NextResponse.json({ error: 'Availability could not be verified. Please try again in a moment.' }, { status: 502 })
+      }
+      const slot = slots.find((s) => s.time === activity_time)
+      if (!slot || slot.ticketId == null) {
+        return NextResponse.json({ error: 'That departure is no longer available' }, { status: 409 })
+      }
+      if (slot.left < participants) {
+        return NextResponse.json({ error: `Only ${slot.left} seat(s) left on that departure` }, { status: 409 })
+      }
+      turitop = { key, slot }
+    }
   }
 
   const total_price = activity.price_from * participants
@@ -121,6 +147,31 @@ export async function POST(request: NextRequest) {
   if (error) {
     console.error('Booking error:', error)
     return NextResponse.json({ error: 'Failed to create reservation' }, { status: 500 })
+  }
+
+  // Hold the seats in the provider's TuriTop calendar (pending until paid).
+  if (turitop) {
+    try {
+      const { data: profile } = await supabase.from('profiles').select('full_name, phone').eq('id', user.id).maybeSingle()
+      const ttId = await createTuriTopBooking(turitop.key, {
+        productId: activity.turitop_product_id,
+        eventStart: turitop.slot.timestamp,
+        ticketId: turitop.slot.ticketId as number,
+        quantity: participants,
+        status: 'pending',
+        totalPrice: reservation.total_price,
+        customerName: profile?.full_name || user.email || 'Exploria customer',
+        customerEmail: user.email,
+        customerPhone: profile?.phone || undefined,
+        notes: `Exploria · ${reservation.confirmation_code}`,
+      })
+      await createAdminClient().from('reservations').update({ turitop_booking_id: ttId }).eq('id', reservation.id)
+    } catch (err) {
+      console.error('TuriTop booking creation failed:', err)
+      // Do not leave a reservation that holds no seat: cancel it and tell the customer.
+      await createAdminClient().from('reservations').update({ status: 'cancelled' }).eq('id', reservation.id)
+      return NextResponse.json({ error: 'The seat could not be reserved. Please try again.' }, { status: 502 })
+    }
   }
 
   // Centralized payment collection: BookActivities charges the customer

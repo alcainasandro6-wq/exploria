@@ -517,7 +517,9 @@
     "connect_button": "Conectar",
     "disconnect_button": "Desconectar",
     "connected_toast": "TuriTop conectado correctamente",
-    "failed_toast": "No se pudo conectar con TuriTop"
+    "failed_toast": "No se pudo conectar con TuriTop",
+    "import_show": "Importar productos de TuriTop como actividades",
+    "import_hide": "Ocultar importación"
   },
   "admin_subscriptions_page": {
     "title": "Suscripciones",
@@ -1533,5 +1535,25 @@
     "load_error": "No se pudieron cargar los productos de TuriTop.",
     "import_error": "No se pudo importar.",
     "import_ok": "{count, plural, one {# actividad importada} other {# actividades importadas}}"
+  },
+  "booking_widget": {
+    "from": "Desde",
+    "per_person": "/ persona",
+    "reviews_count": "{count, plural, one {# reseña} other {# reseñas}}",
+    "time": "Hora",
+    "loading_slots": "Consultando disponibilidad real…",
+    "slots_error": "No se pudo consultar la disponibilidad. Inténtalo de nuevo.",
+    "no_slots": "No hay salidas con plazas libres ese día. Prueba con otra fecha.",
+    "seats_left": "{count, plural, one {Queda # plaza} other {Quedan # plazas}} en esta salida",
+    "people": "{count, plural, one {# persona} other {# personas}}",
+    "min_max": "Mín. {min} — Máx. {max} personas",
+    "login_to_book": "Inicia sesión para reservar",
+    "login_hint": "Crea una cuenta gratis o inicia sesión para solicitar tu reserva.",
+    "secure_payment": "Pago seguro",
+    "success_title": "¡Solicitud enviada!",
+    "success_desc": "El proveedor confirmará tu reserva en breve. Código de confirmación:",
+    "success_hint": "Podrás ver el estado en tu panel de reservas.",
+    "error_generic": "No se pudo completar la solicitud de reserva",
+    "error_network": "No se pudo conectar con el servidor. Inténtalo de nuevo."
   }
 }

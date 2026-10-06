@@ -677,7 +677,20 @@ export async function getProviderCalendarAction(from: string, to: string): Promi
 // Import the provider's TuriTop products as draft Exploria activities
 // =====================================================
 
-export async function importTuriTopProductsAction(productIds: string[]): Promise<{
+// Provider acts on their own record; an admin may pass any providerId.
+async function resolveProviderTarget(providerId?: string): Promise<{ providerId: string; isAdmin: boolean }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+  if (providerId) {
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+    if (profile?.role === 'admin') return { providerId, isAdmin: true }
+  }
+  const own = await requireProviderAuth()
+  return { providerId: own.providerId, isAdmin: false }
+}
+
+export async function importTuriTopProductsAction(productIds: string[], forProviderId?: string): Promise<{
   success: boolean
   imported: number
   skipped: number
@@ -685,11 +698,11 @@ export async function importTuriTopProductsAction(productIds: string[]): Promise
   upgradeRequired?: boolean
 }> {
   try {
-    const { providerId } = await requireProviderAuth()
+    const { providerId, isAdmin } = await resolveProviderTarget(forProviderId)
     if (!Array.isArray(productIds) || productIds.length === 0 || productIds.length > 50) {
       return { success: false, imported: 0, skipped: 0, error: 'Select between 1 and 50 products' }
     }
-    if (!(await isSubscriptionActive(providerId))) {
+    if (!isAdmin && !(await isSubscriptionActive(providerId))) {
       return { success: false, imported: 0, skipped: 0, error: 'You need an active subscription to create activities.', upgradeRequired: true }
     }
 
@@ -748,13 +761,13 @@ export async function importTuriTopProductsAction(productIds: string[]): Promise
   }
 }
 
-export async function getTuriTopImportCandidatesAction(): Promise<{
+export async function getTuriTopImportCandidatesAction(forProviderId?: string): Promise<{
   success: boolean
   items: { id: string; name: string; linked: boolean }[]
   error?: string
 }> {
   try {
-    const { providerId } = await requireProviderAuth()
+    const { providerId } = await resolveProviderTarget(forProviderId)
     const key = await getTuriTopKey(providerId)
     if (!key) return { success: false, items: [], error: 'TuriTop is not connected' }
     const supabase = await createClient()

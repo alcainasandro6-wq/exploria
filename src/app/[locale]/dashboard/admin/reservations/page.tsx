@@ -7,8 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { createClient } from '@/lib/supabase/server'
 import { getAllReservations } from '@/lib/services/reservations'
 import { formatPrice, formatDate } from '@/lib/utils'
-import { ActivityCalendar } from '@/components/booking/ActivityCalendar'
-import { reservationsToEvents } from '@/lib/calendar-utils'
+import { AdminCalendar } from '@/components/dashboard/admin/AdminCalendar'
 import { ExportButtons } from '@/components/dashboard/admin/ExportButtons'
 
 const STATUS_STYLES: Record<string, 'success' | 'warning' | 'secondary' | 'destructive'> = {
@@ -52,7 +51,7 @@ export default async function AdminReservationsPage() {
         action={<ExportButtons data={exportData} filename="reservas" title={`${t('export_title')} — BookActivities`} />}
       />
 
-      <ActivityCalendar className="mb-6" events={reservationsToEvents(reservations, (r) => [r.provider?.company_name, r.customer?.full_name].filter(Boolean).join(' · ') || undefined)} />
+      <AdminCalendar />
 
       <Card>
         <CardHeader><CardTitle>{t('all_reservations_title')}</CardTitle></CardHeader>

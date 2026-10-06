@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
+import { markTuriTopBookingPaid } from '@/lib/services/turitop-sync'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2026-05-27.dahlia',
@@ -90,6 +91,8 @@ async function handleBookingPaymentCompleted(session: Stripe.Checkout.Session) {
     .from('reservations')
     .update({ payment_status: 'paid', stripe_payment_intent_id: paymentIntentId })
     .eq('id', reservationId)
+
+  await markTuriTopBookingPaid(reservationId)
 }
 
 async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {

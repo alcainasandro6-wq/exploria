@@ -12,7 +12,7 @@ import { getTuriTopImportCandidatesAction, importTuriTopProductsAction } from '@
 interface Candidate { id: string; name: string; linked: boolean }
 
 /** Lets a provider with a connected TuriTop account pull their products in as draft activities. */
-export function TuriTopImportCard() {
+export function TuriTopImportCard({ providerId, embedded }: { providerId?: string; embedded?: boolean } = {}) {
   const t = useTranslations('turitop_import')
   const router = useRouter()
   const [open, setOpen] = useState(false)
@@ -24,7 +24,7 @@ export function TuriTopImportCard() {
   const load = async () => {
     setOpen(true)
     setLoading(true)
-    const res = await getTuriTopImportCandidatesAction()
+    const res = await getTuriTopImportCandidatesAction(providerId)
     setLoading(false)
     if (!res.success) { toast.error(res.error || t('load_error')); setOpen(false); return }
     setItems(res.items)
@@ -36,7 +36,7 @@ export function TuriTopImportCard() {
 
   const doImport = async () => {
     setImporting(true)
-    const res = await importTuriTopProductsAction([...selected])
+    const res = await importTuriTopProductsAction([...selected], providerId)
     setImporting(false)
     if (!res.success) { toast.error(res.error || t('import_error')); return }
     toast.success(t('import_ok', { count: res.imported }))
@@ -46,7 +46,7 @@ export function TuriTopImportCard() {
   }
 
   return (
-    <Card className="mb-5">
+    <Card className={embedded ? 'shadow-none border-dashed' : 'mb-5'}>
       <CardContent className="p-4 sm:p-5">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="flex items-start gap-3 flex-1 min-w-0">
