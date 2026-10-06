@@ -308,7 +308,7 @@ BEGIN
           char_length(COALESCE(phone, '')) <= 50 AND char_length(COALESCE(website, '')) <= 300 AND
           char_length(COALESCE(activities_description, '')) <= 3000 AND
           char_length(COALESCE(referral_code, '')) <= 50
-        );
+        ) NOT VALID;
     EXCEPTION WHEN duplicate_object THEN NULL;
     END;
   END IF;
