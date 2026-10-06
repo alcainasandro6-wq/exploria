@@ -1568,6 +1568,7 @@
     "done_toast": "{imported} neue Buchungen · {updated} aktualisiert",
     "up_to_date_toast": "Alles aktuell: nichts Neues in TuriTop",
     "error_toast": "Synchronisierung mit TuriTop fehlgeschlagen",
-    "not_connected_toast": "Noch kein Anbieter hat TuriTop verbunden. Verbinden Sie zuerst den Schlüssel (Integrationen oder Einstellungen)."
+    "not_connected_toast": "Noch kein Anbieter hat TuriTop verbunden. Verbinden Sie zuerst den Schlüssel (Integrationen oder Einstellungen).",
+    "nothing_fetched_toast": "TuriTop hat für diesen Schlüssel keine Buchungen geliefert. Prüfen Sie, ob der Schlüssel zum richtigen Konto gehört."
   }
 }

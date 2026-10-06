@@ -1568,6 +1568,7 @@
     "done_toast": "{imported} new bookings · {updated} updated",
     "up_to_date_toast": "All up to date: nothing new in TuriTop",
     "error_toast": "Could not sync with TuriTop",
-    "not_connected_toast": "No provider has TuriTop connected yet. Connect the key first (Integrations or Settings)."
+    "not_connected_toast": "No provider has TuriTop connected yet. Connect the key first (Integrations or Settings).",
+    "nothing_fetched_toast": "TuriTop returned no bookings for that key. Check that the key belongs to the right account."
   }
 }

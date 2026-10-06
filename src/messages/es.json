@@ -1568,6 +1568,7 @@
     "done_toast": "{imported} reservas nuevas · {updated} actualizadas",
     "up_to_date_toast": "Todo al día: no hay cambios en TuriTop",
     "error_toast": "No se pudo sincronizar con TuriTop",
-    "not_connected_toast": "Ningún proveedor tiene TuriTop conectado todavía. Conecta la clave primero (Integraciones o Ajustes)."
+    "not_connected_toast": "Ningún proveedor tiene TuriTop conectado todavía. Conecta la clave primero (Integraciones o Ajustes).",
+    "nothing_fetched_toast": "TuriTop no devolvió ninguna reserva para esa clave. Comprueba que la clave es de la cuenta correcta."
   }
 }

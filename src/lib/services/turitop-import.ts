@@ -21,6 +21,8 @@ export interface TuriTopSyncResult {
   cancelled: number
   /** How many provider accounts were considered (admin / cron). */
   connected?: number
+  /** Bookings TuriTop returned in the window (diagnostics). */
+  fetched?: number
   error?: string
 }
 
@@ -112,6 +114,7 @@ export async function syncTuriTopBookings(
     const activityByProduct = new Map<string, string>()
     for (const a of acts ?? []) if (!activityByProduct.has(a.turitop_product_id as string)) activityByProduct.set(a.turitop_product_id as string, a.id as string)
 
+    let firstError: string | undefined
     const ensureActivity = async (productId: string, productName: string): Promise<string | null> => {
       const found = activityByProduct.get(productId)
       if (found) return found
@@ -134,6 +137,7 @@ export async function syncTuriTopBookings(
           meeting_point: d?.city ?? 'Torrevieja',
           city: d?.city ?? 'Torrevieja',
           country: 'ES',
+          cancellation_policy: 'Free cancellation up to 24 hours before',
           latitude: d?.latitude ?? null,
           longitude: d?.longitude ?? null,
           external_booking_platform: 'turitop',
@@ -144,14 +148,17 @@ export async function syncTuriTopBookings(
         })
         .select('id')
         .single()
-      if (error || !created) return null
+      if (error || !created) {
+        console.error('TuriTop placeholder activity failed:', productId, error?.message)
+        firstError ??= `No se pudo crear la actividad del producto ${productId}: ${error?.message ?? 'sin datos'}`
+        return null
+      }
       activityByProduct.set(productId, created.id as string)
       return created.id as string
     }
 
     let imported = 0
     let updated = 0
-    let firstError: string | undefined
     const seen = new Set<string>()
     const toInsert: Record<string, unknown>[] = []
 
@@ -239,7 +246,7 @@ export async function syncTuriTopBookings(
     }
 
     await admin.from('providers').update({ turitop_last_sync_at: new Date().toISOString() }).eq('id', providerId)
-    return { ok: !firstError, imported, updated, cancelled, error: firstError }
+    return { ok: !firstError, imported, updated, cancelled, fetched: all.length, error: firstError }
   } catch (err) {
     console.error('TuriTop sync failed for provider', providerId, err)
     return { ...empty, ok: false, error: (err as Error).message }
@@ -257,6 +264,7 @@ export async function syncAllTuriTopProviders(opts: { force?: boolean; maxAgeMs?
     total.imported += r.imported
     total.updated += r.updated
     total.cancelled += r.cancelled
+    total.fetched = (total.fetched ?? 0) + (r.fetched ?? 0)
     if (!r.ok) { total.ok = false; total.error = r.error }
     else if (r.error && r.error !== 'NOT_CONNECTED' && r.error !== 'NO_KEY') { total.error = r.error }
   }
