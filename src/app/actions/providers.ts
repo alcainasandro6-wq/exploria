@@ -624,23 +624,19 @@ export async function getProviderCalendarAction(from: string, to: string): Promi
         .neq('status', 'archived')
       if (mapped && mapped.length > 0) {
         try {
-          const products = await listTuriTopProducts(key)
-          const results = await Promise.allSettled(
-            mapped.map(async (a) => {
-              const product = products.find((p) => p.id === a.turitop_product_id)
-              const days = await getTuriTopCalendar(key, a.turitop_product_id as string, product?.optionId ?? null, from, to)
-              return days.map((d) => ({
+          const productIds = [...new Set(mapped.map((m) => m.turitop_product_id as string))]
+          const days = await getTuriTopCalendar(key, productIds, from, to)
+          for (const act of mapped) {
+            for (const d of days) {
+              if (d.productId !== act.turitop_product_id) continue
+              availability.push({
                 date: d.date,
-                activityId: a.id as string,
-                activityTitle: a.title as string,
+                activityId: act.id as string,
+                activityTitle: act.title as string,
                 available: d.available,
-                vacancies: d.vacancies,
-              }))
-            })
-          )
-          for (const r of results) {
-            if (r.status === 'fulfilled') availability.push(...r.value)
-            else turitopError = (r.reason as Error).message
+                vacancies: d.available ? d.vacancies : 0,
+              })
+            }
           }
         } catch (err) {
           turitopError = (err as Error).message
