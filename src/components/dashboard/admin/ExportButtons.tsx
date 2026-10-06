@@ -10,9 +10,10 @@ interface ExportButtonsProps {
   data: Record<string, unknown>[]
   filename: string
   title?: string
+  variant?: 'white' | 'outline'
 }
 
-export function ExportButtons({ data, filename, title = filename }: ExportButtonsProps) {
+export function ExportButtons({ data, filename, title = filename, variant = 'white' }: ExportButtonsProps) {
   const t = useTranslations('admin_export_buttons')
   const [open, setOpen] = useState(false)
   const [busy, setBusy] = useState<string | null>(null)
@@ -31,7 +32,7 @@ export function ExportButtons({ data, filename, title = filename }: ExportButton
 
   return (
     <div className="relative">
-      <Button variant="white" size="sm" onClick={() => setOpen((o) => !o)} disabled={data.length === 0} className="gap-1.5">
+      <Button variant={variant} size="sm" onClick={() => setOpen((o) => !o)} disabled={data.length === 0} className="gap-1.5">
         {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
         {t('export_button')}
         <ChevronDown className="w-3.5 h-3.5" />

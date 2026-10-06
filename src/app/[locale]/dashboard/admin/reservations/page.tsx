@@ -2,19 +2,11 @@ import { redirect } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { createClient } from '@/lib/supabase/server'
 import { getAllReservations } from '@/lib/services/reservations'
-import { formatPrice, formatDate } from '@/lib/utils'
 import { SyncTuriTopButton } from '@/components/dashboard/SyncTuriTopButton'
 import { syncAllTuriTopProviders } from '@/lib/services/turitop-import'
-import { ExportButtons } from '@/components/dashboard/admin/ExportButtons'
-
-const STATUS_STYLES: Record<string, 'success' | 'warning' | 'secondary' | 'destructive'> = {
-  confirmed: 'success', pending: 'warning', completed: 'secondary',
-  cancelled: 'destructive', rejected: 'destructive', no_show: 'destructive',
-}
+import { ReservationsTable, type ReservationRow } from '@/components/dashboard/admin/ReservationsTable'
 
 export const maxDuration = 120
 
@@ -27,26 +19,25 @@ export default async function AdminReservationsPage() {
 
   const t = await getTranslations('admin_reservations_page')
 
-  const STATUS_LABELS: Record<string, string> = {
-    confirmed: t('status_confirmed'), pending: t('status_pending'), completed: t('status_completed'),
-    cancelled: t('status_cancelled'), rejected: t('status_rejected'), no_show: t('status_no_show'),
-  }
-
   // Pull in anything new from the providers' TuriTop accounts (throttled to once / 5 min).
   await syncAllTuriTopProviders()
   const reservations = await getAllReservations({ limit: 5000 })
 
-  const exportData = reservations.map((r) => ({
-    codigo: r.confirmation_code,
-    cliente: r.customer?.full_name ?? r.external_customer_name ?? '',
-    origen: r.external_source ? `TuriTop${r.external_channel ? ' · ' + r.external_channel : ''}` : 'Exploria',
-    proveedor: r.provider?.company_name ?? '',
+  const rows: ReservationRow[] = reservations.map((r) => ({
+    id: r.id,
+    code: r.confirmation_code,
+    customer: r.customer?.full_name ?? r.external_customer_name ?? '',
+    email: r.customer?.email ?? r.external_customer_email ?? '',
+    activity: r.activity?.title ?? '',
+    provider: r.provider?.company_name ?? '',
     hotel: r.hotel?.name ?? '',
-    actividad: r.activity?.title ?? '',
-    fecha_actividad: r.activity_date,
-    participantes: r.participants,
-    importe: r.total_price,
-    estado: STATUS_LABELS[r.status],
+    date: r.activity_date,
+    time: (r.activity_time ?? '').slice(0, 5),
+    participants: r.participants,
+    amount: Number(r.total_price),
+    status: r.status,
+    origin: r.external_source ? 'turitop' : 'exploria',
+    channel: r.external_channel ?? '',
   }))
 
   return (
@@ -54,44 +45,9 @@ export default async function AdminReservationsPage() {
       <DashboardHeader
         title={t('title')}
         subtitle={t('subtitle', { count: reservations.length })}
-        action={<div className="flex flex-wrap gap-2"><SyncTuriTopButton admin /><ExportButtons data={exportData} filename="reservas" title={`${t('export_title')} — BookActivities`} /></div>}
+        action={<SyncTuriTopButton admin />}
       />
-
-      <Card>
-        <CardHeader><CardTitle>{t('all_reservations_title')}</CardTitle></CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-100">
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">{t('column_code')}</th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">{t('column_customer')}</th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">{t('column_activity')}</th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">{t('column_provider')}</th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">{t('column_date')}</th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">{t('column_amount')}</th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">{t('column_status')}</th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase">{t('column_origin')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {reservations.map((r) => (
-                  <tr key={r.id} className="border-b border-slate-50 hover:bg-slate-50">
-                    <td className="py-3 px-4 text-xs font-mono text-slate-700">{r.confirmation_code}</td>
-                    <td className="py-3 px-4 text-sm text-slate-900">{r.customer?.full_name ?? r.external_customer_name ?? '—'}</td>
-                    <td className="py-3 px-4 text-sm text-slate-600 max-w-[16rem] truncate">{r.activity?.title ?? '—'}</td>
-                    <td className="py-3 px-4 text-sm text-slate-600">{r.provider?.company_name}</td>
-                    <td className="py-3 px-4 text-sm text-slate-500">{formatDate(r.activity_date)}</td>
-                    <td className="py-3 px-4 text-sm font-semibold text-slate-900">{formatPrice(r.total_price)}</td>
-                    <td className="py-3 px-4"><Badge variant={STATUS_STYLES[r.status]}>{STATUS_LABELS[r.status]}</Badge></td>
-                    <td className="py-3 px-4 text-xs text-slate-500 whitespace-nowrap">{r.external_source ? `TuriTop${r.external_channel ? ' · ' + r.external_channel : ''}` : 'Exploria'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
+      <ReservationsTable rows={rows} />
     </DashboardLayout>
   )
 }
