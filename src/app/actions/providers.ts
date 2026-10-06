@@ -775,14 +775,14 @@ export async function getTuriTopImportCandidatesAction(forProviderId?: string): 
 }
 
 // Manual "sync now" (provider: own account; admin: any provider, or all when omitted)
-export async function syncTuriTopNowAction(forProviderId?: string): Promise<{ success: boolean; imported: number; updated: number; cancelled: number; error?: string }> {
+export async function syncTuriTopNowAction(forProviderId?: string): Promise<{ success: boolean; imported: number; updated: number; cancelled: number; connected?: number; error?: string }> {
   try {
     const { providerId } = await resolveProviderTarget(forProviderId)
     const r = await syncTuriTopBookings(providerId, { force: true })
     revalidatePath('/dashboard/provider/bookings')
     revalidatePath('/dashboard/provider/calendar')
     revalidatePath('/dashboard/admin/reservations')
-    return { success: r.ok, imported: r.imported, updated: r.updated, cancelled: r.cancelled, error: r.error }
+    return { success: r.ok && !(r.skipped && r.error), imported: r.imported, updated: r.updated, cancelled: r.cancelled, connected: r.skipped ? 0 : 1, error: r.error }
   } catch (err) {
     return { success: false, imported: 0, updated: 0, cancelled: 0, error: (err as Error).message }
   }

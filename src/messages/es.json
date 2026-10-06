@@ -1567,6 +1567,7 @@
     "button": "Sincronizar TuriTop",
     "done_toast": "{imported} reservas nuevas · {updated} actualizadas",
     "up_to_date_toast": "Todo al día: no hay cambios en TuriTop",
-    "error_toast": "No se pudo sincronizar con TuriTop"
+    "error_toast": "No se pudo sincronizar con TuriTop",
+    "not_connected_toast": "Ningún proveedor tiene TuriTop conectado todavía. Conecta la clave primero (Integraciones o Ajustes)."
   }
 }

@@ -19,7 +19,8 @@ export function SyncTuriTopButton({ admin }: { admin?: boolean }) {
     setBusy(true)
     const res = admin ? await syncAllTuriTopNowAction() : await syncTuriTopNowAction()
     setBusy(false)
-    if (!res.success) { toast.error(res.error || t('error_toast')); return }
+    if (res.error === 'NOT_CONNECTED' || res.error === 'NO_KEY' || (res.success && res.connected === 0)) { toast.error(t('not_connected_toast')); return }
+    if (!res.success) { toast.error(res.error || t('error_toast'), { duration: 12000 }); return }
     const changes = res.imported + res.updated + res.cancelled
     toast.success(changes > 0 ? t('done_toast', { imported: res.imported, updated: res.updated + res.cancelled }) : t('up_to_date_toast'))
     router.refresh()

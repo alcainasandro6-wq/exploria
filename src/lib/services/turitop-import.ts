@@ -19,6 +19,8 @@ export interface TuriTopSyncResult {
   imported: number
   updated: number
   cancelled: number
+  /** How many provider accounts were considered (admin / cron). */
+  connected?: number
   error?: string
 }
 
@@ -59,12 +61,14 @@ export async function syncTuriTopBookings(
   try {
     const admin = createAdminClient()
 
-    const { data: prov } = await admin
+    const { data: prov, error: provErr } = await admin
       .from('providers')
       .select('id, turitop_has_key, turitop_last_sync_at')
       .eq('id', providerId)
       .maybeSingle()
+    if (provErr) return { ...empty, ok: false, error: `Database: ${provErr.message}. ¿Ejecutaste las migraciones 025 y 028?` }
     if (!prov) return { ...empty, ok: false, error: 'Provider not found' }
+    if (!prov.turitop_has_key) return { ...empty, skipped: true, error: 'NOT_CONNECTED' }
 
     const maxAge = opts.maxAgeMs ?? DEFAULT_MAX_AGE_MS
     if (!opts.force && prov.turitop_last_sync_at && Date.now() - new Date(prov.turitop_last_sync_at as string).getTime() < maxAge) {
@@ -72,7 +76,7 @@ export async function syncTuriTopBookings(
     }
 
     const key = await getTuriTopKey(providerId)
-    if (!key) return { ...empty, skipped: true }
+    if (!key) return { ...empty, skipped: true, error: 'NO_KEY' }
 
     const from = isoDay(-WINDOW_DAYS)
     const to = isoDay(WINDOW_DAYS)
@@ -147,6 +151,7 @@ export async function syncTuriTopBookings(
 
     let imported = 0
     let updated = 0
+    let firstError: string | undefined
     const seen = new Set<string>()
     const toInsert: Record<string, unknown>[] = []
 
@@ -213,7 +218,10 @@ export async function syncTuriTopBookings(
         for (const r of chunk) {
           const { error: e2 } = await admin.from('reservations').insert(r)
           if (!e2) imported++
-          else console.error('TuriTop import row failed:', r.external_id, e2.message)
+          else {
+            console.error('TuriTop import row failed:', r.external_id, e2.message)
+            firstError ??= `${e2.message}${/column|relation|null value/i.test(e2.message) ? ' — ¿Ejecutaste la migración 028?' : ''}`
+          }
         }
       } else {
         imported += chunk.length
@@ -231,7 +239,7 @@ export async function syncTuriTopBookings(
     }
 
     await admin.from('providers').update({ turitop_last_sync_at: new Date().toISOString() }).eq('id', providerId)
-    return { ok: true, imported, updated, cancelled }
+    return { ok: !firstError, imported, updated, cancelled, error: firstError }
   } catch (err) {
     console.error('TuriTop sync failed for provider', providerId, err)
     return { ...empty, ok: false, error: (err as Error).message }
@@ -241,14 +249,16 @@ export async function syncTuriTopBookings(
 /** Syncs every provider that connected TuriTop (used by cron and the admin views). */
 export async function syncAllTuriTopProviders(opts: { force?: boolean; maxAgeMs?: number } = {}): Promise<TuriTopSyncResult> {
   const admin = createAdminClient()
-  const { data: providers } = await admin.from('providers').select('id').eq('turitop_has_key', true)
-  const total: TuriTopSyncResult = { ok: true, imported: 0, updated: 0, cancelled: 0 }
+  const { data: providers, error: listErr } = await admin.from('providers').select('id').eq('turitop_has_key', true)
+  const total: TuriTopSyncResult = { ok: true, imported: 0, updated: 0, cancelled: 0, connected: providers?.length ?? 0 }
+  if (listErr) return { ...total, ok: false, error: `Database: ${listErr.message}. ¿Ejecutaste las migraciones 025 y 028?` }
   const results = await Promise.all((providers ?? []).map((p) => syncTuriTopBookings(p.id as string, opts)))
   for (const r of results) {
     total.imported += r.imported
     total.updated += r.updated
     total.cancelled += r.cancelled
     if (!r.ok) { total.ok = false; total.error = r.error }
+    else if (r.error && r.error !== 'NOT_CONNECTED' && r.error !== 'NO_KEY') { total.error = r.error }
   }
   return total
 }

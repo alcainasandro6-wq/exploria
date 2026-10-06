@@ -958,13 +958,13 @@ export async function getAdminCalendarAction(from: string, to: string): Promise<
   }
 }
 
-export async function syncAllTuriTopNowAction(): Promise<{ success: boolean; imported: number; updated: number; cancelled: number; error?: string }> {
+export async function syncAllTuriTopNowAction(): Promise<{ success: boolean; imported: number; updated: number; cancelled: number; connected?: number; error?: string }> {
   try {
     await requireAdmin()
     const r = await syncAllTuriTopProviders({ force: true })
     revalidatePath('/dashboard/admin/reservations')
     revalidatePath('/dashboard/admin/calendar')
-    return { success: r.ok, imported: r.imported, updated: r.updated, cancelled: r.cancelled, error: r.error }
+    return { success: r.ok, imported: r.imported, updated: r.updated, cancelled: r.cancelled, connected: r.connected, error: r.error }
   } catch (err) {
     return { success: false, imported: 0, updated: 0, cancelled: 0, error: (err as Error).message }
   }
