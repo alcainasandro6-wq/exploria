@@ -24,7 +24,7 @@ export const VALID_TRANSITIONS: Record<ReservationStatus, ReservationStatus[]> =
   no_show:   [],
 }
 
-export type ReservationSource = 'qr' | 'web' | 'direct' | 'concierge'
+export type ReservationSource = 'qr' | 'web' | 'direct' | 'concierge' | 'turitop'
 export type ProviderTier = 'registered' | 'verified' | 'premium'
 export type TuriTopConnectionStatus = 'unverified' | 'ok' | 'error'
 export type IncidentType =
@@ -233,6 +233,13 @@ export interface Reservation {
   platform_commission: number
   affiliate_code: string | null
   confirmation_code: string
+  turitop_booking_id?: string | null
+  external_source?: string | null
+  external_id?: string | null
+  external_channel?: string | null
+  external_customer_name?: string | null
+  external_customer_email?: string | null
+  external_customer_phone?: string | null
   confirmed_at: string | null
   completed_at: string | null
   cancelled_at: string | null

@@ -3,8 +3,9 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { isSubscriptionActive, getSubscriptionUsage } from '@/lib/services/subscriptions'
-import { testTuriTopConnection, saveTuriTopKey, getTuriTopKey, listTuriTopProducts, getTuriTopCalendar, getTuriTopBookings, getTuriTopImportData, type TuriTopProduct } from '@/lib/services/turitop'
+import { testTuriTopConnection, saveTuriTopKey, getTuriTopKey, listTuriTopProducts, getTuriTopCalendar, getTuriTopImportData, type TuriTopProduct } from '@/lib/services/turitop'
 import type { CalendarEvent, CalendarAvailability } from '@/lib/calendar-types'
+import { syncTuriTopBookings } from '@/lib/services/turitop-import'
 import type { ActivityStatus, ExternalBookingPlatform } from '@/types/database'
 
 // =====================================================
@@ -321,7 +322,7 @@ export async function getProviderActivitiesAction(opts: { archived?: boolean } =
     `)
     .eq('provider_id', providerId)
     .order('created_at', { ascending: false })
-  query = opts.archived ? query.eq('status', 'archived') : query.neq('status', 'archived')
+  query = (opts.archived ? query.eq('status', 'archived') : query.neq('status', 'archived')).eq('turitop_placeholder', false)
   const { data, error } = await query
 
   if (error) return { success: false, error: error.message, activities: [] as ProviderActivitySummary[] }
@@ -544,8 +545,15 @@ export async function updateTuriTopConnectionAction(apiKey: string) {
 
   if (error) return { success: false, error: error.message }
 
+  let sync: { imported: number } | null = null
+  if (apiKey.trim() && result.status === 'ok') {
+    const r = await syncTuriTopBookings(providerId, { force: true })
+    sync = { imported: r.imported }
+  }
+
   revalidatePath('/dashboard/provider/settings')
-  return { success: true, status: apiKey.trim() ? result.status : 'unverified', connectionError: result.error }
+  revalidatePath('/dashboard/provider/bookings')
+  return { success: true, status: apiKey.trim() ? result.status : 'unverified', connectionError: result.error, imported: sync?.imported ?? 0 }
 }
 
 // =====================================================
@@ -589,6 +597,7 @@ export async function getProviderCalendarAction(from: string, to: string): Promi
   }
   try {
     const { providerId } = await requireProviderAuth()
+    await syncTuriTopBookings(providerId)
     const supabase = await createClient()
 
     const { data: reservations, error } = await supabase
@@ -616,29 +625,6 @@ export async function getProviderCalendarAction(from: string, to: string): Promi
     let turitopError: string | undefined
     const key = await getTuriTopKey(providerId)
     if (key) {
-      try {
-        const ttBookings = await getTuriTopBookings(key, from, to)
-        for (const b of ttBookings) {
-          const status: CalendarEvent['status'] =
-            b.status === 'cancelled' || b.status === 'declined' ? 'cancelled'
-            : b.status === 'refunded' ? 'cancelled'
-            : b.status === 'not done' ? 'no_show'
-            : b.status === 'paid' || b.status === 'confirmed' ? 'confirmed'
-            : 'pending'
-          events.push({
-            id: `tt-${b.id}`,
-            date: b.date,
-            time: b.time,
-            title: b.productName,
-            subtitle: [b.customerName, 'TuriTop'].filter(Boolean).join(' · '),
-            participants: b.participants,
-            status,
-          })
-        }
-      } catch (err) {
-        turitopError = (err as Error).message
-      }
-
       const { data: mapped } = await supabase
         .from('activities')
         .select('id, title, turitop_product_id')
@@ -712,10 +698,11 @@ export async function importTuriTopProductsAction(productIds: string[], forProvi
     const supabase = await createClient()
     const { data: existing } = await supabase
       .from('activities')
-      .select('turitop_product_id')
+      .select('id, turitop_product_id, turitop_placeholder')
       .eq('provider_id', providerId)
       .not('turitop_product_id', 'is', null)
-    const already = new Set((existing ?? []).map((a) => a.turitop_product_id as string))
+    const already = new Set((existing ?? []).filter((a) => !a.turitop_placeholder).map((a) => a.turitop_product_id as string))
+    const placeholders = new Map((existing ?? []).filter((a) => a.turitop_placeholder).map((a) => [a.turitop_product_id as string, a.id as string]))
 
     let imported = 0
     let skipped = 0
@@ -729,7 +716,7 @@ export async function importTuriTopProductsAction(productIds: string[], forProvi
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-+|-+$/g, '')
 
-      const { error } = await supabase.from('activities').insert({
+      const values = {
         provider_id: providerId,
         title: d.title,
         slug: `${slug}-${Date.now().toString(36)}`,
@@ -749,7 +736,12 @@ export async function importTuriTopProductsAction(productIds: string[], forProvi
         turitop_service_code: id,
         turitop_product_id: id,
         status: 'draft',
-      })
+        turitop_placeholder: false,
+      }
+      const placeholderId = placeholders.get(id)
+      const { error } = placeholderId
+        ? await supabase.from('activities').update(values).eq('id', placeholderId)
+        : await supabase.from('activities').insert(values)
       if (error) return { success: false, imported, skipped, error: error.message }
       imported++
     }
@@ -773,11 +765,25 @@ export async function getTuriTopImportCandidatesAction(forProviderId?: string): 
     const supabase = await createClient()
     const [products, { data: existing }] = await Promise.all([
       listTuriTopProducts(key),
-      supabase.from('activities').select('turitop_product_id').eq('provider_id', providerId).not('turitop_product_id', 'is', null),
+      supabase.from('activities').select('turitop_product_id, turitop_placeholder').eq('provider_id', providerId).not('turitop_product_id', 'is', null),
     ])
-    const linked = new Set((existing ?? []).map((a) => a.turitop_product_id as string))
+    const linked = new Set((existing ?? []).filter((a) => !a.turitop_placeholder).map((a) => a.turitop_product_id as string))
     return { success: true, items: products.map((p) => ({ id: p.id, name: p.name, linked: linked.has(p.id) })) }
   } catch (err) {
     return { success: false, items: [], error: (err as Error).message }
+  }
+}
+
+// Manual "sync now" (provider: own account; admin: any provider, or all when omitted)
+export async function syncTuriTopNowAction(forProviderId?: string): Promise<{ success: boolean; imported: number; updated: number; cancelled: number; error?: string }> {
+  try {
+    const { providerId } = await resolveProviderTarget(forProviderId)
+    const r = await syncTuriTopBookings(providerId, { force: true })
+    revalidatePath('/dashboard/provider/bookings')
+    revalidatePath('/dashboard/provider/calendar')
+    revalidatePath('/dashboard/admin/reservations')
+    return { success: r.ok, imported: r.imported, updated: r.updated, cancelled: r.cancelled, error: r.error }
+  } catch (err) {
+    return { success: false, imported: 0, updated: 0, cancelled: 0, error: (err as Error).message }
   }
 }

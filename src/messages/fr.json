@@ -233,7 +233,8 @@
     "provider_applications": "Demandes",
     "settlements": "Règlements",
     "incidents": "Incidents",
-    "packs": "Packs"
+    "packs": "Packs",
+    "calendar": "Calendrier"
   },
   "activities_page": {
     "hero_title": "Découvrez les meilleures activités au bord de la mer",
@@ -494,7 +495,9 @@
     "status_completed": "Terminé",
     "status_cancelled": "Annulé",
     "status_rejected": "Refusé",
-    "status_no_show": "Non présenté"
+    "status_no_show": "Non présenté",
+    "column_activity": "Activité",
+    "column_origin": "Origine"
   },
   "admin_settings_page": {
     "title": "Intégrations",
@@ -1555,5 +1558,15 @@
     "success_hint": "Vous pourrez suivre l'état dans votre espace de réservations.",
     "error_generic": "La demande de réservation n'a pas pu aboutir",
     "error_network": "Impossible de joindre le serveur. Réessayez."
+  },
+  "admin_calendar_page": {
+    "title": "Calendrier",
+    "subtitle": "Toutes les réservations de la plateforme : Exploria et TuriTop"
+  },
+  "turitop_sync": {
+    "button": "Synchroniser TuriTop",
+    "done_toast": "{imported} nouvelles réservations · {updated} mises à jour",
+    "up_to_date_toast": "Tout est à jour : rien de nouveau dans TuriTop",
+    "error_toast": "Synchronisation avec TuriTop impossible"
   }
 }

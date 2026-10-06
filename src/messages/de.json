@@ -233,7 +233,8 @@
     "provider_applications": "Bewerbungen",
     "settlements": "Auszahlungen",
     "incidents": "Vorfälle",
-    "packs": "Pakete"
+    "packs": "Pakete",
+    "calendar": "Kalender"
   },
   "activities_page": {
     "hero_title": "Entdecken Sie die besten Aktivitäten am Meer",
@@ -494,7 +495,9 @@
     "status_completed": "Abgeschlossen",
     "status_cancelled": "Storniert",
     "status_rejected": "Abgelehnt",
-    "status_no_show": "Nicht erschienen"
+    "status_no_show": "Nicht erschienen",
+    "column_activity": "Aktivität",
+    "column_origin": "Herkunft"
   },
   "admin_settings_page": {
     "title": "Integrationen",
@@ -1555,5 +1558,15 @@
     "success_hint": "Den Status sehen Sie in Ihrem Buchungsbereich.",
     "error_generic": "Die Buchungsanfrage konnte nicht abgeschlossen werden",
     "error_network": "Server nicht erreichbar. Bitte erneut versuchen."
+  },
+  "admin_calendar_page": {
+    "title": "Kalender",
+    "subtitle": "Alle Buchungen der Plattform: Exploria und TuriTop"
+  },
+  "turitop_sync": {
+    "button": "TuriTop synchronisieren",
+    "done_toast": "{imported} neue Buchungen · {updated} aktualisiert",
+    "up_to_date_toast": "Alles aktuell: nichts Neues in TuriTop",
+    "error_toast": "Synchronisierung mit TuriTop fehlgeschlagen"
   }
 }

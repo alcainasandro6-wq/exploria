@@ -261,7 +261,8 @@ export async function getAllReservations(
       customer:profiles!customer_id(id, full_name, email),
       provider:providers!provider_id(id, company_name)
     `)
-    .order('created_at', { ascending: false })
+    .order('activity_date', { ascending: false })
+    .order('activity_time', { ascending: false })
 
   if (filters.status) {
     query = Array.isArray(filters.status)

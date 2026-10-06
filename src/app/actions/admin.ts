@@ -4,7 +4,8 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { generateReferralCode } from '@/lib/services/providers'
-import { testTuriTopConnection, saveTuriTopKey, getTuriTopKey, getTuriTopBookings } from '@/lib/services/turitop'
+import { testTuriTopConnection, saveTuriTopKey } from '@/lib/services/turitop'
+import { syncTuriTopBookings, syncAllTuriTopProviders } from '@/lib/services/turitop-import'
 import type { CalendarEvent } from '@/lib/calendar-types'
 import { translateActivityFields } from '@/lib/services/translate'
 import { LOCALES } from '@/lib/constants'
@@ -557,7 +558,10 @@ export async function adminUpdateProviderTuriTopAction(providerId: string, apiKe
 
     if (error) return { success: false, error: error.message }
 
+    if (apiKey.trim() && result.status === 'ok') await syncTuriTopBookings(providerId, { force: true })
+
     revalidatePath('/dashboard/admin/providers')
+    revalidatePath('/dashboard/admin/reservations')
     return { success: true, status: apiKey.trim() ? result.status : 'unverified', connectionError: result.error }
   } catch (err) {
     return { success: false, error: (err as Error).message }
@@ -919,7 +923,6 @@ export async function adminUpdateProviderApplicationAction(
 export async function getAdminCalendarAction(from: string, to: string): Promise<{
   success: boolean
   events: CalendarEvent[]
-  warning?: string
   error?: string
 }> {
   try {
@@ -927,56 +930,42 @@ export async function getAdminCalendarAction(from: string, to: string): Promise<
       return { success: false, events: [], error: 'Invalid range' }
     }
     const { supabase } = await requireAdmin()
+    await syncAllTuriTopProviders()
 
     const { data: rows, error } = await supabase
       .from('reservations')
-      .select('id, activity_date, activity_time, participants, status, activity:activities(title), customer:profiles!customer_id(full_name), provider:providers(company_name)')
+      .select('id, activity_date, activity_time, participants, status, external_customer_name, activity:activities(title), customer:profiles!customer_id(full_name), provider:providers(company_name)')
       .gte('activity_date', from)
       .lte('activity_date', to)
       .order('activity_date')
       .limit(1000)
     if (error) return { success: false, events: [], error: error.message }
 
-    type Row = { id: string; activity_date: string; activity_time: string; participants: number; status: CalendarEvent['status']; activity: { title: string } | null; customer: { full_name: string } | null; provider: { company_name: string } | null }
+    type Row = { id: string; activity_date: string; activity_time: string; participants: number; status: CalendarEvent['status']; external_customer_name: string | null; activity: { title: string } | null; customer: { full_name: string } | null; provider: { company_name: string } | null }
     const events: CalendarEvent[] = ((rows ?? []) as unknown as Row[]).map((r) => ({
       id: r.id,
       date: r.activity_date,
       time: (r.activity_time ?? '').slice(0, 5),
       title: r.activity?.title ?? '—',
-      subtitle: [r.provider?.company_name, r.customer?.full_name].filter(Boolean).join(' · ') || undefined,
+      subtitle: [r.provider?.company_name, r.customer?.full_name ?? r.external_customer_name].filter(Boolean).join(' · ') || undefined,
       participants: r.participants,
       status: r.status,
     }))
 
-    // TuriTop bookings of every provider that connected their account.
-    let warning: string | undefined
-    const { data: providers } = await supabase.from('providers').select('id, company_name').eq('turitop_has_key', true)
-    const results = await Promise.allSettled(
-      (providers ?? []).map(async (p) => {
-        const key = await getTuriTopKey(p.id as string)
-        if (!key) return []
-        const list = await getTuriTopBookings(key, from, to)
-        return list.map((b): CalendarEvent => ({
-          id: `tt-${p.id}-${b.id}`,
-          date: b.date,
-          time: b.time,
-          title: b.productName,
-          subtitle: [p.company_name, b.customerName, 'TuriTop'].filter(Boolean).join(' · '),
-          participants: b.participants,
-          status:
-            b.status === 'cancelled' || b.status === 'declined' || b.status === 'refunded' ? 'cancelled'
-            : b.status === 'not done' ? 'no_show'
-            : b.status === 'paid' || b.status === 'confirmed' ? 'confirmed'
-            : 'pending',
-        }))
-      })
-    )
-    for (const r of results) {
-      if (r.status === 'fulfilled') events.push(...r.value)
-      else warning = r.reason instanceof Error ? r.reason.message : 'TuriTop error'
-    }
-    return { success: true, events, warning }
+    return { success: true, events }
   } catch (err) {
     return { success: false, events: [], error: (err as Error).message }
+  }
+}
+
+export async function syncAllTuriTopNowAction(): Promise<{ success: boolean; imported: number; updated: number; cancelled: number; error?: string }> {
+  try {
+    await requireAdmin()
+    const r = await syncAllTuriTopProviders({ force: true })
+    revalidatePath('/dashboard/admin/reservations')
+    revalidatePath('/dashboard/admin/calendar')
+    return { success: r.ok, imported: r.imported, updated: r.updated, cancelled: r.cancelled, error: r.error }
+  } catch (err) {
+    return { success: false, imported: 0, updated: 0, cancelled: 0, error: (err as Error).message }
   }
 }

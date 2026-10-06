@@ -6,6 +6,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { createClient } from '@/lib/supabase/server'
 import { getProviderByProfileId } from '@/lib/services/providers'
 import { getProviderReservations } from '@/lib/services/reservations'
+import { SyncTuriTopButton } from '@/components/dashboard/SyncTuriTopButton'
+import { syncTuriTopBookings } from '@/lib/services/turitop-import'
 import { ProviderBookingRow } from '@/components/dashboard/provider/ProviderBookingRow'
 
 export default async function ProviderBookingsPage() {
@@ -18,11 +20,12 @@ export default async function ProviderBookingsPage() {
 
   const t = await getTranslations('provider_bookings_page')
 
+  if (provider.turitop_has_key) await syncTuriTopBookings(provider.id)
   const bookings = await getProviderReservations(provider.id)
 
   return (
     <DashboardLayout role="provider">
-      <DashboardHeader title={t('title')} subtitle={t('subtitle', { count: bookings.length })} />
+      <DashboardHeader title={t('title')} subtitle={t('subtitle', { count: bookings.length })} action={provider.turitop_has_key ? <SyncTuriTopButton /> : undefined} />
 
       {bookings.length === 0 ? (
         <Card><CardContent className="p-10 text-center text-slate-400">{t('empty_state')}</CardContent></Card>

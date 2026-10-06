@@ -38,13 +38,15 @@ export function PendingBookingRow({ booking }: { booking: Reservation }) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 bg-slate-50 rounded-xl">
       <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center shrink-0">
-        <span className="text-purple-600 font-bold text-sm">{getInitials(booking.customer?.full_name || t('default_customer_name'))}</span>
+        <span className="text-purple-600 font-bold text-sm">{getInitials(booking.customer?.full_name || booking.external_customer_name || t('default_customer_name'))}</span>
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-slate-900 truncate">{booking.customer?.full_name || t('default_customer_name')}</p>
+        <p className="text-sm font-semibold text-slate-900 truncate">{booking.customer?.full_name || booking.external_customer_name || t('default_customer_name')}</p>
         <p className="text-xs text-slate-500 truncate">{t('booking_summary', { activity: booking.activity?.title ?? '', participants: booking.participants, date: formatDate(booking.activity_date) })}</p>
       </div>
-      {status === 'pending' ? (
+      {booking.external_source ? (
+        <Badge variant="secondary">TuriTop</Badge>
+      ) : status === 'pending' ? (
         <div className="flex gap-1.5 shrink-0">
           <Button size="sm" className="text-xs h-7 px-2.5" onClick={handleConfirm} disabled={loading !== null}>
             {loading === 'confirm' ? <Loader2 className="w-3 h-3 animate-spin" /> : t('confirm_button')}

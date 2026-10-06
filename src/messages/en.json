@@ -192,7 +192,8 @@
     "provider_applications": "Applications",
     "settlements": "Settlements",
     "incidents": "Incidents",
-    "packs": "Packs"
+    "packs": "Packs",
+    "calendar": "Calendar"
   },
   "footer": {
     "about": "About BookActivities",
@@ -482,7 +483,9 @@
     "status_completed": "Completed",
     "status_cancelled": "Cancelled",
     "status_rejected": "Rejected",
-    "status_no_show": "No-show"
+    "status_no_show": "No-show",
+    "column_activity": "Activity",
+    "column_origin": "Source"
   },
   "admin_settings_page": {
     "title": "Integrations",
@@ -1555,5 +1558,15 @@
     "success_hint": "You can follow the status in your bookings panel.",
     "error_generic": "The booking request could not be completed",
     "error_network": "Could not reach the server. Please try again."
+  },
+  "admin_calendar_page": {
+    "title": "Calendar",
+    "subtitle": "Every booking on the platform: Exploria and TuriTop"
+  },
+  "turitop_sync": {
+    "button": "Sync TuriTop",
+    "done_toast": "{imported} new bookings · {updated} updated",
+    "up_to_date_toast": "All up to date: nothing new in TuriTop",
+    "error_toast": "Could not sync with TuriTop"
   }
 }

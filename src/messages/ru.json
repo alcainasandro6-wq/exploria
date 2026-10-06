@@ -233,7 +233,8 @@
     "provider_applications": "Заявки",
     "settlements": "Выплаты",
     "incidents": "Инциденты",
-    "packs": "Пакеты"
+    "packs": "Пакеты",
+    "calendar": "Календарь"
   },
   "activities_page": {
     "hero_title": "Откройте для себя лучшие активности у моря",
@@ -494,7 +495,9 @@
     "status_completed": "Завершено",
     "status_cancelled": "Отменено",
     "status_rejected": "Отклонено",
-    "status_no_show": "Не явился"
+    "status_no_show": "Не явился",
+    "column_activity": "Активность",
+    "column_origin": "Источник"
   },
   "admin_settings_page": {
     "title": "Интеграции",
@@ -1555,5 +1558,15 @@
     "success_hint": "Статус можно отслеживать в панели бронирований.",
     "error_generic": "Не удалось оформить запрос на бронирование",
     "error_network": "Не удалось связаться с сервером. Попробуйте ещё раз."
+  },
+  "admin_calendar_page": {
+    "title": "Календарь",
+    "subtitle": "Все бронирования платформы: Exploria и TuriTop"
+  },
+  "turitop_sync": {
+    "button": "Синхронизировать TuriTop",
+    "done_toast": "Новых бронирований: {imported} · обновлено: {updated}",
+    "up_to_date_toast": "Всё актуально: в TuriTop ничего нового",
+    "error_toast": "Не удалось синхронизировать с TuriTop"
   }
 }

@@ -192,7 +192,8 @@
     "settings_nav": "Integraciones",
     "settlements": "Liquidaciones",
     "incidents": "Incidencias",
-    "packs": "Packs"
+    "packs": "Packs",
+    "calendar": "Calendario"
   },
   "footer": {
     "about": "Sobre BookActivities",
@@ -494,7 +495,9 @@
     "status_completed": "Completado",
     "status_cancelled": "Cancelado",
     "status_rejected": "Rechazado",
-    "status_no_show": "No presentado"
+    "status_no_show": "No presentado",
+    "column_activity": "Actividad",
+    "column_origin": "Origen"
   },
   "admin_settings_page": {
     "title": "Integraciones",
@@ -1555,5 +1558,15 @@
     "success_hint": "Podrás ver el estado en tu panel de reservas.",
     "error_generic": "No se pudo completar la solicitud de reserva",
     "error_network": "No se pudo conectar con el servidor. Inténtalo de nuevo."
+  },
+  "admin_calendar_page": {
+    "title": "Calendario",
+    "subtitle": "Todas las reservas de la plataforma: Exploria y TuriTop"
+  },
+  "turitop_sync": {
+    "button": "Sincronizar TuriTop",
+    "done_toast": "{imported} reservas nuevas · {updated} actualizadas",
+    "up_to_date_toast": "Todo al día: no hay cambios en TuriTop",
+    "error_toast": "No se pudo sincronizar con TuriTop"
   }
 }

@@ -19,8 +19,8 @@ export function AdminCalendar() {
     setLoading(false)
     if (!res.success) { setWarning(res.error ?? t('load_error')); return }
     setEvents(res.events)
-    setWarning(res.warning ? t('turitop_error') : null)
+    setWarning(null)
   }, [t])
 
-  return <ActivityCalendar className="mb-6" events={events} onRangeChange={load} loading={loading} warning={warning} />
+  return <ActivityCalendar events={events} onRangeChange={load} loading={loading} warning={warning} />
 }

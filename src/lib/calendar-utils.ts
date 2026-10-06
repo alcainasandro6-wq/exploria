@@ -11,7 +11,7 @@ export function reservationsToEvents(
     date: r.activity_date,
     time: (r.activity_time ?? '').slice(0, 5),
     title: r.activity?.title ?? '—',
-    subtitle: subtitle(r),
+    subtitle: subtitle(r) ?? r.external_customer_name ?? undefined,
     participants: r.participants,
     status: r.status,
   }))

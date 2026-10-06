@@ -209,8 +209,12 @@ export interface TuriTopBooking {
   date: string
   /** Local time HH:MM. */
   time: string
+  /** Date the booking was made (YYYY-MM-DD). */
+  bookedOn: string
   participants: number
   customerName: string
+  customerEmail: string
+  customerPhone: string
   status: string
   total: number
   currency: string
@@ -222,22 +226,23 @@ interface TTBooking {
   product_short_id: string
   product_name: string
   date_event_iso8601?: string
+  date_booking_iso8601?: string
   date_event: number
   status?: string
   source?: string
   currency?: string
   total_price?: string
-  client_data?: { name?: string }
+  client_data?: { name?: string; email?: string; phone?: string }
   ticket_type_count?: { count?: number; seats?: number }[]
 }
 
 /** Bookings whose EVENT date falls in [from, to] (YYYY-MM-DD, inclusive). */
-export async function getTuriTopBookings(apiKey: string, from: string, to: string): Promise<TuriTopBooking[]> {
+export async function getTuriTopBookings(apiKey: string, from: string, to: string, maxPages = 10): Promise<TuriTopBooking[]> {
   const start = Math.floor(new Date(`${from}T00:00:00Z`).getTime() / 1000) - 12 * 3600
   const end = Math.floor(new Date(`${to}T23:59:59Z`).getTime() / 1000) + 12 * 3600
   const out: TuriTopBooking[] = []
 
-  for (let page = 1; page <= 10; page++) {
+  for (let page = 1; page <= maxPages; page++) {
     const res = await ttPost<{ bookings?: TTBooking[] | Record<string, TTBooking>; pagination?: { has_more?: boolean } }>(
       apiKey,
       '/booking/getbookings',
@@ -255,8 +260,11 @@ export async function getTuriTopBookings(apiKey: string, from: string, to: strin
         productName: decodeHtmlEntities(b.product_name ?? b.product_short_id),
         date,
         time: iso.slice(11, 16),
+        bookedOn: (b.date_booking_iso8601 ?? '').slice(0, 10),
         participants: (b.ticket_type_count ?? []).reduce((s, t) => s + (t.count ?? 0), 0),
         customerName: decodeHtmlEntities(b.client_data?.name ?? ''),
+        customerEmail: b.client_data?.email ?? '',
+        customerPhone: b.client_data?.phone ?? '',
         status: b.status ?? 'pending',
         total: Number(b.total_price ?? 0),
         currency: b.currency ?? 'EUR',

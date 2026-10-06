@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase/client'
 import { LOCALE_NAMES, LOCALES } from '@/lib/constants'
 import ReactCountryFlag from 'react-country-flag'
 import {
-  LayoutDashboard, Calendar, Star, Heart, MessageSquare, Settings,
+  LayoutDashboard, Calendar, CalendarDays, Star, Heart, MessageSquare, Settings,
   BarChart3, Building2, QrCode, Link2, TrendingUp,
   Package, DollarSign, Users, CreditCard, Boxes,
   Newspaper, Sliders, Activity, Gift, LogOut, ChevronDown, ArrowLeft, AlertTriangle, Wallet, UserPlus
@@ -63,7 +63,7 @@ const getNavItems = (
         { href: '/dashboard/provider/subscription', label: tProvider('subscription'), icon: CreditCard },
         { href: '/dashboard/provider/activities', label: tProvider('activities'), icon: Package },
         { href: '/dashboard/provider/bookings', label: tProvider('bookings'), icon: Calendar },
-        { href: '/dashboard/provider/calendar', label: tProvider('calendar'), icon: Calendar },
+        { href: '/dashboard/provider/calendar', label: tProvider('calendar'), icon: CalendarDays },
         { href: '/dashboard/provider/stats', label: tProvider('stats'), icon: BarChart3 },
         { href: '/dashboard/provider/commissions', label: tProvider('commissions'), icon: DollarSign },
         { href: '/dashboard/provider/settings', label: t('settings'), icon: Settings },
@@ -72,6 +72,7 @@ const getNavItems = (
       return [
         { href: '/dashboard/admin', label: tAdmin('overview'), icon: LayoutDashboard },
         { href: '/dashboard/admin/reservations', label: tAdmin('reservations'), icon: Calendar },
+        { href: '/dashboard/admin/calendar', label: tAdmin('calendar'), icon: CalendarDays },
         { href: '/dashboard/admin/incidents', label: tAdmin('incidents'), icon: AlertTriangle },
         { href: '/dashboard/admin/activities', label: tAdmin('activities'), icon: Activity },
         { href: '/dashboard/admin/users', label: tAdmin('users'), icon: Users },
