@@ -1517,5 +1517,21 @@
     "s5_p1": "BookActivities haftet nicht für Schäden, Verluste oder Zwischenfälle, die während der Aktivitäten auftreten können. Die Verantwortung für die Leistungserbringung liegt vollständig beim Anbieter. Der Nutzer sollte prüfen, ob der Anbieter alle geltenden Tourismus- und Sicherheitsvorschriften einhält.",
     "s6_title": "6. Anwendbares Recht und Gerichtsstand",
     "s6_p1": "Diese Bedingungen unterliegen spanischem Recht. Zur Beilegung von Streitigkeiten unterwerfen sich die Parteien den Gerichten von Torrevieja, Alicante, sofern nicht zwingende Vorschriften einen anderen Gerichtsstand vorsehen."
+  },
+  "turitop_import": {
+    "title": "Aus TuriTop importieren",
+    "description": "Übernehmen Sie Ihre TuriTop-Produkte als Aktivitäten-Entwürfe und verknüpfen Sie deren Kalender.",
+    "open_button": "Meine Produkte anzeigen",
+    "loading": "Ihre TuriTop-Produkte werden geladen…",
+    "nothing_to_import": "Sie haben bereits alle Ihre TuriTop-Produkte importiert.",
+    "available_count": "{count} Produkte verfügbar",
+    "select_all": "Alle auswählen",
+    "clear_all": "Auswahl aufheben",
+    "import_button": "{count} ausgewählte importieren",
+    "cancel": "Abbrechen",
+    "draft_note": "Sie werden als Entwurf mit Titel, Beschreibung, Dauer und Ab-Preis angelegt. Fügen Sie Fotos hinzu und reichen Sie sie zur Prüfung ein.",
+    "load_error": "Ihre TuriTop-Produkte konnten nicht geladen werden.",
+    "import_error": "Import fehlgeschlagen.",
+    "import_ok": "{count, plural, one {# Aktivität importiert} other {# Aktivitäten importiert}}"
   }
 }

@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader'
 import { ActivityManageButtons } from '@/components/dashboard/provider/ActivityManageButtons'
+import { TuriTopImportCard } from '@/components/dashboard/provider/TuriTopImportCard'
 import { SubscriptionBanner } from '@/components/dashboard/provider/SubscriptionBanner'
 import { Eye, Star, Calendar, PlusCircle, Edit2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
@@ -78,6 +79,8 @@ export default async function ProviderActivitiesPage({
           </Link>
         }
       />
+
+      {provider.turitop_has_key && !showArchived && <TuriTopImportCard />}
 
       <div className="flex gap-1 mb-5 bg-slate-100 rounded-xl p-1 w-fit">
         <Link href="/dashboard/provider/activities" className={cn('px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors', !showArchived ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700')}>{t('tab_active')}</Link>

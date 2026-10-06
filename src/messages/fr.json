@@ -1517,5 +1517,21 @@
     "s5_p1": "BookActivities n'est pas responsable des dommages, préjudices ou incidents pouvant survenir pendant les activités. La responsabilité de la prestation incombe entièrement au prestataire. L'utilisateur doit vérifier que le prestataire respecte toute la réglementation touristique et de sécurité en vigueur.",
     "s6_title": "6. Droit applicable et juridiction",
     "s6_p1": "Les présentes conditions sont régies par le droit espagnol. Pour la résolution des litiges, les parties se soumettent aux tribunaux de Torrevieja, Alicante, sauf disposition légale contraire."
+  },
+  "turitop_import": {
+    "title": "Importer depuis TuriTop",
+    "description": "Importez vos produits TuriTop comme activités en brouillon et liez leur calendrier.",
+    "open_button": "Voir mes produits",
+    "loading": "Chargement de vos produits TuriTop…",
+    "nothing_to_import": "Vous avez déjà importé tous vos produits TuriTop.",
+    "available_count": "{count} produits disponibles",
+    "select_all": "Tout sélectionner",
+    "clear_all": "Désélectionner",
+    "import_button": "Importer {count} sélectionnés",
+    "cancel": "Annuler",
+    "draft_note": "Ils sont créés en brouillon avec titre, description, durée et prix de départ. Ajoutez des photos et soumettez-les à validation quand ils sont prêts.",
+    "load_error": "Impossible de charger vos produits TuriTop.",
+    "import_error": "Échec de l'import.",
+    "import_ok": "{count, plural, one {# activité importée} other {# activités importées}}"
   }
 }

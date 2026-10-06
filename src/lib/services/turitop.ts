@@ -196,3 +196,128 @@ export async function getTuriTopCalendar(
   }
   return [...days.values()]
 }
+
+// ---------------------------------------------------------------------------
+// Bookings (POST /booking/getbookings)
+// ---------------------------------------------------------------------------
+
+export interface TuriTopBooking {
+  id: string
+  productId: string
+  productName: string
+  /** Local date YYYY-MM-DD. */
+  date: string
+  /** Local time HH:MM. */
+  time: string
+  participants: number
+  customerName: string
+  status: string
+  total: number
+  currency: string
+  source: string
+}
+
+interface TTBooking {
+  short_id: string
+  product_short_id: string
+  product_name: string
+  date_event_iso8601?: string
+  date_event: number
+  status?: string
+  source?: string
+  currency?: string
+  total_price?: string
+  client_data?: { name?: string }
+  ticket_type_count?: { count?: number; seats?: number }[]
+}
+
+/** Bookings whose EVENT date falls in [from, to] (YYYY-MM-DD, inclusive). */
+export async function getTuriTopBookings(apiKey: string, from: string, to: string): Promise<TuriTopBooking[]> {
+  const start = Math.floor(new Date(`${from}T00:00:00Z`).getTime() / 1000) - 12 * 3600
+  const end = Math.floor(new Date(`${to}T23:59:59Z`).getTime() / 1000) + 12 * 3600
+  const out: TuriTopBooking[] = []
+
+  for (let page = 1; page <= 10; page++) {
+    const res = await ttPost<{ bookings?: TTBooking[] | Record<string, TTBooking>; pagination?: { has_more?: boolean } }>(
+      apiKey,
+      '/booking/getbookings',
+      { filter: { event_date_from: start, event_date_to: end, booking_limit: 100, booking_page: page } }
+    )
+    const raw = res.data?.bookings ?? []
+    const list: TTBooking[] = Array.isArray(raw) ? raw : Object.values(raw)
+    for (const b of list) {
+      const iso = b.date_event_iso8601 ?? ''
+      const date = iso.slice(0, 10)
+      if (!date || date < from || date > to) continue
+      out.push({
+        id: b.short_id,
+        productId: b.product_short_id,
+        productName: decodeHtmlEntities(b.product_name ?? b.product_short_id),
+        date,
+        time: iso.slice(11, 16),
+        participants: (b.ticket_type_count ?? []).reduce((s, t) => s + (t.count ?? 0), 0),
+        customerName: decodeHtmlEntities(b.client_data?.name ?? ''),
+        status: b.status ?? 'pending',
+        total: Number(b.total_price ?? 0),
+        currency: b.currency ?? 'EUR',
+        source: b.source ?? '',
+      })
+    }
+    if (!res.data?.pagination?.has_more) break
+  }
+  return out
+}
+
+// ---------------------------------------------------------------------------
+// Import: product details + cheapest ticket price (POST /product/getproducts
+// with product_short_id, POST /tickets/get)
+// ---------------------------------------------------------------------------
+
+export interface TuriTopImportData {
+  id: string
+  title: string
+  summary: string
+  description: string
+  durationMinutes: number
+  city: string
+  latitude: number | null
+  longitude: number | null
+  priceFrom: number
+  maxParticipants: number
+}
+
+interface TTProductDetail extends TTProduct {
+  summary?: string
+  description?: string
+  duration?: string | number
+  location_name?: string
+  coordinates?: string
+}
+
+export async function getTuriTopImportData(apiKey: string, productId: string): Promise<TuriTopImportData> {
+  const [p, t] = await Promise.all([
+    ttPost<{ product?: TTProductDetail }>(apiKey, '/product/getproducts', { product_short_id: productId, language_code: 'es' }),
+    ttPost<{ tickets?: Record<string, { price?: string; tickets_max?: string; is_addon?: string; seats?: string }> }>(apiKey, '/tickets/get', { product_short_id: productId }),
+  ])
+  const prod = p.data?.product
+  if (!prod) throw new Error(`Producto ${productId} no encontrado`)
+
+  const tickets = Object.values(t.data?.tickets ?? {}).filter((x) => x.is_addon !== '1')
+  const prices = tickets.map((x) => Number(x.price ?? 0)).filter((n) => n > 0)
+  const maxP = tickets.map((x) => Number(x.tickets_max ?? 0)).filter((n) => n > 0)
+  const [lat, lng] = (prod.coordinates ?? '').split(',').map((v) => parseFloat(v))
+
+  const summary = decodeHtmlEntities(prod.summary ?? '')
+  return {
+    id: prod.short_id,
+    title: decodeHtmlEntities(prod.name),
+    summary,
+    description: decodeHtmlEntities(prod.description ?? '') || summary || decodeHtmlEntities(prod.name),
+    durationMinutes: Number(prod.duration) || 60,
+    city: decodeHtmlEntities(prod.location_name ?? '') || 'Torrevieja',
+    latitude: Number.isFinite(lat) ? lat : null,
+    longitude: Number.isFinite(lng) ? lng : null,
+    priceFrom: prices.length ? Math.min(...prices) : 0,
+    maxParticipants: maxP.length ? Math.max(...maxP) : 10,
+  }
+}
