@@ -23,6 +23,8 @@ const STATUS_STYLES: Record<string, string> = {
   archived: 'bg-slate-100 text-slate-500',
 }
 
+export const maxDuration = 120
+
 export default async function ProviderActivitiesPage({
   searchParams,
 }: {

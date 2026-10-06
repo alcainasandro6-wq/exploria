@@ -685,8 +685,8 @@ export async function importTuriTopProductsAction(productIds: string[], forProvi
 }> {
   try {
     const { providerId, isAdmin } = await resolveProviderTarget(forProviderId)
-    if (!Array.isArray(productIds) || productIds.length === 0 || productIds.length > 50) {
-      return { success: false, imported: 0, skipped: 0, error: 'Select between 1 and 50 products' }
+    if (!Array.isArray(productIds) || productIds.length === 0 || productIds.length > 300) {
+      return { success: false, imported: 0, skipped: 0, error: 'Select between 1 and 300 products' }
     }
     if (!isAdmin && !(await isSubscriptionActive(providerId))) {
       return { success: false, imported: 0, skipped: 0, error: 'You need an active subscription to create activities.', upgradeRequired: true }
@@ -706,46 +706,63 @@ export async function importTuriTopProductsAction(productIds: string[], forProvi
 
     let imported = 0
     let skipped = 0
-    for (const id of [...new Set(productIds)]) {
-      if (!/^[A-Za-z0-9_-]{1,20}$/.test(id) || already.has(id)) { skipped++; continue }
-      const d = await getTuriTopImportData(key, id)
-      const slug = d.title
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '')
+    const wanted = [...new Set(productIds)].filter((id) => {
+      const ok = /^[A-Za-z0-9_-]{1,20}$/.test(id) && !already.has(id)
+      if (!ok) skipped++
+      return ok
+    })
 
-      const values = {
-        provider_id: providerId,
-        title: d.title,
-        slug: `${slug}-${Date.now().toString(36)}`,
-        description: d.description,
-        short_description: d.summary || null,
-        price_from: d.priceFrom,
-        duration_minutes: d.durationMinutes,
-        max_participants: d.maxParticipants,
-        min_participants: 1,
-        languages: ['es'],
-        meeting_point: d.city,
-        city: d.city,
-        country: 'ES',
-        cancellation_policy: 'Free cancellation up to 24 hours before',
-        latitude: d.latitude,
-        longitude: d.longitude,
-        external_booking_platform: 'turitop',
-        turitop_service_code: id,
-        turitop_product_id: id,
-        status: 'draft',
-        turitop_placeholder: false,
+    // Fetch product details from TuriTop in parallel batches (2 calls each).
+    let firstError: string | undefined
+    for (let i = 0; i < wanted.length; i += 8) {
+      const batch = wanted.slice(i, i + 8)
+      const details = await Promise.allSettled(batch.map((id) => getTuriTopImportData(key, id)))
+
+      for (let j = 0; j < batch.length; j++) {
+        const id = batch[j]
+        const r = details[j]
+        if (r.status === 'rejected') { skipped++; firstError ??= (r.reason as Error).message; continue }
+        const d = r.value
+        const slug = d.title
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '')
+
+        const values = {
+          provider_id: providerId,
+          title: d.title,
+          slug: `${slug || 'turitop'}-${id.toLowerCase()}-${Date.now().toString(36)}`,
+          description: d.description,
+          short_description: d.summary || null,
+          price_from: d.priceFrom,
+          duration_minutes: d.durationMinutes,
+          max_participants: d.maxParticipants,
+          min_participants: 1,
+          languages: ['es'],
+          meeting_point: d.city,
+          city: d.city,
+          country: 'ES',
+          cancellation_policy: 'Free cancellation up to 24 hours before',
+          latitude: d.latitude,
+          longitude: d.longitude,
+          external_booking_platform: 'turitop',
+          turitop_service_code: id,
+          turitop_product_id: id,
+          status: 'draft',
+          turitop_placeholder: false,
+        }
+        const placeholderId = placeholders.get(id)
+        const { error } = placeholderId
+          ? await supabase.from('activities').update(values).eq('id', placeholderId)
+          : await supabase.from('activities').insert(values)
+        if (error) { skipped++; firstError ??= error.message; continue }
+        imported++
       }
-      const placeholderId = placeholders.get(id)
-      const { error } = placeholderId
-        ? await supabase.from('activities').update(values).eq('id', placeholderId)
-        : await supabase.from('activities').insert(values)
-      if (error) return { success: false, imported, skipped, error: error.message }
-      imported++
     }
+
+    if (imported === 0 && firstError) return { success: false, imported, skipped, error: firstError }
 
     revalidatePath('/dashboard/provider/activities')
     return { success: true, imported, skipped }

@@ -6,6 +6,8 @@ import { ProviderCalendar } from '@/components/dashboard/provider/ProviderCalend
 import { createClient } from '@/lib/supabase/server'
 import { getProviderByProfileId } from '@/lib/services/providers'
 
+export const maxDuration = 120
+
 export default async function ProviderCalendarPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

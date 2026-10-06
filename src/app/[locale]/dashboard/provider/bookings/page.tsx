@@ -10,6 +10,8 @@ import { SyncTuriTopButton } from '@/components/dashboard/SyncTuriTopButton'
 import { syncTuriTopBookings } from '@/lib/services/turitop-import'
 import { ProviderBookingRow } from '@/components/dashboard/provider/ProviderBookingRow'
 
+export const maxDuration = 120
+
 export default async function ProviderBookingsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

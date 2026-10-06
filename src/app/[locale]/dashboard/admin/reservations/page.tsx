@@ -16,6 +16,8 @@ const STATUS_STYLES: Record<string, 'success' | 'warning' | 'secondary' | 'destr
   cancelled: 'destructive', rejected: 'destructive', no_show: 'destructive',
 }
 
+export const maxDuration = 120
+
 export default async function AdminReservationsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

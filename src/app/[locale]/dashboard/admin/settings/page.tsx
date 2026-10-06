@@ -9,6 +9,8 @@ import { createClient } from '@/lib/supabase/server'
 import { getAllProviders } from '@/lib/services/providers'
 import { TuriTopProviderRow } from '@/components/dashboard/admin/TuriTopProviderRow'
 
+export const maxDuration = 120
+
 export default async function AdminSettingsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

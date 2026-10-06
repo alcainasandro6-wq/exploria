@@ -6,6 +6,8 @@ import { AdminCalendar } from '@/components/dashboard/admin/AdminCalendar'
 import { SyncTuriTopButton } from '@/components/dashboard/SyncTuriTopButton'
 import { createClient } from '@/lib/supabase/server'
 
+export const maxDuration = 120
+
 export default async function AdminCalendarPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
